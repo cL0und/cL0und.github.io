@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>博客重启小记</title>
+    <url>/2019/12/22/%E5%8D%9A%E5%AE%A2%E9%87%8D%E5%90%AF%E5%B0%8F%E8%AE%B0/</url>
+    <content><![CDATA[<p>大约是在一七年那个寒假开始写技术博客，中间断断续续的更新到一八年六月。重新写博客是起于今年九月份的临时起意，一方面是想督促自己“有意识”的进步，另外一方面是假装做做技术输出。最开始博客用的是hexo，重启之后另起炉灶用是wordpress，因为并不想付云服务器月租所以决定换回hexo。在弃更到重启这段期间因为换过新笔记本并且再加上没有备份，所以之前的博客文章的md版已经灾难性的消失。大约花了一天多的时间慢慢把网页手工恢复成符合hexo格式的md（大概部分文章仍然会有格式上的错误），在整理的时候发现自己以前的文章表意不清，部分地方是片面甚至错误的（以后抽时间慢慢改，咕咕咕？）。以上～</p>
+]]></content>
+      <tags>
+        <tag>杂</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Using Java&#39;s SSRF vulnerability rce via ntlm relay</title>
     <url>/2019/12/19/Using%20Java%E2%80%99s%20SSRF%20vulnerability%20rce%20via%20ntlm%20relay/</url>
     <content><![CDATA[<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>实验室环境说明<br>• 6.1.7601 Service Pack 1 Build 7601<br>• jdk1.7.0_80<br>• 工作组环境</p>
