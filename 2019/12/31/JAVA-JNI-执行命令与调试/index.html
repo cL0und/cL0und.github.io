@@ -19,7 +19,7 @@
 <script id="hexo-configurations">
   var NexT = window.NexT || {};
   var CONFIG = {
-    hostname: new URL('http://yoursite.com').hostname,
+    hostname: new URL('http://redteam.today').hostname,
     root: '/',
     scheme: 'Mist',
     version: '7.6.0',
@@ -49,21 +49,21 @@
   <meta name="description" content="JNI是Java Native Interface的缩写，利用它可以在比较底层的位置执行命令。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="JAVA JNI 执行命令与调试">
-<meta property="og:url" content="http://yoursite.com/2019/12/31/JAVA-JNI-%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E4%B8%8E%E8%B0%83%E8%AF%95/index.html">
+<meta property="og:url" content="http://redteam.today/2019/12/31/JAVA-JNI-%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E4%B8%8E%E8%B0%83%E8%AF%95/index.html">
 <meta property="og:site_name" content="李三的剑谱">
 <meta property="og:description" content="JNI是Java Native Interface的缩写，利用它可以在比较底层的位置执行命令。">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://yoursite.com/2019/12/31/JAVA-JNI-%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E4%B8%8E%E8%B0%83%E8%AF%95/1577718523328-184106f3-09eb-46c1-bf96-43a560463d68.png">
-<meta property="og:image" content="http://yoursite.com/2019/12/31/JAVA-JNI-%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E4%B8%8E%E8%B0%83%E8%AF%95/1577718596131-2f54a43f-5d26-4aad-ae09-294069574301.png">
-<meta property="og:image" content="http://yoursite.com/2019/12/31/JAVA-JNI-%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E4%B8%8E%E8%B0%83%E8%AF%95/1577718822468-c0f6a1cf-2889-4539-aebe-aa0cda8fdd0a.png">
+<meta property="og:image" content="http://redteam.today/2019/12/31/JAVA-JNI-%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E4%B8%8E%E8%B0%83%E8%AF%95/1577718523328-184106f3-09eb-46c1-bf96-43a560463d68.png">
+<meta property="og:image" content="http://redteam.today/2019/12/31/JAVA-JNI-%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E4%B8%8E%E8%B0%83%E8%AF%95/1577718596131-2f54a43f-5d26-4aad-ae09-294069574301.png">
+<meta property="og:image" content="http://redteam.today/2019/12/31/JAVA-JNI-%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E4%B8%8E%E8%B0%83%E8%AF%95/1577718822468-c0f6a1cf-2889-4539-aebe-aa0cda8fdd0a.png">
 <meta property="article:published_time" content="2019-12-31T08:16:26.000Z">
-<meta property="article:modified_time" content="2019-12-31T08:22:14.662Z">
+<meta property="article:modified_time" content="2020-01-03T14:32:06.655Z">
 <meta property="article:author" content="李三（cl0und）">
 <meta property="article:tag" content="java">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://yoursite.com/2019/12/31/JAVA-JNI-%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E4%B8%8E%E8%B0%83%E8%AF%95/1577718523328-184106f3-09eb-46c1-bf96-43a560463d68.png">
+<meta name="twitter:image" content="http://redteam.today/2019/12/31/JAVA-JNI-%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E4%B8%8E%E8%B0%83%E8%AF%95/1577718523328-184106f3-09eb-46c1-bf96-43a560463d68.png">
 
-<link rel="canonical" href="http://yoursite.com/2019/12/31/JAVA-JNI-%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E4%B8%8E%E8%B0%83%E8%AF%95/">
+<link rel="canonical" href="http://redteam.today/2019/12/31/JAVA-JNI-%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E4%B8%8E%E8%B0%83%E8%AF%95/">
 
 
 <script id="page-configurations">
@@ -215,7 +215,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="en">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/31/JAVA-JNI-%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E4%B8%8E%E8%B0%83%E8%AF%95/">
+    <link itemprop="mainEntityOfPage" href="http://redteam.today/2019/12/31/JAVA-JNI-%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E4%B8%8E%E8%B0%83%E8%AF%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -237,10 +237,16 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2019-12-31 16:16:26 / Modified: 16:22:14" itemprop="dateCreated datePublished" datetime="2019-12-31T16:16:26+08:00">2019-12-31</time>
+              <time title="Created: 2019-12-31 16:16:26" itemprop="dateCreated datePublished" datetime="2019-12-31T16:16:26+08:00">2019-12-31</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-01-03 22:32:06" itemprop="dateModified" datetime="2020-01-03T22:32:06+08:00">2020-01-03</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -288,7 +294,7 @@
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">javac -cp . CommandExecution.java</span><br><span class="line">javah -cp . CommandExecution</span><br></pre></td></tr></table></figure>
 
 <p>CommandExecution.cpp</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cstring&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"com_anbai_sec_cmd_CommandExecution.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line">JNIEXPORT jstring</span><br><span class="line"></span><br><span class="line">JNICALL CommandExecution_exec</span><br><span class="line">        (JNIEnv *env, jclass jclass, jstring str) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (str != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        jboolean jsCopy;</span><br><span class="line">        <span class="comment">// 将jstring参数转成char指针</span></span><br><span class="line">        <span class="keyword">const</span> <span class="keyword">char</span> *cmd = env-&gt;GetStringUTFChars(str, &amp;jsCopy);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 使用popen函数执行系统命令</span></span><br><span class="line">        FILE *fd  = popen(cmd, <span class="string">"r"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (fd != <span class="literal">NULL</span>) &#123;</span><br><span class="line">            <span class="comment">// 返回结果字符串</span></span><br><span class="line">            <span class="built_in">string</span> result;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 定义字符串数组</span></span><br><span class="line">            <span class="keyword">char</span> buf[<span class="number">128</span>];</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 读取popen函数的执行结果</span></span><br><span class="line">            <span class="keyword">while</span> (fgets(buf, <span class="keyword">sizeof</span>(buf), fd) != <span class="literal">NULL</span>) &#123;</span><br><span class="line">                <span class="comment">// 拼接读取到的结果到result</span></span><br><span class="line">                result +=buf;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 关闭popen</span></span><br><span class="line">            pclose(fd);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 返回命令执行结果给Java</span></span><br><span class="line">            <span class="keyword">return</span> env-&gt;NewStringUTF(result.c_str());</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cstring&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"CommandExecution.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line">JNIEXPORT jstring</span><br><span class="line"></span><br><span class="line">JNICALL CommandExecution_exec</span><br><span class="line">        (JNIEnv *env, jclass jclass, jstring str) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (str != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        jboolean jsCopy;</span><br><span class="line">        <span class="comment">// 将jstring参数转成char指针</span></span><br><span class="line">        <span class="keyword">const</span> <span class="keyword">char</span> *cmd = env-&gt;GetStringUTFChars(str, &amp;jsCopy);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 使用popen函数执行系统命令</span></span><br><span class="line">        FILE *fd  = popen(cmd, <span class="string">"r"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (fd != <span class="literal">NULL</span>) &#123;</span><br><span class="line">            <span class="comment">// 返回结果字符串</span></span><br><span class="line">            <span class="built_in">string</span> result;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 定义字符串数组</span></span><br><span class="line">            <span class="keyword">char</span> buf[<span class="number">128</span>];</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 读取popen函数的执行结果</span></span><br><span class="line">            <span class="keyword">while</span> (fgets(buf, <span class="keyword">sizeof</span>(buf), fd) != <span class="literal">NULL</span>) &#123;</span><br><span class="line">                <span class="comment">// 拼接读取到的结果到result</span></span><br><span class="line">                result +=buf;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 关闭popen</span></span><br><span class="line">            pclose(fd);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 返回命令执行结果给Java</span></span><br><span class="line">            <span class="keyword">return</span> env-&gt;NewStringUTF(result.c_str());</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>编译，注意这里为了后续能够调试需要加 <code>-g</code> 参数</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">g++ -fPIC -I<span class="string">"$JAVA_HOME/include"</span> -I<span class="string">"$JAVA_HOME/include/linux"</span> -shared -g -o libcmd.so CommandExecution.cpp</span><br></pre></td></tr></table></figure>
@@ -325,7 +331,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>Post link: </strong>
-    <a href="http://yoursite.com/2019/12/31/JAVA-JNI-%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E4%B8%8E%E8%B0%83%E8%AF%95/" title="JAVA JNI 执行命令与调试">http://yoursite.com/2019/12/31/JAVA-JNI-执行命令与调试/</a>
+    <a href="http://redteam.today/2019/12/31/JAVA-JNI-%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E4%B8%8E%E8%B0%83%E8%AF%95/" title="JAVA JNI 执行命令与调试">http://redteam.today/2019/12/31/JAVA-JNI-执行命令与调试/</a>
   </li>
   <li class="post-copyright-license">
     <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
@@ -348,7 +354,10 @@
     <a href="/2019/12/22/%E5%8D%9A%E5%AE%A2%E9%87%8D%E5%90%AF%E5%B0%8F%E8%AE%B0/" rel="prev" title="博客重启小记">
       <i class="fa fa-chevron-left"></i> 博客重启小记
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2020/01/03/Hessian-%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90%E5%8F%8A%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF%E5%AD%A6%E4%B9%A0/" rel="next" title="Hessian 序列化代码分析及业务场景学习">
+      Hessian 序列化代码分析及业务场景学习 <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -422,7 +431,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">26</span>
+          <span class="site-state-item-count">27</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -501,7 +510,7 @@
 <div class="copyright">
   
   &copy; 
-  <span itemprop="copyrightYear">2019</span>
+  <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
@@ -510,12 +519,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="Symbols count total">155k</span>
+    <span title="Symbols count total">160k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">2:21</span>
+    <span title="Reading time total">2:26</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.1.1
   </div>
