@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://redteam.today').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="这篇文章主要目的在于学习前人文章，并从更深入一点的角度探讨为什么Runtime.getRuntime().exec某些时候会失效这个问题。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java Runtime.getRuntime().exec由表及里">
+<meta property="og:url" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/index.html">
+<meta property="og:site_name" content="李三的剑谱">
+<meta property="og:description" content="这篇文章主要目的在于学习前人文章，并从更深入一点的角度探讨为什么Runtime.getRuntime().exec某些时候会失效这个问题。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577676465197-1f34563e-7443-4f6c-9238-c0137558519e.png#align=left&display=inline&height=232&name=image.png&originHeight=464&originWidth=2472&size=112349&status=done&style=none&width=1236">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577676563293-bef3ec10-84d5-4aa5-95b7-bec57b95d23e.png#align=left&display=inline&height=160&name=image.png&originHeight=320&originWidth=2354&size=88578&status=done&style=none&width=1177">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577676687805-0c7e43fb-9d1d-4aa8-8ef6-7331003c1499.png#align=left&display=inline&height=82&name=image.png&originHeight=122&originWidth=1110&size=51524&status=done&style=none&width=746">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577679919272-65599375-f5c5-4dd0-99fb-eae32d71c6fe.png#align=left&display=inline&height=378&name=image.png&originHeight=646&originWidth=1274&size=50358&status=done&style=none&width=746">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577679973496-15f40fac-cdbc-48c5-a23c-63385bf3775e.png#align=left&display=inline&height=162&name=image.png&originHeight=324&originWidth=3298&size=104504&status=done&style=none&width=1649">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577680147954-a2e442b8-dd8c-42c4-a578-41d879554491.png#align=left&display=inline&height=229&name=image.png&originHeight=458&originWidth=2918&size=146723&status=done&style=none&width=1459">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577685833249-067f99be-c43e-4564-a18f-a47a6856861a.png#align=left&display=inline&height=211&name=image.png&originHeight=422&originWidth=2766&size=176007&status=done&style=none&width=1383">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577686182902-31dc960d-5d35-42a5-8803-079771cf19b3.png#align=left&display=inline&height=186&name=image.png&originHeight=228&originWidth=916&size=22796&status=done&style=none&width=746">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577686458188-5644d174-4a9f-4a06-a666-eb66296ce4d5.png#align=left&display=inline&height=130&name=image.png&originHeight=260&originWidth=1816&size=61763&status=done&style=none&width=908">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577686661547-d787e724-269b-4a25-95c6-1a87412d7e97.png#align=left&display=inline&height=127&name=image.png&originHeight=254&originWidth=2602&size=71237&status=done&style=none&width=1301">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577687523856-aadd2b68-7973-4b49-a857-d554004c8f6e.png#align=left&display=inline&height=487&name=image.png&originHeight=974&originWidth=2514&size=281837&status=done&style=none&width=1257">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577686887031-96670a59-cdca-4cf1-ad79-ee82474a18bb.png#align=left&display=inline&height=156&name=image.png&originHeight=312&originWidth=2602&size=86125&status=done&style=none&width=1301">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577688234642-21446af8-71dc-42ef-a9a4-d4f549399445.png#align=left&display=inline&height=312&name=image.png&originHeight=624&originWidth=2776&size=186773&status=done&style=none&width=1388">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577686970789-da810849-80d9-4eb2-b107-7bb1ce933b0f.png#align=left&display=inline&height=155&name=image.png&originHeight=310&originWidth=1994&size=74399&status=done&style=none&width=997">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577687207316-a29ab55a-281b-4cd5-b8df-d35c5038dbb5.png#align=left&display=inline&height=200&name=image.png&originHeight=288&originWidth=1076&size=49512&status=done&style=none&width=746">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577689013179-27759f7d-39b7-453c-883c-674de2de614d.png#align=left&display=inline&height=75&name=image.png&originHeight=150&originWidth=2222&size=51052&status=done&style=none&width=1111">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577689204761-132deaef-3c15-4894-8d8f-bc307ff0de8e.png#align=left&display=inline&height=318&name=image.png&originHeight=636&originWidth=2828&size=191238&status=done&style=none&width=1414">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577891037047-1a96c772-57d2-4476-93b4-3460b8ea60b1.png#align=left&display=inline&height=129&name=image.png&originHeight=258&originWidth=1074&size=43587&status=done&style=none&width=537">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577690492437-eb933d61-d2b5-4175-94e8-2707f0a04a80.png#align=left&display=inline&height=302&name=image.png&originHeight=604&originWidth=2076&size=124786&status=done&style=none&width=1038">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577695145401-bada57bf-0499-4f8c-b33f-1d240cd142af.png#align=left&display=inline&height=774&name=image.png&originHeight=1548&originWidth=2786&size=270657&status=done&style=none&width=1393">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577891334880-c3954fc0-353f-4e3a-93d2-c05a22a1805b.png#align=left&display=inline&height=762&name=image.png&originHeight=1524&originWidth=1826&size=284743&status=done&style=none&width=913">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577803126319-c17c1625-54d4-4a06-b2f4-f3e2d69f0912.png#align=left&display=inline&height=738&name=image.png&originHeight=1476&originWidth=2068&size=1476544&status=done&style=none&width=1034">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577891592795-27719e34-85b1-49fb-94b9-6fbbb4bd7a4b.png#align=left&display=inline&height=640&name=image.png&originHeight=1280&originWidth=1956&size=187639&status=done&style=none&width=978">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577886759874-01492158-3589-42ae-8468-8ba3629cc2bc.png#align=left&display=inline&height=744&name=image.png&originHeight=1488&originWidth=1922&size=234923&status=done&style=none&width=961">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577892301729-741292b7-cee1-4ed8-9ce9-72fec7fc5783.png#align=left&display=inline&height=685&name=image.png&originHeight=1370&originWidth=1596&size=183821&status=done&style=none&width=798">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577886891144-925b1102-3c6f-4752-b0ba-b5b94d1def00.png#align=left&display=inline&height=452&name=image.png&originHeight=904&originWidth=1838&size=123585&status=done&style=none&width=919">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577887135995-42990dc8-ec02-401e-9213-eddf7e418801.png#align=left&display=inline&height=213&name=image.png&originHeight=356&originWidth=1246&size=39821&status=done&style=none&width=746">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577887148131-a6992150-ab3e-4e82-a93c-c5927f254965.png#align=left&display=inline&height=177&name=image.png&originHeight=292&originWidth=1230&size=31775&status=done&style=none&width=746">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577887164428-ce737fbd-2e40-4702-820a-d45b23fa2954.png#align=left&display=inline&height=212&name=image.png&originHeight=354&originWidth=1244&size=39562&status=done&style=none&width=746">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577774188360-408cc7a4-bffe-4360-a859-f6e5b6b20a4f.png#align=left&display=inline&height=310&name=image.png&originHeight=620&originWidth=2246&size=111327&status=done&style=none&width=1123">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577892353386-8b9d3cb5-d1a0-4c85-bd25-555f2dc45f04.png#align=left&display=inline&height=123&name=image.png&originHeight=202&originWidth=1226&size=21350&status=done&style=none&width=746">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577892370784-45fd9581-4a77-41b5-99c3-70031f64f1f0.png#align=left&display=inline&height=121&name=image.png&originHeight=200&originWidth=1228&size=21627&status=done&style=none&width=746">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577892391866-8b0b4576-a0c0-403b-8c41-13a8848e700b.png#align=left&display=inline&height=116&name=image.png&originHeight=192&originWidth=1234&size=22711&status=done&style=none&width=746">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577892410406-82bd1a5c-7106-4077-ac07-fa9cb05d972b.png#align=left&display=inline&height=120&name=image.png&originHeight=190&originWidth=1182&size=21050&status=done&style=none&width=746">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577892490628-2810628a-be2b-4db9-90e9-2845970634e4.png#align=left&display=inline&height=114&name=image.png&originHeight=184&originWidth=1206&size=20774&status=done&style=none&width=746">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577892526498-a9e7e761-b5af-452f-82db-cf194e00d3bf.png#align=left&display=inline&height=114&name=image.png&originHeight=190&originWidth=1244&size=22425&status=done&style=none&width=746">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577892558443-d47b918c-5559-47e7-b68b-8af7db6aec8e.png#align=left&display=inline&height=123&name=image.png&originHeight=202&originWidth=1230&size=22185&status=done&style=none&width=746">
+<meta property="og:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577774099636-86487450-9203-4284-ba2c-d16a7e1297c8.png#align=left&display=inline&height=326&name=image.png&originHeight=652&originWidth=2692&size=136647&status=done&style=none&width=1346">
+<meta property="article:published_time" content="2020-01-11T14:32:03.000Z">
+<meta property="article:modified_time" content="2020-01-11T14:49:31.943Z">
+<meta property="article:author" content="李三（cl0und）">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/1577676465197-1f34563e-7443-4f6c-9238-c0137558519e.png#align=left&display=inline&height=232&name=image.png&originHeight=464&originWidth=2472&size=112349&status=done&style=none&width=1236">
+
+<link rel="canonical" href="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Java Runtime.getRuntime().exec由表及里 | 李三的剑谱</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="李三的剑谱" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">李三的剑谱</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="Searching..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="en">
+    <link itemprop="mainEntityOfPage" href="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="李三（cl0und）">
+      <meta itemprop="description" content="人若无名，便可专心练剑">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="李三的剑谱">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java Runtime.getRuntime().exec由表及里
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-01-11 22:32:03 / Modified: 22:49:31" itemprop="dateCreated datePublished" datetime="2020-01-11T22:32:03+08:00">2020-01-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/web-security/" itemprop="url" rel="index">
+                    <span itemprop="name">web security</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>6k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>5 mins.</span>
+            </span>
+            <div class="post-description">这篇文章主要目的在于学习前人文章，并从更深入一点的角度探讨为什么Runtime.getRuntime().exec某些时候会失效这个问题。</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文发在<a href="https://xz.aliyun.com/t/7046" target="_blank" rel="noopener">先知社区</a>，转载到自己博客上。</p>
+<h2 id="问题复现"><a href="#问题复现" class="headerlink" title="问题复现"></a>问题复现</h2><p>测试代码如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.ByteArrayOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStream;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">linux_cmd1</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        String cmd = <span class="string">"cmd which you want to exec"</span>;</span><br><span class="line">        InputStream in = Runtime.getRuntime().exec(cmd).getInputStream();</span><br><span class="line"></span><br><span class="line">        ByteArrayOutputStream baos = <span class="keyword">new</span> ByteArrayOutputStream();</span><br><span class="line">        <span class="keyword">byte</span>[] b = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line">        <span class="keyword">int</span> a = -<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> ((a = in.read(b)) != -<span class="number">1</span>) &#123;</span><br><span class="line">            baos.write(b, <span class="number">0</span>, a);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="keyword">new</span> String(baos.toByteArray()));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>先看看可以成功的情况<br><img src="1577676465197-1f34563e-7443-4f6c-9238-c0137558519e.png#align=left&display=inline&height=232&name=image.png&originHeight=464&originWidth=2472&size=112349&status=done&style=none&width=1236" alt="image.png"></p>
+<p>再来看看不能成功的情况<br><img src="1577676563293-bef3ec10-84d5-4aa5-95b7-bec57b95d23e.png#align=left&display=inline&height=160&name=image.png&originHeight=320&originWidth=2354&size=88578&status=done&style=none&width=1177" alt="image.png"></p>
+<p>这里 <code>&amp;&amp;</code> 并没有达到bash中的效果<br><img src="1577676687805-0c7e43fb-9d1d-4aa8-8ef6-7331003c1499.png#align=left&display=inline&height=82&name=image.png&originHeight=122&originWidth=1110&size=51524&status=done&style=none&width=746" alt="image.png"></p>
+<p>如果以前有人问我为什么会出现这种，我会毫不犹豫的回答：<em>因为 <code>Runtime.getRuntime().exec</code>   执行命令的时候并没有shell上下文环境所以无法把类似于 <code>&amp;</code> <code>|</code> 这样的符号进行特殊处理。</em></p>
+<h2 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h2><p>解决这种问题的方法有两种<br>第一种就是对执行命令进行编码，<a href="http://www.jackson-t.ca/runtime-exec-payloads.html" target="_blank" rel="noopener">编码地址在这</a></p>
+<p><img src="1577679919272-65599375-f5c5-4dd0-99fb-eae32d71c6fe.png#align=left&display=inline&height=378&name=image.png&originHeight=646&originWidth=1274&size=50358&status=done&style=none&width=746" alt="image.png"><br><img src="1577679973496-15f40fac-cdbc-48c5-a23c-63385bf3775e.png#align=left&display=inline&height=162&name=image.png&originHeight=324&originWidth=3298&size=104504&status=done&style=none&width=1649" alt="image.png"></p>
+<p>第二种就是使用数组的形式命令执行</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">String[] command = &#123; <span class="string">"/bin/sh"</span>, <span class="string">"-c"</span>, <span class="string">"echo 2333 2333 2333 &amp;&amp; echo 2333 2333 2333"</span> &#125;;</span><br><span class="line">InputStream in = Runtime.getRuntime().exec(command).getInputStream();</span><br></pre></td></tr></table></figure>
+
+<p><img src="1577680147954-a2e442b8-dd8c-42c4-a578-41d879554491.png#align=left&display=inline&height=229&name=image.png&originHeight=458&originWidth=2918&size=146723&status=done&style=none&width=1459" alt="image.png"></p>
+<p>至此从实战应用的角度这个问题已经解决了。</p>
+<p>不过我们可以看到其实这第二种方法用到了 <code>&amp;</code> 上面 _Runtime.getRuntime().exec执行命令的时候并没有shell上下文环境所以无法把类似于 <code>&amp;</code> <code>|</code> <em>`</em><code>_</code> _这样的符号特殊处理。_这一结论似乎看起来并站不住脚?</p>
+<p>下面来跟踪一下源码，看看到底发生了什么。</p>
+<h2 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h2><h3 id="当传入Runtime-getRuntime-exec的是字符串"><a href="#当传入Runtime-getRuntime-exec的是字符串" class="headerlink" title="当传入Runtime.getRuntime().exec的是字符串"></a>当传入Runtime.getRuntime().exec的是字符串</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.ByteArrayOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStream;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">linux_cmd1</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        String cmd = <span class="string">"echo 2333 &amp;&amp; echo 2333"</span>;</span><br><span class="line">        InputStream in = Runtime.getRuntime().exec(cmd).getInputStream();</span><br><span class="line"></span><br><span class="line">        ByteArrayOutputStream baos = <span class="keyword">new</span> ByteArrayOutputStream();</span><br><span class="line">        <span class="keyword">byte</span>[] b = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line">        <span class="keyword">int</span> a = -<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> ((a = in.read(b)) != -<span class="number">1</span>) &#123;</span><br><span class="line">            baos.write(b, <span class="number">0</span>, a);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="keyword">new</span> String(baos.toByteArray()));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>因为传入的命令是String类型，所以进入 <code>java.lang.Runtime#exec(java.lang.String, java.lang.String[], java.io.File)</code>  。<strong>这里是第一个非常关键的点， <code>StringTokenizer</code> 会把传入的conmmand字符串按 <code>\t \n \r \f</code> 中的任意一个分割成数组cmdarray。</strong></p>
+<p><img src="1577685833249-067f99be-c43e-4564-a18f-a47a6856861a.png#align=left&display=inline&height=211&name=image.png&originHeight=422&originWidth=2766&size=176007&status=done&style=none&width=1383" alt="image.png"><br><img src="1577686182902-31dc960d-5d35-42a5-8803-079771cf19b3.png#align=left&display=inline&height=186&name=image.png&originHeight=228&originWidth=916&size=22796&status=done&style=none&width=746" alt="image.png"></p>
+<p>代码来到exec的多态实现 <code>java.lang.Runtime#exec(java.lang.String[], java.lang.String[], java.io.File)</code> ，exec内部调用了ProcessBuilder的start。<br><img src="1577686458188-5644d174-4a9f-4a06-a666-eb66296ce4d5.png#align=left&display=inline&height=130&name=image.png&originHeight=260&originWidth=1816&size=61763&status=done&style=none&width=908" alt="image.png"></p>
+<p>ProcessBuilder.start内部又调用了ProcessImpl.start。<br><img src="1577686661547-d787e724-269b-4a25-95c6-1a87412d7e97.png#align=left&display=inline&height=127&name=image.png&originHeight=254&originWidth=2602&size=71237&status=done&style=none&width=1301" alt="image.png"></p>
+<p>在ProcessImpl.start中有<strong>第二个非常关键的点我们可以看到程序把cmdarray第一个参数（cmdarray[0]）当成要执行的命令，把其后的部分（cmdarray[1:]）作为命令的参数转换成byte 数组 argBlock（具体规则是以\x00进行implode）。</strong><br><img src="1577687523856-aadd2b68-7973-4b49-a857-d554004c8f6e.png#align=left&display=inline&height=487&name=image.png&originHeight=974&originWidth=2514&size=281837&status=done&style=none&width=1257" alt="image.png"></p>
+<p>ProcessImpl.start最后又会把处理好的参数传入UNIXProcess<br><img src="1577686887031-96670a59-cdca-4cf1-ad79-ee82474a18bb.png#align=left&display=inline&height=156&name=image.png&originHeight=312&originWidth=2602&size=86125&status=done&style=none&width=1301" alt="image.png"></p>
+<p>UNIXProcess内部又调用了forkAndExec方法<br><img src="1577688234642-21446af8-71dc-42ef-a9a4-d4f549399445.png#align=left&display=inline&height=312&name=image.png&originHeight=624&originWidth=2776&size=186773&status=done&style=none&width=1388" alt="image.png"></p>
+<p>这里的是forkAndExec是一个native方法。<br><img src="1577686970789-da810849-80d9-4eb2-b107-7bb1ce933b0f.png#align=left&display=inline&height=155&name=image.png&originHeight=310&originWidth=1994&size=74399&status=done&style=none&width=997" alt="image.png"></p>
+<p>从变量的命名来看，在开发者的眼中prog是要执行的命令即 <code>echo</code> ，argBlock都是传给 <code>echo</code> 的参数即<code>2333\x00&amp;&amp;\x002333</code>且传给 <code>echo</code> 的参数个数argc是4<br>可见经过StringTokenizer对字符串中空格类的处理其实是一种java对命令执行的保护机制，他可以防御以下这种命令注入。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">String cmd = <span class="string">"ping "</span> + 可控点;</span><br><span class="line">Runtime.getRuntime().exec(cmd)</span><br></pre></td></tr></table></figure>
+
+<p>补一个完整的调用栈。<img src="1577687207316-a29ab55a-281b-4cd5-b8df-d35c5038dbb5.png#align=left&display=inline&height=200&name=image.png&originHeight=288&originWidth=1076&size=49512&status=done&style=none&width=746" alt="image.png"></p>
+<h3 id="当传入Runtime-getRuntime-exec的是字符串数组"><a href="#当传入Runtime-getRuntime-exec的是字符串数组" class="headerlink" title="当传入Runtime.getRuntime().exec的是字符串数组"></a>当传入Runtime.getRuntime().exec的是字符串数组</h3><p>我们再来看看给Runtime传入数组的时候是什么情况。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.ByteArrayOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStream;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">linux_cmd1</span> &#123;</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> throws IOException </span>&#123;</span><br><span class="line">        String[] command = &#123; <span class="string">"/bin/sh"</span>, <span class="string">"-c"</span>, <span class="string">"echo 2333 &amp;&amp; echo 2333"</span> &#125;;</span><br><span class="line">        InputStream in = Runtime.getRuntime().exec(command).getInputStream();</span><br><span class="line"></span><br><span class="line">        ByteArrayOutputStream baos = <span class="keyword">new</span> ByteArrayOutputStream();</span><br><span class="line">        byte[] b = <span class="keyword">new</span> byte[<span class="number">1024</span>];</span><br><span class="line">        <span class="keyword">int</span> a = <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> ((a = in.read(b)) != <span class="number">-1</span>) &#123;</span><br><span class="line">            baos.write(b, <span class="number">0</span>, a);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="keyword">new</span> String(baos.toByteArray()));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>因为这里传入的数组，所以并没有经StringTokenizer对字符串的分割处理这一步而是直接进入了。<code>java.lang.Runtime#exec(java.lang.String[])</code> 。<br><img src="1577689013179-27759f7d-39b7-453c-883c-674de2de614d.png#align=left&display=inline&height=75&name=image.png&originHeight=150&originWidth=2222&size=51052&status=done&style=none&width=1111" alt="image.png"></p>
+<p>后面的流程和字符串的情形是一致的，最后来到forkAndExec<br><img src="1577689204761-132deaef-3c15-4894-8d8f-bc307ff0de8e.png#align=left&display=inline&height=318&name=image.png&originHeight=636&originWidth=2828&size=191238&status=done&style=none&width=1414" alt="image.png"></p>
+<p>按照上面的说法这里 <code>/bin/bash</code> 是要执行的命令， <code>-c\x00&quot;echo 2333 &amp;&amp; echo 23333&quot;</code> 是传给的 <code>/bin/bash</code> 的参数。</p>
+<p>补一个调用栈<br><img src="1577891037047-1a96c772-57d2-4476-93b4-3460b8ea60b1.png#align=left&display=inline&height=129&name=image.png&originHeight=258&originWidth=1074&size=43587&status=done&style=none&width=537" alt="image.png"></p>
+<h3 id="一个错误的想法"><a href="#一个错误的想法" class="headerlink" title="一个错误的想法"></a>一个错误的想法</h3><p>看到这里不知道你是不是有点晕，心底生出了疑问，在执行字符串的时候加上 <code>/bin/bash</code> 不就好了。像下面这样。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.ByteArrayOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStream;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">linux_cmd1</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        String cmd = <span class="string">"/bin/bash -c 'echo 2333 &amp;&amp; echo 2333'"</span>;</span><br><span class="line">        InputStream in = Runtime.getRuntime().exec(cmd).getInputStream();</span><br><span class="line">        ByteArrayOutputStream baos = <span class="keyword">new</span> ByteArrayOutputStream();</span><br><span class="line">        <span class="keyword">byte</span>[] b = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line">        <span class="keyword">int</span> a = -<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> ((a = in.read(b)) != -<span class="number">1</span>) &#123;</span><br><span class="line">            baos.write(b, <span class="number">0</span>, a);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="keyword">new</span> String(baos.toByteArray()));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行试试看，发现什么结果都没有，推测应该是shell执行命令失败了。<br><img src="1577690492437-eb933d61-d2b5-4175-94e8-2707f0a04a80.png#align=left&display=inline&height=302&name=image.png&originHeight=604&originWidth=2076&size=124786&status=done&style=none&width=1038" alt="image.png"></p>
+<p>为什么会失败呢？我们来diff一下和数组执行最后进native的层的区别。<br><img src="1577695145401-bada57bf-0499-4f8c-b33f-1d240cd142af.png#align=left&display=inline&height=774&name=image.png&originHeight=1548&originWidth=2786&size=270657&status=done&style=none&width=1393" alt="image.png"><br>可以看到prog都是 <code>/bin/bash</code> 但是字符串模式下执行的参数变成了 <code>-c\x00&#39;echo\x002333\x00&amp;&amp;\x00echo\x002333&#39;</code> ，对比数组模式 <code>-c\x00&quot;echo 2333 &amp;&amp; echo 23333&quot;</code> 。可以发现字符串模式下因为<code>StringTokenizer</code>对字符串空格类字符的处理<strong>破坏了命令执行的语义</strong>。</p>
+<p>如果再仔细看看会发现字符串模式argc为6而数组模式只有2。写到这里其实我还想钻以下牛角尖，凭什么6个参数最后就不能执行？</p>
+<h3 id="进入jvm看看"><a href="#进入jvm看看" class="headerlink" title="进入jvm看看"></a>进入jvm看看</h3><p>带着这样的疑问，我自不量力的编译了java源码并现学了一下怎么调试jvm（调试的环境是ubuntu14.04+jdk8）下面是学习成果。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.ByteArrayOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStream;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        String[] command = &#123; <span class="string">"/bin/bash"</span>, <span class="string">"-c"</span>, <span class="string">"echo 2333 &amp;&amp; echo 2333"</span> &#125;;</span><br><span class="line">        InputStream in = Runtime.getRuntime().exec(command).getInputStream();</span><br><span class="line"></span><br><span class="line">        ByteArrayOutputStream baos = <span class="keyword">new</span> ByteArrayOutputStream();</span><br><span class="line">        <span class="keyword">byte</span>[] b = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line">        <span class="keyword">int</span> a = -<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> ((a = in.read(b)) != -<span class="number">1</span>) &#123;</span><br><span class="line">            baos.write(b, <span class="number">0</span>, a);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="keyword">new</span> String(baos.toByteArray()));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据java native函数命名规则可以知道forkAndExec对应的c函数是 <code>Java_java_lang_UNIXProcess_forkAndExec</code>  。<br><img src="1577891334880-c3954fc0-353f-4e3a-93d2-c05a22a1805b.png#align=left&display=inline&height=762&name=image.png&originHeight=1524&originWidth=1826&size=284743&status=done&style=none&width=913" alt="image.png"></p>
+<p>这个函数初始化执行命令所需要一些变量（如输入输出错误流）以及提取并处理java传入进来的参数，最后调用startChild函数开启子进程。</p>
+<p><img src="1577803126319-c17c1625-54d4-4a06-b2f4-f3e2d69f0912.png#align=left&display=inline&height=738&name=image.png&originHeight=1476&originWidth=2068&size=1476544&status=done&style=none&width=1034" alt="image.png"></p>
+<p>startChild会根据是mode的数值不同进入不同的分支，mode由操作系统、libc版本决定。<br><img src="1577891592795-27719e34-85b1-49fb-94b9-6fbbb4bd7a4b.png#align=left&display=inline&height=640&name=image.png&originHeight=1280&originWidth=1956&size=187639&status=done&style=none&width=978" alt="image.png"></p>
+<p>我这里进入了vforkChild，vforkChild会使用vfork开启一个子进程，并且在子进程内部调用了childProcess，在clion中为了调试进入子进程需要在进入之前在gdb调试框输入 <code>set follow-fork-mode child</code>  和 <code>set detach-on-fork off</code><br><img src="1577886759874-01492158-3589-42ae-8468-8ba3629cc2bc.png#align=left&display=inline&height=744&name=image.png&originHeight=1488&originWidth=1922&size=234923&status=done&style=none&width=961" alt="image.png"></p>
+<p>childProcess中调用JDK_execvpe。<br><img src="1577892301729-741292b7-cee1-4ed8-9ce9-72fec7fc5783.png#align=left&display=inline&height=685&name=image.png&originHeight=1370&originWidth=1596&size=183821&status=done&style=none&width=798" alt="image.png"><br>JDK_execvpe最后调用系统execvp函数，我们来细一看传参情况。</p>
+<p><img src="1577886891144-925b1102-3c6f-4752-b0ba-b5b94d1def00.png#align=left&display=inline&height=452&name=image.png&originHeight=904&originWidth=1838&size=123585&status=done&style=none&width=919" alt="image.png"></p>
+<p><img src="1577887135995-42990dc8-ec02-401e-9213-eddf7e418801.png#align=left&display=inline&height=213&name=image.png&originHeight=356&originWidth=1246&size=39821&status=done&style=none&width=746" alt="image.png"></p>
+<p><img src="1577887148131-a6992150-ab3e-4e82-a93c-c5927f254965.png#align=left&display=inline&height=177&name=image.png&originHeight=292&originWidth=1230&size=31775&status=done&style=none&width=746" alt="image.png"></p>
+<p><img src="1577887164428-ce737fbd-2e40-4702-820a-d45b23fa2954.png#align=left&display=inline&height=212&name=image.png&originHeight=354&originWidth=1244&size=39562&status=done&style=none&width=746" alt="image.png"></p>
+<p>故数组情况下等价于<br><img src="1577774188360-408cc7a4-bffe-4360-a859-f6e5b6b20a4f.png#align=left&display=inline&height=310&name=image.png&originHeight=620&originWidth=2246&size=111327&status=done&style=none&width=1123" alt="image.png"></p>
+<p>那么我们再来考察一下，字符串的情况的情况。<br><img src="1577892353386-8b9d3cb5-d1a0-4c85-bd25-555f2dc45f04.png#align=left&display=inline&height=123&name=image.png&originHeight=202&originWidth=1226&size=21350&status=done&style=none&width=746" alt="image.png"><br><img src="1577892370784-45fd9581-4a77-41b5-99c3-70031f64f1f0.png#align=left&display=inline&height=121&name=image.png&originHeight=200&originWidth=1228&size=21627&status=done&style=none&width=746" alt="image.png"><br><img src="1577892391866-8b0b4576-a0c0-403b-8c41-13a8848e700b.png#align=left&display=inline&height=116&name=image.png&originHeight=192&originWidth=1234&size=22711&status=done&style=none&width=746" alt="image.png"><br><img src="1577892410406-82bd1a5c-7106-4077-ac07-fa9cb05d972b.png#align=left&display=inline&height=120&name=image.png&originHeight=190&originWidth=1182&size=21050&status=done&style=none&width=746" alt="image.png"><br><img src="1577892490628-2810628a-be2b-4db9-90e9-2845970634e4.png#align=left&display=inline&height=114&name=image.png&originHeight=184&originWidth=1206&size=20774&status=done&style=none&width=746" alt="image.png"><br><img src="1577892526498-a9e7e761-b5af-452f-82db-cf194e00d3bf.png#align=left&display=inline&height=114&name=image.png&originHeight=190&originWidth=1244&size=22425&status=done&style=none&width=746" alt="image.png"><br><img src="1577892558443-d47b918c-5559-47e7-b68b-8af7db6aec8e.png#align=left&display=inline&height=123&name=image.png&originHeight=202&originWidth=1230&size=22185&status=done&style=none&width=746" alt="image.png"></p>
+<p>故字符串模式等价于</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *arg[] = &#123;<span class="string">"/bin/bash"</span>, <span class="string">"-c"</span>, <span class="string">"'echo"</span>, <span class="string">"2333"</span>, <span class="string">"&amp;&amp;"</span>, <span class="string">"echo"</span>, <span class="string">"2333'"</span>, <span class="literal">NULL</span>&#125;;</span><br><span class="line">    execvp(arg[<span class="number">0</span>],(<span class="keyword">char</span> **) arg);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="1577774099636-86487450-9203-4284-ba2c-d16a7e1297c8.png#align=left&display=inline&height=326&name=image.png&originHeight=652&originWidth=2692&size=136647&status=done&style=none&width=1346" alt="image.png"></p>
+<p>所以整个调用链如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">java.lang.Runtime.exec(cmd);</span><br><span class="line">-&gt;java.lang.ProcessBuilder.start();</span><br><span class="line">--&gt;java.lang.ProcessImpl.start();</span><br><span class="line">---&gt;Java_java_lang_UNIXProcess_forkAndExec() in j2se&#x2F;src&#x2F;solaris&#x2F;native&#x2F;java&#x2F;lang&#x2F;UNIXProcess_md.c</span><br><span class="line">----&gt;fork或VFORK或POSIX_SPAWN</span><br><span class="line">-----&gt;execvp();</span><br></pre></td></tr></table></figure>
+
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>_Runtime.getRuntime().exec执行命令的时候并没有shell上下文环境所以无法把类似于 <code>&amp;</code> <code>|</code> <em>`</em><code>_</code> _这样的符号特殊处理_的本质是execvp也确实不支持shell中的特殊符号。而之所以数组情况能成是因为execvp调用了 <code>/bin/bash</code> ，<code>/bin/bash</code> 解释了 <code>&amp;</code> , <code>|</code> 这些特殊符号和execvp没关系。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="http://www.lmxspace.com/2019/10/08/Java%E4%B8%8B%E5%A5%87%E6%80%AA%E7%9A%84%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/" target="_blank" rel="noopener">Java下奇怪的命令执行</a><br><a href="https://mp.weixin.qq.com/s/zCe_O37rdRqgN-Yvlq1FDg" target="_blank" rel="noopener">在 Runtime.getRuntime().exec(String cmd) 中执行任意shell命令的几种方法</a><br><a href="https://www.cnblogs.com/LittleHann/p/4326828.html" target="_blank" rel="noopener">Java JVM、JNI、Native Function Interface、Create New Process Native Function API Analysis</a><br><a href="https://stackoverflow.com/questions/36221038/how-to-debug-a-forked-child-process-using-clion" target="_blank" rel="noopener">How to debug a forked child process using CLion</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>李三（cl0und）
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/" title="Java Runtime.getRuntime().exec由表及里">http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec由表及里/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/01/03/Hessian-%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90%E5%8F%8A%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF%E5%AD%A6%E4%B9%A0/" rel="prev" title="Hessian 序列化代码分析及业务场景学习">
+      <i class="fa fa-chevron-left"></i> Hessian 序列化代码分析及业务场景学习
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#问题复现"><span class="nav-number">1.</span> <span class="nav-text">问题复现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解决方法"><span class="nav-number">2.</span> <span class="nav-text">解决方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#源码分析"><span class="nav-number">3.</span> <span class="nav-text">源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#当传入Runtime-getRuntime-exec的是字符串"><span class="nav-number">3.1.</span> <span class="nav-text">当传入Runtime.getRuntime().exec的是字符串</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#当传入Runtime-getRuntime-exec的是字符串数组"><span class="nav-number">3.2.</span> <span class="nav-text">当传入Runtime.getRuntime().exec的是字符串数组</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一个错误的想法"><span class="nav-number">3.3.</span> <span class="nav-text">一个错误的想法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进入jvm看看"><span class="nav-number">3.4.</span> <span class="nav-text">进入jvm看看</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结论"><span class="nav-number">4.</span> <span class="nav-text">结论</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">李三（cl0und）</p>
+  <div class="site-description" itemprop="description">人若无名，便可专心练剑</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://7o8v.me/" title="http:&#x2F;&#x2F;7o8v.me&#x2F;" rel="noopener" target="_blank">7o8v☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://evoa.me/" title="https:&#x2F;&#x2F;evoa.me&#x2F;" rel="noopener" target="_blank">evoA☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://kkdlong.win/" title="http:&#x2F;&#x2F;kkdlong.win&#x2F;" rel="noopener" target="_blank">kkdlong☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.l0ca1.xyz/" title="https:&#x2F;&#x2F;blog.l0ca1.xyz&#x2F;" rel="noopener" target="_blank">l0cal☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.lmxspace.com/" title="http:&#x2F;&#x2F;www.lmxspace.com&#x2F;" rel="noopener" target="_blank">l1nk3r</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.cnblogs.com/iamstudy/" title="https:&#x2F;&#x2F;www.cnblogs.com&#x2F;iamstudy&#x2F;" rel="noopener" target="_blank">l3m0n☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://8sec.cc/" title="http:&#x2F;&#x2F;8sec.cc&#x2F;" rel="noopener" target="_blank">裤衩哥的小屋</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://abcdefghijklmnopqrst.xyz/" title="http:&#x2F;&#x2F;abcdefghijklmnopqrst.xyz&#x2F;" rel="noopener" target="_blank">骑麦兜看落日☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://ph0rse.me/" title="http:&#x2F;&#x2F;ph0rse.me&#x2F;" rel="noopener" target="_blank">ph0rse</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://godot.win/" title="https:&#x2F;&#x2F;godot.win&#x2F;" rel="noopener" target="_blank">godot☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hebic.me/" title="http:&#x2F;&#x2F;hebic.me&#x2F;" rel="noopener" target="_blank">🐰师傅☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://jayl1n.github.io/" title="https:&#x2F;&#x2F;jayl1n.github.io&#x2F;" rel="noopener" target="_blank">Jaylin（大潘）☘️</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">李三（cl0und）</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="Symbols count total">166k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">2:31</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.1.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
