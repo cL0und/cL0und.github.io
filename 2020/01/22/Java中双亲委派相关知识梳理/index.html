@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://redteam.today').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="在反序列化的学习过程中总是不可回避碰到这个点，这次就来简单看看。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java中双亲委派相关知识梳理">
+<meta property="og:url" content="http://redteam.today/2020/01/22/Java%E4%B8%AD%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86/index.html">
+<meta property="og:site_name" content="李三的剑谱">
+<meta property="og:description" content="在反序列化的学习过程中总是不可回避碰到这个点，这次就来简单看看。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://redteam.today/2020/01/22/Java%E4%B8%AD%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86/1579506416646-166ccd99-ce6c-45d5-a303-192216a575ed.png#align=left&display=inline&height=503&name=image.png&originHeight=294&originWidth=436&size=49254&status=done&style=none&width=746">
+<meta property="og:image" content="http://redteam.today/2020/01/22/Java%E4%B8%AD%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86/1579509377078-045bf8a3-1a58-4f33-9d95-e3ef2d06c03a.png#align=left&display=inline&height=308&name=image.png&originHeight=616&originWidth=1518&size=119384&status=done&style=none&width=759">
+<meta property="og:image" content="http://redteam.today/2020/01/22/Java%E4%B8%AD%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86/1579508579303-9a8d00d7-3a6e-435c-8fb4-c1e822b209ff.png#align=left&display=inline&height=233&name=image.png&originHeight=466&originWidth=1892&size=121667&status=done&style=none&width=946">
+<meta property="og:image" content="http://redteam.today/2020/01/22/Java%E4%B8%AD%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86/1579508772615-6b36f925-920f-4dda-8fe9-a06f0d192f4a.png#align=left&display=inline&height=408&name=image.png&originHeight=550&originWidth=1006&size=34288&status=done&style=none&width=746">
+<meta property="og:image" content="http://redteam.today/2020/01/22/Java%E4%B8%AD%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86/1579508811045-b00cfcaf-142a-4b08-8dd2-5d8464940f41.png#align=left&display=inline&height=133&name=image.png&originHeight=266&originWidth=1590&size=46469&status=done&style=none&width=795">
+<meta property="og:image" content="http://redteam.today/2020/01/22/Java%E4%B8%AD%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86/1579509643539-5239956c-aae6-4711-9528-d408fdb9fcc5.png#align=left&display=inline&height=287&name=image.png&originHeight=574&originWidth=2848&size=159070&status=done&style=none&width=1424">
+<meta property="og:image" content="http://redteam.today/2020/01/22/Java%E4%B8%AD%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86/1579510144691-d9aa11c7-f072-467e-bf3a-9ae5c9dfd21a.png#align=left&display=inline&height=734&name=image.png&originHeight=1468&originWidth=2200&size=358925&status=done&style=none&width=1100">
+<meta property="og:image" content="http://redteam.today/2020/01/22/Java%E4%B8%AD%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86/1579659421047-d0c30290-aee4-4347-b9e0-66df1d527dca.png#align=left&display=inline&height=501&name=image.png&originHeight=1002&originWidth=2446&size=306425&status=done&style=none&width=1223">
+<meta property="article:published_time" content="2020-01-22T03:02:04.000Z">
+<meta property="article:modified_time" content="2020-01-22T03:17:19.770Z">
+<meta property="article:author" content="李三（cl0und）">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://redteam.today/2020/01/22/Java%E4%B8%AD%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86/1579506416646-166ccd99-ce6c-45d5-a303-192216a575ed.png#align=left&display=inline&height=503&name=image.png&originHeight=294&originWidth=436&size=49254&status=done&style=none&width=746">
+
+<link rel="canonical" href="http://redteam.today/2020/01/22/Java%E4%B8%AD%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Java中双亲委派相关知识梳理 | 李三的剑谱</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="李三的剑谱" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">李三的剑谱</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="Searching..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="en">
+    <link itemprop="mainEntityOfPage" href="http://redteam.today/2020/01/22/Java%E4%B8%AD%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="李三（cl0und）">
+      <meta itemprop="description" content="人若无名，便可专心练剑">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="李三的剑谱">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java中双亲委派相关知识梳理
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-01-22 11:02:04 / Modified: 11:17:19" itemprop="dateCreated datePublished" datetime="2020-01-22T11:02:04+08:00">2020-01-22</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/web-security/" itemprop="url" rel="index">
+                    <span itemprop="name">web security</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>6.1k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>6 mins.</span>
+            </span>
+            <div class="post-description">在反序列化的学习过程中总是不可回避碰到这个点，这次就来简单看看。</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="classloader介绍"><a href="#classloader介绍" class="headerlink" title="classloader介绍"></a>classloader介绍</h2><p>在java中每当需要加载一个类的时候，就需要用到类加载器（classloader），它存在的意义在于把class文件中字节码变成可以被java使用的class对象。java中原生自带3个classloader分别是Bootstrap ClassLoader、Ext ClassLoader、App ClassLoader另外用户也可以自定义Custom ClassLoader。那实际加载类的时候是用哪一个加载器？java为了安全着想规定了classloader之间有一套等级机制。<strong>具体来说就是：当从子加载器出发，但子加载器加载class的时候会先委派给由父加载器先加载，如果父加载器无法加载再由子加载器加载，而这套先后顺序就是平时所说的双亲委派</strong>。</p>
+<p><img src="1579506416646-166ccd99-ce6c-45d5-a303-192216a575ed.png#align=left&display=inline&height=503&name=image.png&originHeight=294&originWidth=436&size=49254&status=done&style=none&width=746" alt="image.png"></p>
+<ul>
+<li><p>BootstrapClassLoader，启动类加载器/根加载器，负责加载 JVM 运行时核心类，这些类位于 JAVA_HOME/lib/rt.jar 文件中，我们常用内置库 java.<em>.</em> 都在里面。这个 ClassLoader 比较特殊，它其实不是一个ClassLoader实例对象，而是由C代码实现。用户在实现自定义类加载器时，如果需要把加载请求委派给启动类加载器，那可以直接传入null作为 BootstrapClassLoader。</p>
+</li>
+<li><p>ExtClassLoader，扩展类加载器，负责加载 JVM 扩展类，扩展 jar 包位于 JAVA_HOME/lib/ext/*.jar 中，库名通常以 javax 开头。</p>
+</li>
+<li><p>AppClassLoader，应用类加载器/系统类加载器，直接提供给用户使用的ClassLoader，它会加载 ClASSPATH 环境变量或者 java.class.path 属性里定义的路径中的 jar 包和目录，负责加载包括开发者代码中、第三方库中的类。</p>
+</li>
+</ul>
+<p>容易误会的一点是Classloader之间并不是继承关系而是组合。<br><img src="1579509377078-045bf8a3-1a58-4f33-9d95-e3ef2d06c03a.png#align=left&display=inline&height=308&name=image.png&originHeight=616&originWidth=1518&size=119384&status=done&style=none&width=759" alt="image.png"></p>
+<p>AppClassLoader和ExtClassLoader都继承自URLClasLoader。<br><img src="1579508579303-9a8d00d7-3a6e-435c-8fb4-c1e822b209ff.png#align=left&display=inline&height=233&name=image.png&originHeight=466&originWidth=1892&size=121667&status=done&style=none&width=946" alt="image.png"></p>
+<p>URLClassLoader继承自ClassLoader。<br><img src="1579508772615-6b36f925-920f-4dda-8fe9-a06f0d192f4a.png#align=left&display=inline&height=408&name=image.png&originHeight=550&originWidth=1006&size=34288&status=done&style=none&width=746" alt="image.png"></p>
+<p>而一般自定义加载器是直接继承ClassLoader并根据需求重写findClass或者loadClass方法（之后会提到）。<br><img src="1579508811045-b00cfcaf-142a-4b08-8dd2-5d8464940f41.png#align=left&display=inline&height=133&name=image.png&originHeight=266&originWidth=1590&size=46469&status=done&style=none&width=795" alt="image.png"></p>
+<p>在java代码我们可以调用getParent的方法获取该加载器的父加载器。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JavaClassLoader</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ClassLoader appClassloader = ClassLoader.getSystemClassLoader();</span><br><span class="line">        ClassLoader extensionClassloader = appClassloader.getParent();</span><br><span class="line">        System.out.println(<span class="string">"AppClassLoader is "</span> + appClassloader);</span><br><span class="line">        System.out.println(<span class="string">"The parent of AppClassLoader is "</span> + extensionClassloader);</span><br><span class="line">        System.out.println(<span class="string">"The parent of ExtensionClassLoader is "</span> + extensionClassloader.getParent());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//console ouput:</span></span><br><span class="line"><span class="comment">////AppClassLoader is sun.misc.Launcher$AppClassLoader@18b4aac2</span></span><br><span class="line"><span class="comment">////The parent of AppClassLoader is sun.misc.Launcher$ExtClassLoader@61bbe9ba</span></span><br><span class="line"><span class="comment">////The parent of ExtensionClassLoader is null</span></span><br></pre></td></tr></table></figure>
+
+<p><em>ps: 因为BootstrapClassLoader是内嵌到jvm中c代码，开发者无法直接获取，因此ExtensionClassLoader.getParent()会返回null。</em><br>_<br>demo代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.InvocationTargetException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException, NoSuchMethodException, ClassNotFoundException, IllegalAccessException, InstantiationException, InvocationTargetException </span>&#123;</span><br><span class="line">        Test test  = <span class="keyword">new</span> Test();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在new 的位置强制进入，可以看到是从确实是从子加载器AppClassLoader开始的。<br><img src="1579509643539-5239956c-aae6-4711-9528-d408fdb9fcc5.png#align=left&display=inline&height=287&name=image.png&originHeight=574&originWidth=2848&size=159070&status=done&style=none&width=1424" alt="image.png"></p>
+<p>步入两步后在第一个红框可以看到加载双亲委派的逻辑。<br><img src="1579510144691-d9aa11c7-f072-467e-bf3a-9ae5c9dfd21a.png#align=left&display=inline&height=734&name=image.png&originHeight=1468&originWidth=2200&size=358925&status=done&style=none&width=1100" alt="image.png"></p>
+<p>如果父类无法加载，那么使用自己的findClass实现来找。这里Test是我自定义的因此不在<code>JAVA_HOME/lib/rt.jar</code><br>也不在 <code>JAVA_HOME/lib/ext/*.jar</code>中，所以最后会使用AppClassLoader的findClass实现，而AppClassLoader没有实现自己的findClass，所以最后是由URLClassLoader findClass寻找类。最后通过deineClass把字节码转换为类对象。<br><img src="1579659421047-d0c30290-aee4-4347-b9e0-66df1d527dca.png#align=left&display=inline&height=501&name=image.png&originHeight=1002&originWidth=2446&size=306425&status=done&style=none&width=1223" alt="image.png"></p>
+<h2 id="重写ClassLoader"><a href="#重写ClassLoader" class="headerlink" title="重写ClassLoader"></a>重写ClassLoader</h2><p>通过上面分析我们可以看到在第一次加载类时是在loadClass进行loader调度（实现双亲委派逻辑），最后由findClass拿到路径Resource，由defineClass加载类。<strong>因此，如果我们把自己的class放在不常规的位置，就需要自定义ClassLoader，重写findClass方法。如果我们想突破双亲委派模型（覆盖系统类）就需要重写loadClass。</strong></p>
+<p>而实际应用中处于bypass的需要我们经常使用defineClass一个多态实现来从内存中或者文件中执行命令。看下面代码。</p>
+<p>从内存中</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Creator: yz</span></span><br><span class="line"><span class="comment"> * Date: 2019/12/17</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestClassLoader</span> <span class="keyword">extends</span> <span class="title">ClassLoader</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// TestHelloWorld类名</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> String testClassName = <span class="string">"com.anbai.sec.classloader.TestHelloWorld"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// TestHelloWorld类字节码</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">byte</span>[] testClassBytes = <span class="keyword">new</span> <span class="keyword">byte</span>[]&#123;</span><br><span class="line">            -<span class="number">54</span>, -<span class="number">2</span>, -<span class="number">70</span>, -<span class="number">66</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">51</span>, <span class="number">0</span>, <span class="number">17</span>, <span class="number">10</span>, <span class="number">0</span>, <span class="number">4</span>, <span class="number">0</span>, <span class="number">13</span>, <span class="number">8</span>, <span class="number">0</span>, <span class="number">14</span>, <span class="number">7</span>, <span class="number">0</span>, <span class="number">15</span>, <span class="number">7</span>, <span class="number">0</span>,</span><br><span class="line">            <span class="number">16</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">6</span>, <span class="number">60</span>, <span class="number">105</span>, <span class="number">110</span>, <span class="number">105</span>, <span class="number">116</span>, <span class="number">62</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">3</span>, <span class="number">40</span>, <span class="number">41</span>, <span class="number">86</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">4</span>, <span class="number">67</span>, <span class="number">111</span>, <span class="number">100</span>,</span><br><span class="line">            <span class="number">101</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">15</span>, <span class="number">76</span>, <span class="number">105</span>, <span class="number">110</span>, <span class="number">101</span>, <span class="number">78</span>, <span class="number">117</span>, <span class="number">109</span>, <span class="number">98</span>, <span class="number">101</span>, <span class="number">114</span>, <span class="number">84</span>, <span class="number">97</span>, <span class="number">98</span>, <span class="number">108</span>, <span class="number">101</span>,</span><br><span class="line">            <span class="number">1</span>, <span class="number">0</span>, <span class="number">5</span>, <span class="number">104</span>, <span class="number">101</span>, <span class="number">108</span>, <span class="number">108</span>, <span class="number">111</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">20</span>, <span class="number">40</span>, <span class="number">41</span>, <span class="number">76</span>, <span class="number">106</span>, <span class="number">97</span>, <span class="number">118</span>, <span class="number">97</span>, <span class="number">47</span>, <span class="number">108</span>,</span><br><span class="line">            <span class="number">97</span>, <span class="number">110</span>, <span class="number">103</span>, <span class="number">47</span>, <span class="number">83</span>, <span class="number">116</span>, <span class="number">114</span>, <span class="number">105</span>, <span class="number">110</span>, <span class="number">103</span>, <span class="number">59</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">10</span>, <span class="number">83</span>, <span class="number">111</span>, <span class="number">117</span>, <span class="number">114</span>, <span class="number">99</span>,</span><br><span class="line">            <span class="number">101</span>, <span class="number">70</span>, <span class="number">105</span>, <span class="number">108</span>, <span class="number">101</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">19</span>, <span class="number">84</span>, <span class="number">101</span>, <span class="number">115</span>, <span class="number">116</span>, <span class="number">72</span>, <span class="number">101</span>, <span class="number">108</span>, <span class="number">108</span>, <span class="number">111</span>, <span class="number">87</span>, <span class="number">111</span>,</span><br><span class="line">            <span class="number">114</span>, <span class="number">108</span>, <span class="number">100</span>, <span class="number">46</span>, <span class="number">106</span>, <span class="number">97</span>, <span class="number">118</span>, <span class="number">97</span>, <span class="number">12</span>, <span class="number">0</span>, <span class="number">5</span>, <span class="number">0</span>, <span class="number">6</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">12</span>, <span class="number">72</span>, <span class="number">101</span>, <span class="number">108</span>, <span class="number">108</span>, <span class="number">111</span>,</span><br><span class="line">            <span class="number">32</span>, <span class="number">87</span>, <span class="number">111</span>, <span class="number">114</span>, <span class="number">108</span>, <span class="number">100</span>, <span class="number">126</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">40</span>, <span class="number">99</span>, <span class="number">111</span>, <span class="number">109</span>, <span class="number">47</span>, <span class="number">97</span>, <span class="number">110</span>, <span class="number">98</span>, <span class="number">97</span>, <span class="number">105</span>, <span class="number">47</span>,</span><br><span class="line">            <span class="number">115</span>, <span class="number">101</span>, <span class="number">99</span>, <span class="number">47</span>, <span class="number">99</span>, <span class="number">108</span>, <span class="number">97</span>, <span class="number">115</span>, <span class="number">115</span>, <span class="number">108</span>, <span class="number">111</span>, <span class="number">97</span>, <span class="number">100</span>, <span class="number">101</span>, <span class="number">114</span>, <span class="number">47</span>, <span class="number">84</span>, <span class="number">101</span>, <span class="number">115</span>,</span><br><span class="line">            <span class="number">116</span>, <span class="number">72</span>, <span class="number">101</span>, <span class="number">108</span>, <span class="number">108</span>, <span class="number">111</span>, <span class="number">87</span>, <span class="number">111</span>, <span class="number">114</span>, <span class="number">108</span>, <span class="number">100</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">16</span>, <span class="number">106</span>, <span class="number">97</span>, <span class="number">118</span>, <span class="number">97</span>, <span class="number">47</span>, <span class="number">108</span>,</span><br><span class="line">            <span class="number">97</span>, <span class="number">110</span>, <span class="number">103</span>, <span class="number">47</span>, <span class="number">79</span>, <span class="number">98</span>, <span class="number">106</span>, <span class="number">101</span>, <span class="number">99</span>, <span class="number">116</span>, <span class="number">0</span>, <span class="number">33</span>, <span class="number">0</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">4</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">1</span>,</span><br><span class="line">            <span class="number">0</span>, <span class="number">5</span>, <span class="number">0</span>, <span class="number">6</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">7</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">29</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">5</span>, <span class="number">42</span>, -<span class="number">73</span>, <span class="number">0</span>, <span class="number">1</span>, -<span class="number">79</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>,</span><br><span class="line">            <span class="number">1</span>, <span class="number">0</span>, <span class="number">8</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">6</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">7</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">9</span>, <span class="number">0</span>, <span class="number">10</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">7</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">27</span>, <span class="number">0</span>, <span class="number">1</span>,</span><br><span class="line">            <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">3</span>, <span class="number">18</span>, <span class="number">2</span>, -<span class="number">80</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">8</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">6</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">10</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">11</span>,</span><br><span class="line">            <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">12</span></span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Class&lt;?&gt; findClass(String name) <span class="keyword">throws</span> ClassNotFoundException &#123;</span><br><span class="line">        <span class="comment">// 只处理TestHelloWorld类</span></span><br><span class="line">        <span class="keyword">if</span> (name.equals(testClassName)) &#123;</span><br><span class="line">            <span class="comment">// 调用JVM的native方法定义TestHelloWorld类</span></span><br><span class="line">            <span class="keyword">return</span> defineClass(testClassName, testClassBytes, <span class="number">0</span>, testClassBytes.length);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">super</span>.findClass(name);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 创建自定义的类加载器</span></span><br><span class="line">        TestClassLoader loader = <span class="keyword">new</span> TestClassLoader();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// 使用自定义的类加载器加载TestHelloWorld类</span></span><br><span class="line">            Class testClass = loader.loadClass(testClassName);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 反射创建TestHelloWorld类，等价于 TestHelloWorld t = new TestHelloWorld();</span></span><br><span class="line">            Object testInstance = testClass.newInstance();</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 反射获取hello方法</span></span><br><span class="line">            Method method = testInstance.getClass().getMethod(<span class="string">"hello"</span>);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 反射调用hello方法,等价于 String str = t.hello();</span></span><br><span class="line">            String str = (String) method.invoke(testInstance);</span><br><span class="line"></span><br><span class="line">            System.out.println(str);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从文件中</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.ByteArrayOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.File;</span><br><span class="line"><span class="keyword">import</span> java.io.FileInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.FileNotFoundException;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStream;</span><br><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyClassLoader</span> <span class="keyword">extends</span> <span class="title">ClassLoader</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String classpath;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MyClassLoader</span><span class="params">(String classpath)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.classpath = classpath;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> Class&lt;?&gt; findClass(String name) <span class="keyword">throws</span> ClassNotFoundException</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">try</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">byte</span>[] classDate = getClassBinaryData(name);</span><br><span class="line">            <span class="comment">//System.out.println(Arrays.toString(classDate));</span></span><br><span class="line">            <span class="keyword">if</span> (classDate == <span class="keyword">null</span>)</span><br><span class="line">            &#123;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">            &#123; <span class="comment">// defineClass方法将字节码转化为类</span></span><br><span class="line">                <span class="keyword">return</span> defineClass(name, classDate, <span class="number">0</span>, classDate.length);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (IOException e)</span><br><span class="line">        &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">super</span>.findClass(name);</span><br><span class="line">    &#125; <span class="comment">// 返回类的字节码</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">byte</span>[] getClassBinaryData(String className) <span class="keyword">throws</span> IOException</span><br><span class="line">    &#123;</span><br><span class="line">        InputStream in = <span class="keyword">null</span>;</span><br><span class="line">        ByteArrayOutputStream out = <span class="keyword">null</span>;</span><br><span class="line">        String path = classpath + File.separatorChar + className.replace(<span class="string">'.'</span>, File.separatorChar) + <span class="string">".class"</span>;</span><br><span class="line">        <span class="keyword">try</span></span><br><span class="line">        &#123;</span><br><span class="line">            in = <span class="keyword">new</span> FileInputStream(path);</span><br><span class="line">            out = <span class="keyword">new</span> ByteArrayOutputStream();</span><br><span class="line">            <span class="keyword">byte</span>[] buffer = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">2048</span>];</span><br><span class="line">            <span class="keyword">int</span> len = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">while</span> ((len = in.read(buffer)) != -<span class="number">1</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                out.write(buffer, <span class="number">0</span>, len);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> out.toByteArray();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (FileNotFoundException e)</span><br><span class="line">        &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">finally</span></span><br><span class="line">        &#123;</span><br><span class="line">            in.close();</span><br><span class="line">            out.close();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://kingx.me/Exploit-FastJson-Without-Reverse-Connect.html" target="_blank" rel="noopener">Java动态类加载，当FastJson遇到内网</a><br><a href="https://benjaminwhx.com/2018/08/26/Idea%E4%B8%AD%E9%82%A3%E4%BA%9B%E9%B2%9C%E4%B8%BA%E4%BA%BA%E7%9F%A5%E7%9A%84%E8%B0%83%E8%AF%95%E6%8A%80%E5%B7%A7/" target="_blank" rel="noopener">Idea中那些鲜为人知的调试技巧</a><br><a href="https://cloud.tencent.com/developer/article/1149445" target="_blank" rel="noopener">Java虚拟机–类加载器源码</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>李三（cl0und）
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="http://redteam.today/2020/01/22/Java%E4%B8%AD%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86/" title="Java中双亲委派相关知识梳理">http://redteam.today/2020/01/22/Java中双亲委派相关知识梳理/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/" rel="prev" title="Java Runtime.getRuntime().exec由表及里">
+      <i class="fa fa-chevron-left"></i> Java Runtime.getRuntime().exec由表及里
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#classloader介绍"><span class="nav-number">1.</span> <span class="nav-text">classloader介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#重写ClassLoader"><span class="nav-number">2.</span> <span class="nav-text">重写ClassLoader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">李三（cl0und）</p>
+  <div class="site-description" itemprop="description">人若无名，便可专心练剑</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://7o8v.me/" title="http:&#x2F;&#x2F;7o8v.me&#x2F;" rel="noopener" target="_blank">7o8v☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://evoa.me/" title="https:&#x2F;&#x2F;evoa.me&#x2F;" rel="noopener" target="_blank">evoA☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://kkdlong.win/" title="http:&#x2F;&#x2F;kkdlong.win&#x2F;" rel="noopener" target="_blank">kkdlong☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.l0ca1.xyz/" title="https:&#x2F;&#x2F;blog.l0ca1.xyz&#x2F;" rel="noopener" target="_blank">l0cal☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.lmxspace.com/" title="http:&#x2F;&#x2F;www.lmxspace.com&#x2F;" rel="noopener" target="_blank">l1nk3r</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.cnblogs.com/iamstudy/" title="https:&#x2F;&#x2F;www.cnblogs.com&#x2F;iamstudy&#x2F;" rel="noopener" target="_blank">l3m0n☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://8sec.cc/" title="http:&#x2F;&#x2F;8sec.cc&#x2F;" rel="noopener" target="_blank">裤衩哥的小屋</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://abcdefghijklmnopqrst.xyz/" title="http:&#x2F;&#x2F;abcdefghijklmnopqrst.xyz&#x2F;" rel="noopener" target="_blank">骑麦兜看落日☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://ph0rse.me/" title="http:&#x2F;&#x2F;ph0rse.me&#x2F;" rel="noopener" target="_blank">ph0rse</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://godot.win/" title="https:&#x2F;&#x2F;godot.win&#x2F;" rel="noopener" target="_blank">godot☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hebic.me/" title="http:&#x2F;&#x2F;hebic.me&#x2F;" rel="noopener" target="_blank">🐰师傅☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://jayl1n.github.io/" title="https:&#x2F;&#x2F;jayl1n.github.io&#x2F;" rel="noopener" target="_blank">Jaylin（大潘）☘️</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">李三（cl0und）</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="Symbols count total">172k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">2:37</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.1.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

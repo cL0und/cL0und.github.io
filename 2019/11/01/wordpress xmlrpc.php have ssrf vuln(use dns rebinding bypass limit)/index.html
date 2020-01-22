@@ -46,12 +46,12 @@
   };
 </script>
 
-  <meta name="description" content="CS的扩展C2接口（Cobalt Strike External Command and Control）可以允许第三方程序作为teamserver和Beacon之间的一个额外通信层。以下简称External C2。">
+  <meta name="description" content="In the wordpress xmlrpc.php pingback_ping function, the domain which be passed in was parsed three times.">
 <meta property="og:type" content="article">
 <meta property="og:title" content="wordpress xmlrpc.php have ssrf vuln(use dns rebinding bypass limit)">
 <meta property="og:url" content="http://redteam.today/2019/11/01/wordpress%20xmlrpc.php%20have%20ssrf%20vuln(use%20dns%20rebinding%20bypass%20limit)/index.html">
 <meta property="og:site_name" content="李三的剑谱">
-<meta property="og:description" content="CS的扩展C2接口（Cobalt Strike External Command and Control）可以允许第三方程序作为teamserver和Beacon之间的一个额外通信层。以下简称External C2。">
+<meta property="og:description" content="In the wordpress xmlrpc.php pingback_ping function, the domain which be passed in was parsed three times.">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://redteam.today/2019/11/01/wordpress%20xmlrpc.php%20have%20ssrf%20vuln(use%20dns%20rebinding%20bypass%20limit)/1572267029097.png">
 <meta property="og:image" content="http://redteam.today/2019/11/01/wordpress%20xmlrpc.php%20have%20ssrf%20vuln(use%20dns%20rebinding%20bypass%20limit)/1572265889994.png">
@@ -61,7 +61,7 @@
 <meta property="og:image" content="http://redteam.today/2019/11/01/wordpress%20xmlrpc.php%20have%20ssrf%20vuln(use%20dns%20rebinding%20bypass%20limit)/1572612651416.png">
 <meta property="og:image" content="http://redteam.today/2019/11/01/wordpress%20xmlrpc.php%20have%20ssrf%20vuln(use%20dns%20rebinding%20bypass%20limit)/1572612727295.png">
 <meta property="article:published_time" content="2019-10-31T16:00:00.000Z">
-<meta property="article:modified_time" content="2019-12-21T13:21:05.398Z">
+<meta property="article:modified_time" content="2020-01-22T03:13:02.506Z">
 <meta property="article:author" content="李三（cl0und）">
 <meta property="article:tag" content="php">
 <meta name="twitter:card" content="summary">
@@ -249,7 +249,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2019-12-21 21:21:05" itemprop="dateModified" datetime="2019-12-21T21:21:05+08:00">2019-12-21</time>
+                <time title="Modified: 2020-01-22 11:13:02" itemprop="dateModified" datetime="2020-01-22T11:13:02+08:00">2020-01-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -278,7 +278,7 @@
                 <span class="post-meta-item-text">Reading time &asymp;</span>
               <span>2 mins.</span>
             </span>
-            <div class="post-description">CS的扩展C2接口（Cobalt Strike External Command and Control）可以允许第三方程序作为teamserver和Beacon之间的一个额外通信层。以下简称External C2。</div>
+            <div class="post-description">In the wordpress xmlrpc.php pingback_ping function, the domain which be passed in was parsed three times.</div>
 
         </div>
       </header>
@@ -289,7 +289,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>In the wordpress xmlrpc.php pingback_ping function, the domain which be passed in was parsed three times。</p>
+        <p>In the wordpress xmlrpc.php pingback_ping function, the domain which be passed in was parsed three times.</p>
 <p>The first is in <code>wp-includes/class-wp-xmlrpc-server.php:6774</code>to<code>wp-includes/http.php:551</code>. When the incoming url is a domain name, dns parsing will be performed and determine whether ip belongs to the intranet ip.<br><img src="./1572267029097.png" alt="Alt text"><br><img src="./1572265889994.png" alt="Alt text"></p>
 <p>The second is <code>wp-includes/class-http.php:265</code>. The code in <code>wp_http_validate_url</code> is the same as the one in the first screenshot.</p>
 <p><img src="./1572266403614.png" alt="Alt text"></p>
@@ -416,7 +416,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-count">29</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -507,12 +507,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="Symbols count total">166k</span>
+    <span title="Symbols count total">172k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">2:31</span>
+    <span title="Reading time total">2:37</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.1.1
   </div>
