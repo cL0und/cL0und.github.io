@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://redteam.today').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="CAS是一个单点登录（Single Sign On,简称SSO，SSO使得在多个应用系统中，用户只需要登录一次就可以访问所有相互信任的应用系统。）框架，开始是由耶鲁大学的一个组织开发，后来归到apereo去管。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CAS的搭建及认证流程分析与比较">
+<meta property="og:url" content="http://redteam.today/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/index.html">
+<meta property="og:site_name" content="李三的剑谱">
+<meta property="og:description" content="CAS是一个单点登录（Single Sign On,简称SSO，SSO使得在多个应用系统中，用户只需要登录一次就可以访问所有相互信任的应用系统。）框架，开始是由耶鲁大学的一个组织开发，后来归到apereo去管。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://redteam.today/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/1580368543216-ba5d0a82-fc02-4225-9a7c-cc0c168f604b.png#align=left&display=inline&height=287&name=image.png&originHeight=574&originWidth=2072&size=171406&status=done&style=none&width=1036">
+<meta property="og:image" content="http://redteam.today/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/1580368461615-7a24430e-9bf3-4689-9c3b-e9168d2d177d.png#align=left&display=inline&height=330&name=image.png&originHeight=660&originWidth=2114&size=175710&status=done&style=none&width=1057">
+<meta property="og:image" content="http://redteam.today/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/1580377875413-89e3960e-4e30-435c-930b-7f720762d0a1.png#align=left&display=inline&height=135&name=image.png&originHeight=270&originWidth=2218&size=71387&status=done&style=none&width=1109">
+<meta property="og:image" content="http://redteam.today/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/1580377924581-fc1351cc-d72d-4f50-abe3-217a43230b80.png#align=left&display=inline&height=137&name=image.png&originHeight=274&originWidth=2064&size=61824&status=done&style=none&width=1032">
+<meta property="og:image" content="http://redteam.today/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/1580356310308-00f8b236-b1d6-43bd-a1d2-a729df5cbf65.png#align=left&display=inline&height=516&name=image.png&originHeight=1032&originWidth=3030&size=386108&status=done&style=none&width=1515">
+<meta property="og:image" content="http://redteam.today/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/1580378152394-9517eb31-cb68-4d15-a187-2868a1f7277a.png#align=left&display=inline&height=607&name=image.png&originHeight=1214&originWidth=2150&size=275338&status=done&style=none&width=1075">
+<meta property="og:image" content="http://redteam.today/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/1580378176954-6713c06c-70af-4ac3-9f5c-b0e34fcf8e19.png#align=left&display=inline&height=493&name=image.png&originHeight=986&originWidth=2330&size=226505&status=done&style=none&width=1165">
+<meta property="og:image" content="http://redteam.today/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/1580380855855-5bfed017-f240-4af9-a5e7-0555444cb000.png#align=left&display=inline&height=485&name=image.png&originHeight=970&originWidth=2062&size=158930&status=done&style=none&width=1031">
+<meta property="og:image" content="http://redteam.today/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/1580383571657-a271c09d-0890-442f-b3f6-6a172f235f53.png#align=left&display=inline&height=243&name=image.png&originHeight=486&originWidth=1854&size=118852&status=done&style=none&width=927">
+<meta property="og:image" content="http://redteam.today/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/1580383821801-70d72983-d348-48c3-8a07-c770ec082c77.png#align=left&display=inline&height=262&name=image.png&originHeight=524&originWidth=2476&size=231885&status=done&style=none&width=1238">
+<meta property="og:image" content="http://redteam.today/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/1580384247485-354438d9-9482-4450-8b26-01ada6bd18c4.png#align=left&display=inline&height=147&name=image.png&originHeight=294&originWidth=2190&size=82873&status=done&style=none&width=1095">
+<meta property="og:image" content="http://redteam.today/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/1580384287803-1b5da7b9-c455-4ae4-9557-47a1629d157e.png#align=left&display=inline&height=678&name=image.png&originHeight=1356&originWidth=2142&size=177667&status=done&style=none&width=1071">
+<meta property="og:image" content="http://redteam.today/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/1580384354171-e57ad4ab-a595-442d-968f-44eef905f385.png#align=left&display=inline&height=103&name=image.png&originHeight=206&originWidth=1736&size=59328&status=done&style=none&width=868">
+<meta property="og:image" content="http://redteam.today/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/1580374514900-55ff9aef-070f-4dc4-9da7-e2a70721372a.png#align=left&display=inline&height=672&name=image.png&originHeight=1344&originWidth=1630&size=652092&status=done&style=none&width=815">
+<meta property="article:published_time" content="2020-01-31T04:24:48.000Z">
+<meta property="article:modified_time" content="2020-01-31T06:39:57.345Z">
+<meta property="article:author" content="李三（cl0und）">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://redteam.today/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/1580368543216-ba5d0a82-fc02-4225-9a7c-cc0c168f604b.png#align=left&display=inline&height=287&name=image.png&originHeight=574&originWidth=2072&size=171406&status=done&style=none&width=1036">
+
+<link rel="canonical" href="http://redteam.today/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>CAS的搭建及认证流程分析与比较 | 李三的剑谱</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="李三的剑谱" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">李三的剑谱</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="Searching..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="en">
+    <link itemprop="mainEntityOfPage" href="http://redteam.today/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="李三（cl0und）">
+      <meta itemprop="description" content="人若无名，便可专心练剑">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="李三的剑谱">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          CAS的搭建及认证流程分析与比较
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-01-31 12:24:48 / Modified: 14:39:57" itemprop="dateCreated datePublished" datetime="2020-01-31T12:24:48+08:00">2020-01-31</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/web-security/" itemprop="url" rel="index">
+                    <span itemprop="name">web security</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>2.7k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>2 mins.</span>
+            </span>
+            <div class="post-description">CAS是一个单点登录（Single Sign On,简称SSO，SSO使得在多个应用系统中，用户只需要登录一次就可以访问所有相互信任的应用系统。）框架，开始是由耶鲁大学的一个组织开发，后来归到apereo去管。</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="CAS-简介"><a href="#CAS-简介" class="headerlink" title="CAS 简介"></a>CAS 简介</h2><p>CAS是一个单点登录（Single Sign On,简称SSO，SSO使得在多个应用系统中，用户只需要登录一次就可以访问所有相互信任的应用系统）框架，开始是由耶鲁大学的一个组织开发，后来归到apereo去管。</p>
+<h2 id="CAS-Server搭建"><a href="#CAS-Server搭建" class="headerlink" title="CAS Server搭建"></a>CAS Server搭建</h2><p>在此下载：<a href="https://github.com/apereo/cas/tree/4.1.x" target="_blank" rel="noopener">https://github.com/apereo/cas/tree/4.1.x</a><br>通常来说用mvn编译cas-server-webapp后放到tomcat中就行，但是cas默认需要走https，否则在登陆流程和跳转webapp流程中会出现如下两种报错。<br><img src="1580368543216-ba5d0a82-fc02-4225-9a7c-cc0c168f604b.png#align=left&display=inline&height=287&name=image.png&originHeight=574&originWidth=2072&size=171406&status=done&style=none&width=1036" alt="image.png"></p>
+<p><img src="1580368461615-7a24430e-9bf3-4689-9c3b-e9168d2d177d.png#align=left&display=inline&height=330&name=image.png&originHeight=660&originWidth=2114&size=175710&status=done&style=none&width=1057" alt="image.png"></p>
+<p>第一种解决办法是生成一个自签名的ssl证书并在tomcat的server.xml中配置。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">keytool -genkey -<span class="built_in">alias</span> tomcat -keyalg RSA -keystore /path/to/my/keystore</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Connector</span> <span class="attr">port</span>=<span class="string">"8443"</span> <span class="attr">protocol</span>=<span class="string">"org.apache.coyote.http11.Http11NioProtocol"</span></span></span><br><span class="line"><span class="tag">           <span class="attr">maxThreads</span>=<span class="string">"150"</span> <span class="attr">SSLEnabled</span>=<span class="string">"true"</span> <span class="attr">scheme</span>=<span class="string">"https"</span> <span class="attr">secure</span>=<span class="string">"true"</span></span></span><br><span class="line"><span class="tag">  <span class="attr">keystoreFile</span>=<span class="string">"$&#123;user.home&#125;/.keystore"</span> <span class="attr">keystorePass</span>=<span class="string">"p@assw0rd"</span></span></span><br><span class="line"><span class="tag">           <span class="attr">clientAuth</span>=<span class="string">"false"</span> <span class="attr">sslProtocol</span>=<span class="string">"TLS"</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>但是这种方法影响wireshark后续抓包分析，并且默认情况下CAS要求webapp也是https。</p>
+<p>第二种办法是修改cas配置使其允许http。有下面四步。</p>
+<ol>
+<li><p>在<code>p:httpClient-ref=&quot;supportsTrustStoreSslSocketFactoryHttpClient&quot;</code>后增加<code>p:requireSecure=&quot;false&quot;!</code><br><a href="1580377596613-3c72dd9e-f517-473f-9eea-e8a86e5e0d16.png#align=left&display=inline&height=103&name=image.png&originHeight=206&originWidth=2182&size=60740&status=done&style=none&width=1091">image.png</a></p>
+</li>
+<li><p>修改WEB-INF/spring-configuration/ticketGrantingTicketCookieGenerator.xml<img src="1580377875413-89e3960e-4e30-435c-930b-7f720762d0a1.png#align=left&display=inline&height=135&name=image.png&originHeight=270&originWidth=2218&size=71387&status=done&style=none&width=1109" alt="image.png"></p>
+</li>
+</ol>
+<ol start="3">
+<li>修改WEB-INF/spring-configuration/warnCookieGenerator.xml<img src="1580377924581-fc1351cc-d72d-4f50-abe3-217a43230b80.png#align=left&display=inline&height=137&name=image.png&originHeight=274&originWidth=2064&size=61824&status=done&style=none&width=1032" alt="image.png"></li>
+</ol>
+<ol start="4">
+<li>修改注册服务WEB-INF/classes/services/HTTPSandIMAPS-10000001.json将<code>&quot;serviceId&quot; : &quot;^(https|imaps)://.*&quot;</code>修改为<code>&quot;serviceId&quot; : &quot;^(https|http|imaps)://.*&quot;!</code><br><a href="1580377987989-7a8526d8-9459-4ac3-bf96-66f71578f201.png#align=left&display=inline&height=66&name=image.png&originHeight=120&originWidth=1318&size=22754&status=done&style=none&width=720">image.png</a></li>
+</ol>
+<p>修改重启后虽然前端还是会爆错，但是其实正常登陆了。默认的帐密是casuser/Mellon，记录在deployerConfigContext.xml中。<br><img src="1580356310308-00f8b236-b1d6-43bd-a1d2-a729df5cbf65.png#align=left&display=inline&height=516&name=image.png&originHeight=1032&originWidth=3030&size=386108&status=done&style=none&width=1515" alt="image.png"><br><img src="1580378152394-9517eb31-cb68-4d15-a187-2868a1f7277a.png#align=left&display=inline&height=607&name=image.png&originHeight=1214&originWidth=2150&size=275338&status=done&style=none&width=1075" alt="image.png"></p>
+<p><img src="1580378176954-6713c06c-70af-4ac3-9f5c-b0e34fcf8e19.png#align=left&display=inline&height=493&name=image.png&originHeight=986&originWidth=2330&size=226505&status=done&style=none&width=1165" alt="image.png"></p>
+<h2 id="Webapp搭建"><a href="#Webapp搭建" class="headerlink" title="Webapp搭建"></a>Webapp搭建</h2><p>在此下载：<a href="https://github.com/UniconLabs/cas-sample-java-webapp" target="_blank" rel="noopener">https://github.com/UniconLabs/cas-sample-java-webapp</a><br>修改web.xml中casServerLoginUrl、casServerUrlPrefix、serverName值。casServerLoginUrl对应cas server地址（如果来客没有登陆过webapp就会把来客重定向到这里进行cas统一认证），casServerUrlPrefix对应cas server地址（这个值后续会跟一些api路径做拼接），serverName是webapp地址。<br><img src="1580380855855-5bfed017-f240-4af9-a5e7-0555444cb000.png#align=left&display=inline&height=485&name=image.png&originHeight=970&originWidth=2062&size=158930&status=done&style=none&width=1031" alt="image.png"></p>
+<h2 id="认证流程分析"><a href="#认证流程分析" class="headerlink" title="认证流程分析"></a>认证流程分析</h2><p>环境ip说明<br>cas server：172.16.247.1<br>cas webapp：172.16.247.139<br>用户：172.16.247.131</p>
+<ul>
+<li>user访问webapp，因为之前从未登陆过webapp，所以webapp会把user重定向给cas进行统一登陆（重定向的url的serivce中带有webapp自己的url好让cas知道user登陆成功后该重定向回哪里）。<img src="1580383571657-a271c09d-0890-442f-b3f6-6a172f235f53.png#align=left&display=inline&height=243&name=image.png&originHeight=486&originWidth=1854&size=118852&status=done&style=none&width=927" alt="image.png"></li>
+<li>user在cas登陆，登陆成功后cas会给user带一个cookie（TGC也叫TGT，如果之后要登陆其他webapp就不用重复输入密码而是直接给ST了）和一个ST（在location url中）的302回webapp。<img src="1580383821801-70d72983-d348-48c3-8a07-c770ec082c77.png#align=left&display=inline&height=262&name=image.png&originHeight=524&originWidth=2476&size=231885&status=done&style=none&width=1238" alt="image.png"></li>
+<li>webapp拿到user请求过来的ST会向CAS的api发送已验证ST的合法性，如果cas验证成功会发送给CAS的是成功的状态信息和用户的一些数据。<img src="1580384247485-354438d9-9482-4450-8b26-01ada6bd18c4.png#align=left&display=inline&height=147&name=image.png&originHeight=294&originWidth=2190&size=82873&status=done&style=none&width=1095" alt="image.png">)<img src="1580384287803-1b5da7b9-c455-4ae4-9557-47a1629d157e.png#align=left&display=inline&height=678&name=image.png&originHeight=1356&originWidth=2142&size=177667&status=done&style=none&width=1071" alt="image.png"></li>
+<li>webapp从cas那里得知ST是有效的，给user设置cookie（用户之后就不必再走一次这个流程了）。并让用户成功登陆。<img src="1580384354171-e57ad4ab-a595-442d-968f-44eef905f385.png#align=left&display=inline&height=103&name=image.png&originHeight=206&originWidth=1736&size=59328&status=done&style=none&width=868" alt="image.png"></li>
+</ul>
+<p>一图胜千言，图片来自网络（侵删）。</p>
+<p><img src="1580374514900-55ff9aef-070f-4dc4-9da7-e2a70721372a.png#align=left&display=inline&height=672&name=image.png&originHeight=1344&originWidth=1630&size=652092&status=done&style=none&width=815" alt="image.png"></p>
+<h2 id="SSO-vs-Kerberos-vs-OAuth"><a href="#SSO-vs-Kerberos-vs-OAuth" class="headerlink" title="SSO vs Kerberos vs OAuth"></a>SSO vs Kerberos vs OAuth</h2><p>当时看完整个cas的认证流程感觉里面一些要素和kerberos和OAuth认证很相似（都有一个第三方来进行认证/授权）。因此相比较一下这三者的区别。</p>
+<h3 id="SSO-vs-Kerberos"><a href="#SSO-vs-Kerberos" class="headerlink" title="SSO vs Kerberos"></a>SSO vs Kerberos</h3><p>sso和kerberos和共同点在他们都一个用TGT换ST的过程，不同点在于kerberos中其实有四个角色（client，KDC-AS，KDC-TS，server）并且因为“相近”的两个之间预先共享密钥，所以server不需要发送请求向KDC求证ST的真实性，但是CAS中server需要向cas server求证真实性。</p>
+<h3 id="SSO-vs-OAuth"><a href="#SSO-vs-OAuth" class="headerlink" title="SSO vs OAuth"></a>SSO vs OAuth</h3><p>它俩之前最大的不同的在业务场景的不同，SSO用在一个公司内部员工的单点登陆。OAuth用在两个公司之前A公司获取其用户在B公司的一些数据。OAuth还常常涉及到啊AB两公司的帐号绑定，所以需要state来防止csrf，这个是SSO里面没有的。</p>
+<h2 id="杂"><a href="#杂" class="headerlink" title="杂"></a>杂</h2><p>编译整个cas的遇到org.samba.jcifs:jcifs-ext:0.9.4无法下载的问题，选择手动下载jar并安装到本地maven仓库中。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#下载地址：http://maven.yonyoucloud.com/nexus/content/groups/public/org/samba/jcifs/jcifs-ext/0.9.4/</span></span><br><span class="line">mvn install:install-file -DgroupId=org.samba.jcifs -DartifactId=jcifs-ext -Dversion=0.9.4 -Dpackaging=jar -Dfile=/Users/cengsiqi/Downloads/jcifs-ext-0.9.4.jar</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://blog.csdn.net/chenhai201/article/details/50623395" target="_blank" rel="noopener">cas 4.1.4单点登录实战</a><br><a href="https://blog.51cto.com/fengwan/1876603" target="_blank" rel="noopener">CAS 4.1.10关闭HTTPS</a><br><a href="https://blog.csdn.net/GaoXiR/article/details/99539501" target="_blank" rel="noopener">使用maven命令安装jar包到本地maven仓库</a><br><a href="https://blog.csdn.net/mahoking/article/details/42319475" target="_blank" rel="noopener">Spring P标签的使用</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>李三（cl0und）
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="http://redteam.today/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/" title="CAS的搭建及认证流程分析与比较">http://redteam.today/2020/01/31/CAS的搭建及认证流程分析与比较/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/01/22/Java%E4%B8%AD%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86/" rel="prev" title="Java中双亲委派相关知识梳理">
+      <i class="fa fa-chevron-left"></i> Java中双亲委派相关知识梳理
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#CAS-简介"><span class="nav-number">1.</span> <span class="nav-text">CAS 简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CAS-Server搭建"><span class="nav-number">2.</span> <span class="nav-text">CAS Server搭建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Webapp搭建"><span class="nav-number">3.</span> <span class="nav-text">Webapp搭建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#认证流程分析"><span class="nav-number">4.</span> <span class="nav-text">认证流程分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SSO-vs-Kerberos-vs-OAuth"><span class="nav-number">5.</span> <span class="nav-text">SSO vs Kerberos vs OAuth</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SSO-vs-Kerberos"><span class="nav-number">5.1.</span> <span class="nav-text">SSO vs Kerberos</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSO-vs-OAuth"><span class="nav-number">5.2.</span> <span class="nav-text">SSO vs OAuth</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#杂"><span class="nav-number">6.</span> <span class="nav-text">杂</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">李三（cl0und）</p>
+  <div class="site-description" itemprop="description">人若无名，便可专心练剑</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">30</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://7o8v.me/" title="http:&#x2F;&#x2F;7o8v.me&#x2F;" rel="noopener" target="_blank">7o8v☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://evoa.me/" title="https:&#x2F;&#x2F;evoa.me&#x2F;" rel="noopener" target="_blank">evoA☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://kkdlong.win/" title="http:&#x2F;&#x2F;kkdlong.win&#x2F;" rel="noopener" target="_blank">kkdlong☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.l0ca1.xyz/" title="https:&#x2F;&#x2F;blog.l0ca1.xyz&#x2F;" rel="noopener" target="_blank">l0cal☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.lmxspace.com/" title="http:&#x2F;&#x2F;www.lmxspace.com&#x2F;" rel="noopener" target="_blank">l1nk3r</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.cnblogs.com/iamstudy/" title="https:&#x2F;&#x2F;www.cnblogs.com&#x2F;iamstudy&#x2F;" rel="noopener" target="_blank">l3m0n☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://8sec.cc/" title="http:&#x2F;&#x2F;8sec.cc&#x2F;" rel="noopener" target="_blank">裤衩哥的小屋</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://abcdefghijklmnopqrst.xyz/" title="http:&#x2F;&#x2F;abcdefghijklmnopqrst.xyz&#x2F;" rel="noopener" target="_blank">骑麦兜看落日☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://ph0rse.me/" title="http:&#x2F;&#x2F;ph0rse.me&#x2F;" rel="noopener" target="_blank">ph0rse</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://godot.win/" title="https:&#x2F;&#x2F;godot.win&#x2F;" rel="noopener" target="_blank">godot☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hebic.me/" title="http:&#x2F;&#x2F;hebic.me&#x2F;" rel="noopener" target="_blank">🐰师傅☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://jayl1n.github.io/" title="https:&#x2F;&#x2F;jayl1n.github.io&#x2F;" rel="noopener" target="_blank">Jaylin（大潘）☘️</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">李三（cl0und）</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="Symbols count total">175k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">2:39</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.1.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
