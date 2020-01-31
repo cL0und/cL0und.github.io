@@ -14,7 +14,7 @@
 <p>但是这种方法影响wireshark后续抓包分析，并且默认情况下CAS要求webapp也是https。</p>
 <p>第二种办法是修改cas配置使其允许http。有下面四步。</p>
 <ol>
-<li><p>在<code>p:httpClient-ref=&quot;supportsTrustStoreSslSocketFactoryHttpClient&quot;</code>后增加<code>p:requireSecure=&quot;false&quot;!</code><br><a href="1580377596613-3c72dd9e-f517-473f-9eea-e8a86e5e0d16.png#align=left&display=inline&height=103&name=image.png&originHeight=206&originWidth=2182&size=60740&status=done&style=none&width=1091">image.png</a></p>
+<li><p>在<code>p:httpClient-ref=&quot;supportsTrustStoreSslSocketFactoryHttpClient&quot;</code>后增加<code>p:requireSecure=&quot;false&quot;</code><img src="1580377596613-3c72dd9e-f517-473f-9eea-e8a86e5e0d16.png#align=left&display=inline&height=103&name=image.png&originHeight=206&originWidth=2182&size=60740&status=done&style=none&width=1091" alt="image.png"></p>
 </li>
 <li><p>修改WEB-INF/spring-configuration/ticketGrantingTicketCookieGenerator.xml<img src="1580377875413-89e3960e-4e30-435c-930b-7f720762d0a1.png#align=left&display=inline&height=135&name=image.png&originHeight=270&originWidth=2218&size=71387&status=done&style=none&width=1109" alt="image.png"></p>
 </li>
@@ -23,7 +23,7 @@
 <li>修改WEB-INF/spring-configuration/warnCookieGenerator.xml<img src="1580377924581-fc1351cc-d72d-4f50-abe3-217a43230b80.png#align=left&display=inline&height=137&name=image.png&originHeight=274&originWidth=2064&size=61824&status=done&style=none&width=1032" alt="image.png"></li>
 </ol>
 <ol start="4">
-<li>修改注册服务WEB-INF/classes/services/HTTPSandIMAPS-10000001.json将<code>&quot;serviceId&quot; : &quot;^(https|imaps)://.*&quot;</code>修改为<code>&quot;serviceId&quot; : &quot;^(https|http|imaps)://.*&quot;!</code><br><a href="1580377987989-7a8526d8-9459-4ac3-bf96-66f71578f201.png#align=left&display=inline&height=66&name=image.png&originHeight=120&originWidth=1318&size=22754&status=done&style=none&width=720">image.png</a></li>
+<li>修改注册服务WEB-INF/classes/services/HTTPSandIMAPS-10000001.json将<code>&quot;serviceId&quot; : &quot;^(https|imaps)://.*&quot;</code>修改为<code>&quot;serviceId&quot; : &quot;^(https|http|imaps)://.*&quot;</code><img src="1580377987989-7a8526d8-9459-4ac3-bf96-66f71578f201.png#align=left&display=inline&height=66&name=image.png&originHeight=120&originWidth=1318&size=22754&status=done&style=none&width=720" alt="image.png"></li>
 </ol>
 <p>修改重启后虽然前端还是会爆错，但是其实正常登陆了。默认的帐密是casuser/Mellon，记录在deployerConfigContext.xml中。<br><img src="1580356310308-00f8b236-b1d6-43bd-a1d2-a729df5cbf65.png#align=left&display=inline&height=516&name=image.png&originHeight=1032&originWidth=3030&size=386108&status=done&style=none&width=1515" alt="image.png"><br><img src="1580378152394-9517eb31-cb68-4d15-a187-2868a1f7277a.png#align=left&display=inline&height=607&name=image.png&originHeight=1214&originWidth=2150&size=275338&status=done&style=none&width=1075" alt="image.png"></p>
 <p><img src="1580378176954-6713c06c-70af-4ac3-9f5c-b0e34fcf8e19.png#align=left&display=inline&height=493&name=image.png&originHeight=986&originWidth=2330&size=226505&status=done&style=none&width=1165" alt="image.png"></p>
@@ -32,7 +32,7 @@
 <ul>
 <li>user访问webapp，因为之前从未登陆过webapp，所以webapp会把user重定向给cas进行统一登陆（重定向的url的serivce中带有webapp自己的url好让cas知道user登陆成功后该重定向回哪里）。<img src="1580383571657-a271c09d-0890-442f-b3f6-6a172f235f53.png#align=left&display=inline&height=243&name=image.png&originHeight=486&originWidth=1854&size=118852&status=done&style=none&width=927" alt="image.png"></li>
 <li>user在cas登陆，登陆成功后cas会给user带一个cookie（TGC也叫TGT，如果之后要登陆其他webapp就不用重复输入密码而是直接给ST了）和一个ST（在location url中）的302回webapp。<img src="1580383821801-70d72983-d348-48c3-8a07-c770ec082c77.png#align=left&display=inline&height=262&name=image.png&originHeight=524&originWidth=2476&size=231885&status=done&style=none&width=1238" alt="image.png"></li>
-<li>webapp拿到user请求过来的ST会向CAS的api发送已验证ST的合法性，如果cas验证成功会发送给CAS的是成功的状态信息和用户的一些数据。<img src="1580384247485-354438d9-9482-4450-8b26-01ada6bd18c4.png#align=left&display=inline&height=147&name=image.png&originHeight=294&originWidth=2190&size=82873&status=done&style=none&width=1095" alt="image.png">)<img src="1580384287803-1b5da7b9-c455-4ae4-9557-47a1629d157e.png#align=left&display=inline&height=678&name=image.png&originHeight=1356&originWidth=2142&size=177667&status=done&style=none&width=1071" alt="image.png"></li>
+<li>webapp拿到user请求过来的ST会向CAS的api发送已验证ST的合法性，如果cas验证成功会发送给CAS的是成功的状态信息和用户的一些数据。<img src="1580384247485-354438d9-9482-4450-8b26-01ada6bd18c4.png#align=left&display=inline&height=147&name=image.png&originHeight=294&originWidth=2190&size=82873&status=done&style=none&width=1095" alt="image.png"><br><img src="1580384287803-1b5da7b9-c455-4ae4-9557-47a1629d157e.png#align=left&display=inline&height=678&name=image.png&originHeight=1356&originWidth=2142&size=177667&status=done&style=none&width=1071" alt="image.png"></li>
 <li>webapp从cas那里得知ST是有效的，给user设置cookie（用户之后就不必再走一次这个流程了）。并让用户成功登陆。<img src="1580384354171-e57ad4ab-a595-442d-968f-44eef905f385.png#align=left&display=inline&height=103&name=image.png&originHeight=206&originWidth=1736&size=59328&status=done&style=none&width=868" alt="image.png"></li>
 </ul>
 <p>一图胜千言，图片来自网络（侵删）。</p>
