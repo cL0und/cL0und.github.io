@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://redteam.today').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="写这篇文章目的主要在于进一步理解何为java原生反序列化，并且回答如下的几个问题。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java原生序列化与反序列化代码简要分析">
+<meta property="og:url" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="李三的剑谱">
+<meta property="og:description" content="写这篇文章目的主要在于进一步理解何为java原生反序列化，并且回答如下的几个问题。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579071914321-a1cb1263-2c7b-4c2a-ac9e-ab59b368be6f.png#align=left&display=inline&height=268&name=image.png&originHeight=536&originWidth=2218&size=130937&status=done&style=none&width=1109">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579072160993-ddec24eb-7894-4fa4-b0a3-6cc1525d0312.png#align=left&display=inline&height=499&name=image.png&originHeight=998&originWidth=2416&size=312156&status=done&style=none&width=1208">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579072322762-373ead16-c408-4a20-b9c8-0e5afeb526a2.png#align=left&display=inline&height=79&name=image.png&originHeight=118&originWidth=1114&size=24543&status=done&style=none&width=746">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579072894925-2b64c24f-c27e-4076-9680-ff51ad8934d7.png#align=left&display=inline&height=526&name=image.png&originHeight=1052&originWidth=2218&size=309500&status=done&style=none&width=1109">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579072952655-5aaa96e0-5fdf-488a-ac94-8528a696d735.png#align=left&display=inline&height=265&name=image.png&originHeight=530&originWidth=2170&size=158579&status=done&style=none&width=1085">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579073424200-23b27228-c0e6-4226-87ea-39f9a62cd74a.png#align=left&display=inline&height=456&name=image.png&originHeight=912&originWidth=2570&size=266403&status=done&style=none&width=1285">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579073626530-720d0886-3e01-4436-93f9-f965c7280d8b.png#align=left&display=inline&height=121&name=image.png&originHeight=198&originWidth=1220&size=40079&status=done&style=none&width=746">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579073604762-ebea518b-6e04-4df7-a251-edb41729238d.png#align=left&display=inline&height=612&name=image.png&originHeight=1224&originWidth=1920&size=311877&status=done&style=none&width=960">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579073704276-07463dd6-ef7f-4174-b38b-b7d9f8e3c621.png#align=left&display=inline&height=678&name=image.png&originHeight=1224&originWidth=1346&size=143782&status=done&style=none&width=746">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579074696395-fa1ba6b8-6c83-4273-9d87-20620d97374f.png#align=left&display=inline&height=691&name=image.png&originHeight=1382&originWidth=2290&size=431384&status=done&style=none&width=1145">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579075103594-84570cfe-d6c5-477a-aa31-8be9626ab9cd.png#align=left&display=inline&height=734&name=image.png&originHeight=1468&originWidth=2392&size=472323&status=done&style=none&width=1196">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579081394980-e507b22c-1658-4b07-b841-ba11924dcecb.png#align=left&display=inline&height=217&name=image.png&originHeight=434&originWidth=1926&size=114185&status=done&style=none&width=963">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579081417550-f6a84856-864a-4e96-bbb9-f92cfffeffa2.png#align=left&display=inline&height=62&name=image.png&originHeight=100&originWidth=1202&size=18103&status=done&style=none&width=746">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579097989089-bb47e454-4a63-4f1f-adba-b23a19fddfdf.png#align=left&display=inline&height=657&name=image.png&originHeight=1314&originWidth=2282&size=361847&status=done&style=none&width=1141">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579098107741-afcde48d-8a7a-4d1f-83be-c826002ecee5.png#align=left&display=inline&height=525&name=image.png&originHeight=1050&originWidth=2250&size=280701&status=done&style=none&width=1125">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579098941907-9785fe5c-79de-442c-9632-f8366c6f50bc.png#align=left&display=inline&height=762&name=image.png&originHeight=1524&originWidth=2322&size=485982&status=done&style=none&width=1161">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579098457484-d2b7c5d1-7498-4b1b-84fb-4697e163e69c.png#align=left&display=inline&height=744&name=image.png&originHeight=1488&originWidth=2144&size=459960&status=done&style=none&width=1072">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579098865240-c1eebc8c-097a-4c4b-a621-fa41f37583a1.png#align=left&display=inline&height=293&name=image.png&originHeight=586&originWidth=2098&size=135558&status=done&style=none&width=1049">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579099519793-d21fcdc2-bccf-411c-bef1-5e517f4e508f.png#align=left&display=inline&height=474&name=image.png&originHeight=948&originWidth=1518&size=180999&status=done&style=none&width=759">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579099650702-8f1fa375-96f9-4d7e-86e2-f6e25abf5621.png#align=left&display=inline&height=355&name=image.png&originHeight=710&originWidth=1720&size=154285&status=done&style=none&width=860">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579101128866-30f3281e-d43c-4033-aa18-e81302113c73.png#align=left&display=inline&height=435&name=image.png&originHeight=870&originWidth=2158&size=270819&status=done&style=none&width=1079">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579099806423-394e2869-54a0-41a1-ab91-84de80fde8de.png#align=left&display=inline&height=548&name=image.png&originHeight=1096&originWidth=2446&size=295874&status=done&style=none&width=1223">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579099910627-5e87fc03-44b5-4eca-a2e2-3d75b83f0fd8.png#align=left&display=inline&height=632&name=image.png&originHeight=1264&originWidth=2000&size=336960&status=done&style=none&width=1000">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579141111812-93300e7b-b9e9-4e5c-a4d7-640bb1a38793.png#align=left&display=inline&height=801&name=image.png&originHeight=1602&originWidth=2582&size=1407262&status=done&style=none&width=1291">
+<meta property="og:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1581650629068-43309a6e-425b-40e0-a375-61538f1648db.png#align=left&display=inline&height=786&name=image.png&originHeight=1572&originWidth=2024&size=259760&status=done&style=none&width=1012">
+<meta property="article:published_time" content="2020-02-14T03:44:34.000Z">
+<meta property="article:modified_time" content="2020-02-14T03:47:44.501Z">
+<meta property="article:author" content="李三（cl0und）">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/1579071914321-a1cb1263-2c7b-4c2a-ac9e-ab59b368be6f.png#align=left&display=inline&height=268&name=image.png&originHeight=536&originWidth=2218&size=130937&status=done&style=none&width=1109">
+
+<link rel="canonical" href="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Java原生序列化与反序列化代码简要分析 | 李三的剑谱</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="李三的剑谱" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">李三的剑谱</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="Searching..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="en">
+    <link itemprop="mainEntityOfPage" href="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="李三（cl0und）">
+      <meta itemprop="description" content="人若无名，便可专心练剑">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="李三的剑谱">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java原生序列化与反序列化代码简要分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-02-14 11:44:34 / Modified: 11:47:44" itemprop="dateCreated datePublished" datetime="2020-02-14T11:44:34+08:00">2020-02-14</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/web-security/" itemprop="url" rel="index">
+                    <span itemprop="name">web security</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>5.9k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>5 mins.</span>
+            </span>
+            <div class="post-description">写这篇文章目的主要在于进一步理解何为java原生反序列化，并且回答如下的几个问题。</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>写这篇文章目的主要在于进一步理解何为java原生反序列化，并且回答的几个问题。</p>
+<ol>
+<li>为什么就java反序列化使用而言是反序列化类的readObject开始？</li>
+<li>为什么resolveClass方法可以防御反序列化？</li>
+<li>为什么在反序列化数据后面插入脏数据会不会影响反序列化？</li>
+</ol>
+<p><strong>ps: 碍于水平有限只会在代码表层做宏观和中观的分析，并不会深入特别底层。</strong></p>
+<h2 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a>测试代码</h2><p>序列化</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">User</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> age = <span class="number">20</span>;</span><br><span class="line">    <span class="keyword">int</span> money = <span class="number">100</span>;</span><br><span class="line">    String firstname = <span class="string">"cl0und"</span>;</span><br><span class="line">    String lastname = <span class="string">"lisan"</span>;</span><br><span class="line"></span><br><span class="line">    User()&#123;</span><br><span class="line">        System.out.println(<span class="string">"无参数构造方法"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Serial</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException, ClassNotFoundException </span>&#123;</span><br><span class="line">        ObjectOutputStream oops = <span class="keyword">new</span> ObjectOutputStream(<span class="keyword">new</span> FileOutputStream(<span class="string">"./serializable.txt"</span>));</span><br><span class="line">        oops.writeObject(<span class="keyword">new</span> User());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>反序列化</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.FileInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.ObjectInputStream;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Unserial</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException, ClassNotFoundException </span>&#123;</span><br><span class="line">        ObjectInputStream oips = <span class="keyword">new</span> ObjectInputStream(<span class="keyword">new</span> FileInputStream(<span class="string">"./serializable.txt"</span>));</span><br><span class="line">        User user = (User) oips.readObject();</span><br><span class="line">        System.out.println(user.age);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="序列化"><a href="#序列化" class="headerlink" title="序列化"></a>序列化</h2><h3 id="预处理"><a href="#预处理" class="headerlink" title="预处理"></a>预处理</h3><p>预处理的意义是拿到类的描述符类ObjectStreamClass，后续对类的内省和写入序列化数据都由他完成或调度。<br><img src="1579071914321-a1cb1263-2c7b-4c2a-ac9e-ab59b368be6f.png#align=left&display=inline&height=268&name=image.png&originHeight=536&originWidth=2218&size=130937&status=done&style=none&width=1109" alt="image.png"></p>
+<p><img src="1579072160993-ddec24eb-7894-4fa4-b0a3-6cc1525d0312.png#align=left&display=inline&height=499&name=image.png&originHeight=998&originWidth=2416&size=312156&status=done&style=none&width=1208" alt="image.png"></p>
+<p><img src="1579072322762-373ead16-c408-4a20-b9c8-0e5afeb526a2.png#align=left&display=inline&height=79&name=image.png&originHeight=118&originWidth=1114&size=24543&status=done&style=none&width=746" alt="image.png"></p>
+<h3 id="序列化数据"><a href="#序列化数据" class="headerlink" title="序列化数据"></a>序列化数据</h3><p>可以看到一共有三步，首先是TC_OBJECT，其次是类的元信息，最后是类的具体数据。<br><img src="1579072894925-2b64c24f-c27e-4076-9680-ff51ad8934d7.png#align=left&display=inline&height=526&name=image.png&originHeight=1052&originWidth=2218&size=309500&status=done&style=none&width=1109" alt="image.png"></p>
+<p>第一步就写个标志头，比较简单我们下面直接从第二步开始看。</p>
+<h4 id="writeClassDesc"><a href="#writeClassDesc" class="headerlink" title="writeClassDesc"></a>writeClassDesc</h4><p>在序列化对象的数据之前，首先会有一个对象类型的分类判断，这里分成四种类型来处理即null类型（TC_NULL）、handle类型（TC_REFERENCE）、代理类型（TC_PROXYCLASSDESC）、普通类型（TC_CLASSDESC）。我们这里的User是普通的类所以走最后的writeNonProxyDesc。<br><img src="1579072952655-5aaa96e0-5fdf-488a-ac94-8528a696d735.png#align=left&display=inline&height=265&name=image.png&originHeight=530&originWidth=2170&size=158579&status=done&style=none&width=1085" alt="image.png"></p>
+<p>writeNonProxyDesc会先调用writeClassDescriptor把自己的属性信息写入，然后<strong>递归调用writeClassDesc写入父类元信息</strong>。<br><img src="1579073424200-23b27228-c0e6-4226-87ea-39f9a62cd74a.png#align=left&display=inline&height=456&name=image.png&originHeight=912&originWidth=2570&size=266403&status=done&style=none&width=1285" alt="image.png"></p>
+<p>细看一下writeClassDescriptor，这里面会调用writeNonProxy。<br><img src="1579073626530-720d0886-3e01-4436-93f9-f965c7280d8b.png#align=left&display=inline&height=121&name=image.png&originHeight=198&originWidth=1220&size=40079&status=done&style=none&width=746" alt="image.png"></p>
+<p>最后调用writeNonProxy，在for循环里面写入属性信息。<br><img src="1579073604762-ebea518b-6e04-4df7-a251-edb41729238d.png#align=left&display=inline&height=612&name=image.png&originHeight=1224&originWidth=1920&size=311877&status=done&style=none&width=960" alt="image.png"></p>
+<p>这一段的写入如果最后用dump出来，就是下面这个样子。<br><img src="1579073704276-07463dd6-ef7f-4174-b38b-b7d9f8e3c621.png#align=left&display=inline&height=678&name=image.png&originHeight=1224&originWidth=1346&size=143782&status=done&style=none&width=746" alt="image.png"></p>
+<h4 id="writeSerialData"><a href="#writeSerialData" class="headerlink" title="writeSerialData"></a>writeSerialData</h4><p>把类属性信息写去之后，接下来就是写类属性对应的具体值了。<img src="1579074696395-fa1ba6b8-6c83-4273-9d87-20620d97374f.png#align=left&display=inline&height=691&name=image.png&originHeight=1382&originWidth=2290&size=431384&status=done&style=none&width=1145" alt="image.png"></p>
+<p><img src="1579075103594-84570cfe-d6c5-477a-aa31-8be9626ab9cd.png#align=left&display=inline&height=734&name=image.png&originHeight=1468&originWidth=2392&size=472323&status=done&style=none&width=1196" alt="image.png"></p>
+<p><em>ps:非原生数据类型指的是字符串、数组、枚举类型、对象。</em><br>_<br>一个完整的dump如下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line">STREAM_MAGIC - 0xac ed</span><br><span class="line">STREAM_VERSION - 0x00 05</span><br><span class="line">Contents</span><br><span class="line">  TC_OBJECT - 0x73</span><br><span class="line">    TC_CLASSDESC - 0x72</span><br><span class="line">      className</span><br><span class="line">        Length - 4 - 0x00 04</span><br><span class="line">        Value - User - 0x55736572</span><br><span class="line">      serialVersionUID - 0xbb 67 4f fb 9b a9 d6 bb</span><br><span class="line">      newHandle 0x00 7e 00 00</span><br><span class="line">      classDescFlags - 0x02 - SC_SERIALIZABLE</span><br><span class="line">      fieldCount - 4 - 0x00 04</span><br><span class="line">      Fields</span><br><span class="line">        0:</span><br><span class="line">          Int - I - 0x49</span><br><span class="line">          fieldName</span><br><span class="line">            Length - 3 - 0x00 03</span><br><span class="line">            Value - age - 0x616765</span><br><span class="line">        1:</span><br><span class="line">          Int - I - 0x49</span><br><span class="line">          fieldName</span><br><span class="line">            Length - 5 - 0x00 05</span><br><span class="line">            Value - money - 0x6d6f6e6579</span><br><span class="line">        2:</span><br><span class="line">          Object - L - 0x4c</span><br><span class="line">          fieldName</span><br><span class="line">            Length - 9 - 0x00 09</span><br><span class="line">            Value - firstname - 0x66697273746e616d65</span><br><span class="line">          className1</span><br><span class="line">            TC_STRING - 0x74</span><br><span class="line">              newHandle 0x00 7e 00 01</span><br><span class="line">              Length - 18 - 0x00 12</span><br><span class="line">              Value - Ljava&#x2F;lang&#x2F;String; - 0x4c6a6176612f6c616e672f537472696e673b</span><br><span class="line">        3:</span><br><span class="line">          Object - L - 0x4c</span><br><span class="line">          fieldName</span><br><span class="line">            Length - 8 - 0x00 08</span><br><span class="line">            Value - lastname - 0x6c6173746e616d65</span><br><span class="line">          className1</span><br><span class="line">            TC_REFERENCE - 0x71</span><br><span class="line">              Handle - 8257537 - 0x00 7e 00 01</span><br><span class="line">      classAnnotations</span><br><span class="line">        TC_ENDBLOCKDATA - 0x78</span><br><span class="line">      superClassDesc</span><br><span class="line">        TC_NULL - 0x70</span><br><span class="line">    newHandle 0x00 7e 00 02</span><br><span class="line">    classdata</span><br><span class="line">      User</span><br><span class="line">        values</span><br><span class="line">          age</span><br><span class="line">            (int)20 - 0x00 00 00 14</span><br><span class="line">          money</span><br><span class="line">            (int)100 - 0x00 00 00 64</span><br><span class="line">          firstname</span><br><span class="line">            (object)</span><br><span class="line">              TC_STRING - 0x74</span><br><span class="line">                newHandle 0x00 7e 00 03</span><br><span class="line">                Length - 6 - 0x00 06</span><br><span class="line">                Value - cl0und - 0x636c30756e64</span><br><span class="line">          lastname</span><br><span class="line">            (object)</span><br><span class="line">              TC_STRING - 0x74</span><br><span class="line">                newHandle 0x00 7e 00 04</span><br><span class="line">                Length - 5 - 0x00 05</span><br><span class="line">                Value - lisan - 0x6c6973616e</span><br></pre></td></tr></table></figure>
+
+<p>可以看到在序列化的时候世界上是写入了各字段长度的，所以在后面反序列化读的时候是按照字段长度来进行读取的。<strong>这也解释了为什么在反序列化数据后面插入脏数据会不会影响反序列化</strong>。</p>
+<h2 id="反序列化"><a href="#反序列化" class="headerlink" title="反序列化"></a>反序列化</h2><h3 id="预处理-1"><a href="#预处理-1" class="headerlink" title="预处理"></a>预处理</h3><p>反序列化和序列化互为称操作，其主要的操作在readObject0里面<br><img src="1579081394980-e507b22c-1658-4b07-b841-ba11924dcecb.png#align=left&display=inline&height=217&name=image.png&originHeight=434&originWidth=1926&size=114185&status=done&style=none&width=963" alt="image.png"></p>
+<p>case到object进行反序列化，整个object的反序化在readOrdinaryObject中<br><img src="1579081417550-f6a84856-864a-4e96-bbb9-f92cfffeffa2.png#align=left&display=inline&height=62&name=image.png&originHeight=100&originWidth=1202&size=18103&status=done&style=none&width=746" alt="image.png"></p>
+<p>和序列化对称还是分两步，第一步是读取出类的元信息（readClassDesc），第二步是读取出对象属性具体的数据（readSerialData）。<br><img src="1579097989089-bb47e454-4a63-4f1f-adba-b23a19fddfdf.png#align=left&display=inline&height=657&name=image.png&originHeight=1314&originWidth=2282&size=361847&status=done&style=none&width=1141" alt="image.png"></p>
+<h3 id="反序列化数据"><a href="#反序列化数据" class="headerlink" title="反序列化数据"></a>反序列化数据</h3><h4 id="readClassDesc"><a href="#readClassDesc" class="headerlink" title="readClassDesc"></a>readClassDesc</h4><p>在序列化那里提到过，对把类类型分成四个类型处理，这里的User是非代理普通类，就走readNonProxyDesc。<br><img src="1579098107741-afcde48d-8a7a-4d1f-83be-c826002ecee5.png#align=left&display=inline&height=525&name=image.png&originHeight=1050&originWidth=2250&size=280701&status=done&style=none&width=1125" alt="image.png"></p>
+<p>readNonProxyDesc中主要的操作在readClassDescriptor、resolveClass、initNonProxy（<strong>注意这里initNonProxy的最后一个传参，这里递归调用了readClassDesc</strong>）。<br><img src="1579098941907-9785fe5c-79de-442c-9632-f8366c6f50bc.png#align=left&display=inline&height=762&name=image.png&originHeight=1524&originWidth=2322&size=485982&status=done&style=none&width=1161" alt="image.png"></p>
+<p>readClassDescriptor读出了类的元数据并把每一个属性名抽象成了ObjectStreamField类<br><img src="1579098457484-d2b7c5d1-7498-4b1b-84fb-4697e163e69c.png#align=left&display=inline&height=744&name=image.png&originHeight=1488&originWidth=2144&size=459960&status=done&style=none&width=1072" alt="image.png"></p>
+<p>resolveClass对类类型进行了构建，注意这里第二参数为false，意味着并不会执行类的初始化（static代码块不执行）<br>。</p>
+<p><img src="1579098865240-c1eebc8c-097a-4c4b-a621-fa41f37583a1.png#align=left&display=inline&height=293&name=image.png&originHeight=586&originWidth=2098&size=135558&status=done&style=none&width=1049" alt="image.png"></p>
+<p><strong>另外注意这里解释了为什么设置反序列化防御的点是在resolveClass，如果想对反序列化设置防御，就需要自己实现一个ObjectInputStream。</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyObjInputStream</span> <span class="keyword">extends</span> <span class="title">ObjInputStream</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MyObjInputStream</span><span class="params">(InputStream in)</span> <span class="keyword">throws</span> IOException</span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(in);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> Class&lt;?&gt; resolveClass(ObjInputStream desc) <span class="keyword">throws</span> IOException, ClassNotFoundException &#123;</span><br><span class="line">        System.out.println(<span class="string">"defence"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">super</span>.resolveClass(desc)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>initNonProxy又构建了类的元信息。<br><img src="1579099519793-d21fcdc2-bccf-411c-bef1-5e517f4e508f.png#align=left&display=inline&height=474&name=image.png&originHeight=948&originWidth=1518&size=180999&status=done&style=none&width=759" alt="image.png"></p>
+<p>最后desc（ObjectStreamClass）传出给外层readOrdinaryObject。首先会进行对象的初始化，然后读出数据注入类中。<br><img src="1579099650702-8f1fa375-96f9-4d7e-86e2-f6e25abf5621.png#align=left&display=inline&height=355&name=image.png&originHeight=710&originWidth=1720&size=154285&status=done&style=none&width=860" alt="image.png"></p>
+<h4 id="readSerialData"><a href="#readSerialData" class="headerlink" title="readSerialData"></a>readSerialData</h4><p>如果我们自定义了readObject方法，那么这里就会invoke，<strong>这里解释了为什么就java反序列化使用而言是反序列化类的readObject开始。</strong><br><img src="1579101128866-30f3281e-d43c-4033-aa18-e81302113c73.png#align=left&display=inline&height=435&name=image.png&originHeight=870&originWidth=2158&size=270819&status=done&style=none&width=1079" alt="image.png"></p>
+<p>但是在User类中在我们并没有自定义反序列化方法随意还是走默认路线。<br><img src="1579099806423-394e2869-54a0-41a1-ab91-84de80fde8de.png#align=left&display=inline&height=548&name=image.png&originHeight=1096&originWidth=2446&size=295874&status=done&style=none&width=1223" alt="image.png"></p>
+<p>defaultReadFields，中第一个循环把原生类型数据赋给obj，第二个循环把数组、枚举类型、对象类型赋给obj。<br><img src="1579099910627-5e87fc03-44b5-4eca-a2e2-3d75b83f0fd8.png#align=left&display=inline&height=632&name=image.png&originHeight=1264&originWidth=2000&size=336960&status=done&style=none&width=1000" alt="image.png"></p>
+<p>补充一张整个反序列化的时序图。<br><img src="1579141111812-93300e7b-b9e9-4e5c-a4d7-640bb1a38793.png#align=left&display=inline&height=801&name=image.png&originHeight=1602&originWidth=2582&size=1407262&status=done&style=none&width=1291" alt="image.png"></p>
+<h2 id="从SerialKiller来java反序列化防御"><a href="#从SerialKiller来java反序列化防御" class="headerlink" title="从SerialKiller来java反序列化防御"></a>从SerialKiller来java反序列化防御</h2><p><a href="https://github.com/ikkisoft/SerialKiller" target="_blank" rel="noopener">https://github.com/ikkisoft/SerialKiller</a><br>原生使用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ObjectInputStream ois = <span class="keyword">new</span> ObjectInputStream(is);</span><br><span class="line">String msg = (String) ois.readObject();</span><br></pre></td></tr></table></figure>
+
+<p>加上SerialKiller后的使用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ObjectInputStream ois = <span class="keyword">new</span> SerialKiller(is, <span class="string">"/etc/serialkiller.conf"</span>);</span><br><span class="line">String msg = (String) ois.readObject();</span><br></pre></td></tr></table></figure>
+
+<p>可以看到它的原理就是上面提的自己实现流并且在resolveClass处加上白名单或者黑名单的过滤。<br><img src="1581650629068-43309a6e-425b-40e0-a375-61538f1648db.png#align=left&display=inline&height=786&name=image.png&originHeight=1572&originWidth=2024&size=259760&status=done&style=none&width=1012" alt="image.png"></p>
+<h2 id="杂"><a href="#杂" class="headerlink" title="杂"></a>杂</h2><p>当父子接口同时实现了Serializable接口时</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserBase</span> <span class="keyword">implements</span> <span class="title">Serializable</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> age;</span><br><span class="line">    UserBase()&#123;</span><br><span class="line">        System.out.println(<span class="string">"UserBase无参构造"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    UserBase(<span class="keyword">int</span> age)&#123;</span><br><span class="line">        <span class="keyword">this</span>.age = age;</span><br><span class="line">        System.out.println(<span class="string">"UserBase有参构造"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">User2</span> <span class="keyword">extends</span> <span class="title">UserBase</span> <span class="keyword">implements</span> <span class="title">Serializable</span></span>&#123;</span><br><span class="line"></span><br><span class="line">    User2()&#123;</span><br><span class="line">        System.out.println(<span class="string">"User2无参构造"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    User2(<span class="keyword">int</span> age)&#123;</span><br><span class="line">        <span class="keyword">this</span>.age = age;</span><br><span class="line">        System.out.println(<span class="string">"User2有参构造"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>控制台输出</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">UserBase无参构造</span><br><span class="line">User2有参构造</span><br><span class="line">-----------------</span><br><span class="line">2333</span><br></pre></td></tr></table></figure>
+
+<p>当只有子类实现Serializable接口父类没有实现时。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SerialAndUnserial</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException, ClassNotFoundException </span>&#123;</span><br><span class="line">        ObjectOutputStream oops = <span class="keyword">new</span> ObjectOutputStream(<span class="keyword">new</span> FileOutputStream(<span class="string">"./serializable.txt"</span>));</span><br><span class="line">        oops.writeObject(<span class="keyword">new</span> User2(<span class="number">2333</span>));</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">"-----------------"</span>);</span><br><span class="line">        ObjectInputStream oips = <span class="keyword">new</span> ObjectInputStream(<span class="keyword">new</span> FileInputStream(<span class="string">"./serializable.txt"</span>));</span><br><span class="line">        User2 user = (User2) oips.readObject();</span><br><span class="line"></span><br><span class="line">        System.out.println(user.age);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserBase</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> age;</span><br><span class="line">    UserBase()&#123;</span><br><span class="line">        System.out.println(<span class="string">"UserBase无参构造"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    UserBase(<span class="keyword">int</span> age)&#123;</span><br><span class="line">        <span class="keyword">this</span>.age = age;</span><br><span class="line">        System.out.println(<span class="string">"UserBase有参构造"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">User2</span> <span class="keyword">extends</span> <span class="title">UserBase</span> <span class="keyword">implements</span> <span class="title">Serializable</span></span>&#123;</span><br><span class="line"></span><br><span class="line">    User2()&#123;</span><br><span class="line">        System.out.println(<span class="string">"User2无参构造"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    User2(<span class="keyword">int</span> age)&#123;</span><br><span class="line">        <span class="keyword">this</span>.age = age;</span><br><span class="line">        System.out.println(<span class="string">"User2有参构造"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">UserBase无参构造</span><br><span class="line">User2有参构造</span><br><span class="line">-----------------</span><br><span class="line">UserBase无参构造</span><br><span class="line">0</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结及一些tip"><a href="#总结及一些tip" class="headerlink" title="总结及一些tip"></a>总结及一些tip</h2><ul>
+<li>序列化时，当写入类的元数据的时候，是先写子类的类元数据，然后递归调用的写入父类的类元数据（只有实现序列化接口的才会有类元数据）。</li>
+<li>防御反序列化的原理是在resolveClass处设防而不是readResolve</li>
+<li>在序列化数据末尾加入脏数据不会影响正常的反序列化。</li>
+</ul>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://blog.csdn.net/qq_36744284/article/details/89604011" target="_blank" rel="noopener">java中的序列化与反序列化及其源码分析（特别详细）</a><br><a href="http://xxlegend.com/2018/06/20/%E5%85%88%E7%9F%A5%E8%AE%AE%E9%A2%98%20Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AE%9E%E6%88%98%20%E8%A7%A3%E8%AF%BB/" target="_blank" rel="noopener">先知大会议题Java反序列化实战</a><br>[从WebLogic看反序列化漏洞的利用与防御](</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>李三（cl0und）
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/" title="Java原生序列化与反序列化代码简要分析">http://redteam.today/2020/02/14/Java原生序列化与反序列化代码简要分析/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/" rel="prev" title="CAS的搭建及认证流程分析与比较">
+      <i class="fa fa-chevron-left"></i> CAS的搭建及认证流程分析与比较
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试代码"><span class="nav-number">2.</span> <span class="nav-text">测试代码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#序列化"><span class="nav-number">3.</span> <span class="nav-text">序列化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#预处理"><span class="nav-number">3.1.</span> <span class="nav-text">预处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#序列化数据"><span class="nav-number">3.2.</span> <span class="nav-text">序列化数据</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#writeClassDesc"><span class="nav-number">3.2.1.</span> <span class="nav-text">writeClassDesc</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#writeSerialData"><span class="nav-number">3.2.2.</span> <span class="nav-text">writeSerialData</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#反序列化"><span class="nav-number">4.</span> <span class="nav-text">反序列化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#预处理-1"><span class="nav-number">4.1.</span> <span class="nav-text">预处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#反序列化数据"><span class="nav-number">4.2.</span> <span class="nav-text">反序列化数据</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#readClassDesc"><span class="nav-number">4.2.1.</span> <span class="nav-text">readClassDesc</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#readSerialData"><span class="nav-number">4.2.2.</span> <span class="nav-text">readSerialData</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#从SerialKiller来java反序列化防御"><span class="nav-number">5.</span> <span class="nav-text">从SerialKiller来java反序列化防御</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#杂"><span class="nav-number">6.</span> <span class="nav-text">杂</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结及一些tip"><span class="nav-number">7.</span> <span class="nav-text">总结及一些tip</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">8.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">李三（cl0und）</p>
+  <div class="site-description" itemprop="description">人若无名，便可专心练剑</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://7o8v.me/" title="http:&#x2F;&#x2F;7o8v.me&#x2F;" rel="noopener" target="_blank">7o8v☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://evoa.me/" title="https:&#x2F;&#x2F;evoa.me&#x2F;" rel="noopener" target="_blank">evoA☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://kkdlong.win/" title="http:&#x2F;&#x2F;kkdlong.win&#x2F;" rel="noopener" target="_blank">kkdlong☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://blog.l0ca1.xyz/" title="https:&#x2F;&#x2F;blog.l0ca1.xyz&#x2F;" rel="noopener" target="_blank">l0cal☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.lmxspace.com/" title="http:&#x2F;&#x2F;www.lmxspace.com&#x2F;" rel="noopener" target="_blank">l1nk3r</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.cnblogs.com/iamstudy/" title="https:&#x2F;&#x2F;www.cnblogs.com&#x2F;iamstudy&#x2F;" rel="noopener" target="_blank">l3m0n☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://8sec.cc/" title="http:&#x2F;&#x2F;8sec.cc&#x2F;" rel="noopener" target="_blank">裤衩哥的小屋</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://abcdefghijklmnopqrst.xyz/" title="http:&#x2F;&#x2F;abcdefghijklmnopqrst.xyz&#x2F;" rel="noopener" target="_blank">骑麦兜看落日☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://ph0rse.me/" title="http:&#x2F;&#x2F;ph0rse.me&#x2F;" rel="noopener" target="_blank">ph0rse</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://godot.win/" title="https:&#x2F;&#x2F;godot.win&#x2F;" rel="noopener" target="_blank">godot☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://hebic.me/" title="http:&#x2F;&#x2F;hebic.me&#x2F;" rel="noopener" target="_blank">🐰师傅☘️</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://jayl1n.github.io/" title="https:&#x2F;&#x2F;jayl1n.github.io&#x2F;" rel="noopener" target="_blank">Jaylin（大潘）☘️</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">李三（cl0und）</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="Symbols count total">181k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">2:44</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.1.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
