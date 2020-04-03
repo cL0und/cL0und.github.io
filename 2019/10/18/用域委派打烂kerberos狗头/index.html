@@ -75,7 +75,7 @@
 <meta property="og:image" content="http://redteam.today/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1570702431480.png">
 <meta property="og:image" content="http://redteam.today/2019/10/18/%E7%94%A8%E5%9F%9F%E5%A7%94%E6%B4%BE%E6%89%93%E7%83%82kerberos%E7%8B%97%E5%A4%B4/1570702480513.png">
 <meta property="article:published_time" content="2019-10-17T16:00:00.000Z">
-<meta property="article:modified_time" content="2019-12-21T13:15:43.489Z">
+<meta property="article:modified_time" content="2020-03-27T02:15:36.597Z">
 <meta property="article:author" content="李三（cl0und）">
 <meta property="article:tag" content="kerberos">
 <meta name="twitter:card" content="summary">
@@ -263,7 +263,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2019-12-21 21:15:43" itemprop="dateModified" datetime="2019-12-21T21:15:43+08:00">2019-12-21</time>
+                <time title="Modified: 2020-03-27 10:15:36" itemprop="dateModified" datetime="2020-03-27T10:15:36+08:00">2020-03-27</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -321,7 +321,7 @@
 </ul>
 <h2 id="非约束委派（Unconstrained-delegation）"><a href="#非约束委派（Unconstrained-delegation）" class="headerlink" title="非约束委派（Unconstrained delegation）"></a>非约束委派（Unconstrained delegation）</h2><p>假如server1主机账户配置了非约束委派，那么域账户A在对server1主机账户旗下服务service1（例如cifs服务）产生kerberos认证的时候（例如<code>dir \\server1\c$</code>）域账户会发送包含tgt的tgs给service1，然后service1就可以代表域账户A认证域内任何服务器。示意图如下<br><img src="./1569681143411.png" alt="Alt text"></p>
 <p>其攻击面是如果黑客控制了server1并在上面抓取了tgt就可以借此横向移动。</p>
-<h2 id="约束委派"><a href="#约束委派" class="headerlink" title="约束委派"></a>约束委派</h2><p>约束委派里面有两种重要的协议一种叫S4U2Proxy，一种叫S4U2Self。假如在给server1主机账户配置了委派到的server2 service2服务。那么当域用户A与server1旗下的service1发生kerberos认证的时候，service1可以拿域用户A给的tgs1从域控换到可以访问server2 service2的tgs2。在用tgs1换tgs2的过程中使用的协议就是S4U2Proxy。可是有可能用户A以其他方式(如NTLM认证，基于表单的认证等方式)与server service1 认证后用户没法提供tgs，那么service1就先需要使用S4U2Self从域控那里先换到自己服务的tgs1，再使用S4U2Proxy换可以访问server2 service2的tgs2。</p>
+<h2 id="约束委派"><a href="#约束委派" class="headerlink" title="约束委派"></a>约束委派</h2><p>约束委派里面有两种重要的协议一种叫S4U2Proxy，一种叫S4U2Self。假如在给server1主机账户配置了委派到的server2 service2服务。那么当域用户A与server1旗下的service1发生kerberos认证的时候，service1可以拿域用户A给的tgs1从域控换到可以访问server2 service2的tgs2。在用tgs1换tgs2的过程中使用的协议就是S4U2Proxy。可是有可能用户A以其他方式(如NTLM认证，基于表单的认证等方式)与server service1 认证后用户没法提供tgs，那么service1就先需要使用S4U2Self从域控那里先换到用户对自己服务的tgs1，再使用S4U2Proxy换可以访问server2 service2的tgs2。</p>
 <p>S4U2Proxy的示意图如下<br><img src="./1570712520459.png" alt="Alt text"></p>
 <p>S4U2Self的示意图如下<br><img src="./1570712530920.png" alt="Alt text"></p>
 <p>其攻击面是如果黑客控制了server1那么他可以伪造域内任意用户访问server2的service2</p>
@@ -336,7 +336,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Get-DomainUser -TrustedToAuth -Domain beta.com</span><br><span class="line">Get-DomainComputer -TrustedToAuth -Domain beta.com</span><br></pre></td></tr></table></figure>
 
 <h2 id="环境说明"><a href="#环境说明" class="headerlink" title="环境说明"></a>环境说明</h2><p>WIN-PMID8H9A6H0 192.168.3.2（域控， server2012）<br>exchange 192.168.3.3 (server2012)<br>database 192.168.3.4 (win10)<br>database2 192.168.3.5 (win7)</p>
-<h2 id="攻击非约束委派"><a href="#攻击非约束委派" class="headerlink" title="攻击非约束委派"></a>攻击非约束委派</h2><p>在WIN-PMID8H9A6H0上用与管理员账号登陆（这是一句废话，默认情况只有域管可以登陆域控），在Active Directory用户和计算机中，将computer组里面的database2选为<em>信任此计算机来委派任何服务即非约束委派</em>。然后在cmd中<code>dir \\database2\c$</code>。<br><img src="./1570709429377.png" alt="Alt text"></p>
+<h2 id="攻击非约束委派"><a href="#攻击非约束委派" class="headerlink" title="攻击非约束委派"></a>攻击非约束委派</h2><p>在WIN-PMID8H9A6H0上用域管登陆（这是一句废话，默认情况只有域管可以登陆域控），在Active Directory用户和计算机中，将computer组里面的database2选为<em>信任此计算机来委派任何服务</em>即非约束委派。然后在cmd中<code>dir \\database2\c$</code>。<br><img src="./1570709429377.png" alt="Alt text"></p>
 <p>在database2上用本地管理员登陆并用mimikatz抓取tickets</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mimikatz.exe &quot;privilege::debug&quot; &quot;sekurlsa::tickets &#x2F;export&quot; exit</span><br></pre></td></tr></table></figure>
 <p>可以看到域管理员传来的tgt<br><img src="./1570709452890.png" alt="Alt text"></p>
@@ -344,7 +344,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mimikatz.exe &quot;kerberos::ptt [0;a4e7f]-2-0-60a10000-Administrator@krbtgt-BETA.COM.kirbi&quot; exit</span><br></pre></td></tr></table></figure>
 <p><img src="./1570709549303.png" alt="Alt text"><br><img src="./1570709591012.png" alt="Alt text"></p>
 <p>本地管理员成功访问域控<br><img src="./1570709682895.png" alt="Alt text"></p>
-<h2 id="攻击非约束委派（进阶）"><a href="#攻击非约束委派（进阶）" class="headerlink" title="攻击非约束委派（进阶）"></a>攻击非约束委派（进阶）</h2><p>上面利用非约束委派拿到域管账户的前提是需要域管账户和委派主机有过交互才能获取到TGT。当域控机器开启Print Spooler服务时(默认开启且以System权限运行)，攻击者可以主动要求域控访问已被攻击者控制的非受限委派服务器，进而获取域控主机账户的TGT。当然这种攻击方式也适用于其他非域控机器。<strong>但是这种攻击有一个限制是需要找到一台开启非受限委派的主机账户，而非服务账户并且有一个域普通账户</strong></p>
+<h2 id="攻击非约束委派（进阶）"><a href="#攻击非约束委派（进阶）" class="headerlink" title="攻击非约束委派（进阶）"></a>攻击非约束委派（进阶）</h2><p>上面利用非约束委派拿到域管账户TGT的前提是需要域管账户和委派主机有过交互才能获取到TGT。当域控机器开启Print Spooler服务时(默认开启且以System权限运行)，攻击者可以主动要求域控访问已被攻击者控制的非受限委派服务器，进而获取域控主机账户的TGT。当然这种攻击方式也适用于其他非域控机器。<strong>但是这种攻击有一个限制是需要找到一台开启非受限委派的主机账户，而非服务账户并且有一个域普通账户</strong></p>
 <p><img src="./1570777540500.png" alt="Alt text"></p>
 <p>完成这一套攻击需要两个<a href="https://github.com/GhostPack/Rubeus" target="_blank" rel="noopener">Rubeus</a>和<a href="https://github.com/leechristensen/SpoolSample" target="_blank" rel="noopener">SpoolSample</a>的工具，Rubeus可以看作对kekeo的弥补，SpoolSample用户向DC2 Print Spooler发起请求。SpoolSample貌似只能用.net4.0以上的版本编译，所以这次就在win10上用了。<br>本地管理员运行</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Rubeus.exe monitor &#x2F;interval:5 &#x2F;filteruser:WIN-PMID8H9A6H0$</span><br></pre></td></tr></table></figure>
