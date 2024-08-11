@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://cl0und.github.io/"/>
-  <updated>2024-08-11T14:02:44.903Z</updated>
+  <updated>2024-08-11T14:13:02.883Z</updated>
   <id>https://cl0und.github.io/</id>
   
   <author>
@@ -15,6 +15,32 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>博客重启小记（2）</title>
+    <link href="https://cl0und.github.io/2024/12/22/%E5%8D%9A%E5%AE%A2%E9%87%8D%E5%90%AF%E5%B0%8F%E8%AE%B0%EF%BC%882%EF%BC%89/"/>
+    <id>https://cl0und.github.io/2024/12/22/%E5%8D%9A%E5%AE%A2%E9%87%8D%E5%90%AF%E5%B0%8F%E8%AE%B0%EF%BC%882%EF%BC%89/</id>
+    <published>2024-12-22T08:44:49.000Z</published>
+    <updated>2024-08-11T14:13:02.883Z</updated>
+    
+    <content type="html"><![CDATA[<p>有两年多年没有写博客了，最近一次写的话题还是weblogic RCE挖掘 《记一次失败的Weblogic IIOP Gadget挖掘》。虽然当时写的时候标题是“失败的”，但其实后面确实启发了另一位师傅拿到了RCE （CVE-2022-21420）。我要感谢这位师傅，不但因为它挽救了这次失败的利用，还因为它总是在过年的时候给我发红包，手动狗头。</p><p>安全研究是一门艺术，是守正出奇，是推陈出新，是对创造力的磨练。有一起研究技术的小伙伴是幸福的，感谢大学四年能遇到Syclover小组。</p><p>毕业后去了上海，又辗转香港，如今上坡两年了，准备第二次重启我的博客。未来准备更新一些学习binary和distributed system的学习笔记。</p><p>之前redteam.today域名已经被别人买走，以后打算长期用cl0und.github.io了。看到博客友链中能正常访问的已经所剩无几，这更让我到体会长期写博客的不易。希望这次我能坚持得更久一些😆</p><p>顺颂夏安。</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;有两年多年没有写博客了，最近一次写的话题还是weblogic RCE挖掘 《记一次失败的Weblogic IIOP Gadget挖掘》。虽然当时写的时候标题是“失败的”，但其实后面确实启发了另一位师傅拿到了RCE （CVE-2022-21420）。我要感谢这位师傅，不但因为它挽救了这次失败的利用，还因为它总是在过年的时候给我发红包，手动狗头。&lt;/p&gt;
+&lt;p&gt;安全研究是一门艺术，是守正出奇，是推陈出新，是对创造力的磨练。有一起研究技术的小伙伴是幸福的，感谢大学四年能遇到Syclover小组。&lt;/p&gt;
+&lt;p&gt;毕业后去了上海，又辗转香港，如今上坡两年了，准备第二次重启我的博客。未来准备更新一些学习binary和distributed system的学习笔记。&lt;/p&gt;
+&lt;p&gt;之前redteam.today域名已经被别人买走，以后打算长期用cl0und.github.io了。看到博客友链中能正常访问的已经所剩无几，这更让我到体会长期写博客的不易。希望这次我能坚持得更久一些😆&lt;/p&gt;
+&lt;p&gt;顺颂夏安。&lt;/p&gt;
+
+    
+    </summary>
+    
+    
+    
+      <category term="杂" scheme="https://cl0und.github.io/tags/%E6%9D%82/"/>
+    
+  </entry>
   
   <entry>
     <title>PWN 堆利用 off-by-one NULL byte - b00ks writeup</title>
@@ -36,30 +62,6 @@
     
     
       <category term="pwn" scheme="https://cl0und.github.io/tags/pwn/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>博客重启小记（2）</title>
-    <link href="https://cl0und.github.io/2024/08/11/%E5%8D%9A%E5%AE%A2%E9%87%8D%E5%90%AF%E5%B0%8F%E8%AE%B0%EF%BC%882%EF%BC%89/"/>
-    <id>https://cl0und.github.io/2024/08/11/%E5%8D%9A%E5%AE%A2%E9%87%8D%E5%90%AF%E5%B0%8F%E8%AE%B0%EF%BC%882%EF%BC%89/</id>
-    <published>2024-08-11T08:44:49.000Z</published>
-    <updated>2024-08-11T13:27:42.009Z</updated>
-    
-    <content type="html"><![CDATA[<p>有两年多年没有写博客了，最近一次写的话题还是weblogic RCE挖掘 《记一次失败的Weblogic IIOP Gadget挖掘》。虽然当时写的时候标题是“失败的”，但其实后面确实启发了另一位师傅拿到了RCE （CVE-2022-21420）。我要感谢这位师傅，不但因为它挽救了这次失败的利用，还因为它总是在过年的时候给我发红包，手动狗头。</p><p>安全研究是一门艺术，是守正出奇，是推陈出新，是对创造力的磨练。有一起研究技术的小伙伴是幸福的，感谢大学四年能遇到Syclover小组。</p><p>毕业后去了上海，又辗转香港，如今上坡两年了，准备第二次重启我的博客。未来准备更新一些学习binary和distributed system的学习笔记。</p><p>之前redteam.today域名已经被别人买走，以后打算长期用cl0und.github.io了。看到博客友链中能正常访问的已经所剩无几，这更让我到体会长期写博客的不易。希望这次我能坚持得更久一些😆</p><p>顺颂夏安。</p>]]></content>
-    
-    <summary type="html">
-    
-      
-      
-        &lt;p&gt;有两年多年没有写博客了，最近一次写的话题还是weblogic RCE挖掘 《记一次失败的Weblogic IIOP Gadget挖掘》。虽然当时写的时候标题是“失败的”，但其实后面确实启发了另一位师傅拿到了RCE （CVE-2022-21420）。我要感谢这位师傅，不但因为
-      
-    
-    </summary>
-    
-    
-    
-      <category term="杂" scheme="https://cl0und.github.io/tags/%E6%9D%82/"/>
     
   </entry>
   
@@ -459,10 +461,8 @@
     
     <summary type="html">
     
-      
-      
-        &lt;p&gt;大约是在一七年那个寒假开始写技术博客，中间断断续续的更新到一八年六月。重新写博客是起于今年九月份的临时起意，一方面是想督促自己“有意识”的进步，另外一方面是假装做做技术输出。最开始博客用的是hexo，重启之后另起炉灶用是wordpress，因为并不想付云服务器月租所以决定换
-      
+      &lt;p&gt;大约是在一七年那个寒假开始写技术博客，中间断断续续的更新到一八年六月。重新写博客是起于今年九月份的临时起意，一方面是想督促自己“有意识”的进步，另外一方面是假装做做技术输出。最开始博客用的是hexo，重启之后另起炉灶用是wordpress，因为并不想付云服务器月租所以决定换回hexo。在弃更到重启这段期间因为换过新笔记本并且再加上没有备份，所以之前的博客文章的md版已经灾难性的消失。大约花了一天多的时间慢慢把网页手工恢复成符合hexo格式的md（大概部分文章仍然会有格式上的错误），在整理的时候发现自己以前的文章表意不清，部分地方是片面甚至错误的（以后抽时间慢慢改，咕咕咕？）。以上～&lt;/p&gt;
+
     
     </summary>
     
