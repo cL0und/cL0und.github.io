@@ -5,9 +5,9 @@
   
   <link href="/atom.xml" rel="self"/>
   
-  <link href="http://redteam.today/"/>
+  <link href="http://yoursite.com/"/>
   <updated>2022-04-08T02:44:51.040Z</updated>
-  <id>http://redteam.today/</id>
+  <id>http://yoursite.com/</id>
   
   <author>
     <name>李三（cl0und）</name>
@@ -18,8 +18,8 @@
   
   <entry>
     <title>记一次失败的Weblogic IIOP Gadget挖掘</title>
-    <link href="http://redteam.today/2022/04/08/%E8%AE%B0%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84Weblogic-IIOP-Gadget%E6%8C%96%E6%8E%98/"/>
-    <id>http://redteam.today/2022/04/08/%E8%AE%B0%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84Weblogic-IIOP-Gadget%E6%8C%96%E6%8E%98/</id>
+    <link href="http://yoursite.com/2022/04/08/%E8%AE%B0%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84Weblogic-IIOP-Gadget%E6%8C%96%E6%8E%98/"/>
+    <id>http://yoursite.com/2022/04/08/%E8%AE%B0%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84Weblogic-IIOP-Gadget%E6%8C%96%E6%8E%98/</id>
     <published>2022-04-08T02:19:00.000Z</published>
     <updated>2022-04-08T02:44:51.040Z</updated>
     
@@ -32,17 +32,17 @@
     </summary>
     
     
-      <category term="web security" scheme="http://redteam.today/categories/web-security/"/>
+      <category term="web security" scheme="http://yoursite.com/categories/web-security/"/>
     
     
-      <category term="java" scheme="http://redteam.today/tags/java/"/>
+      <category term="java" scheme="http://yoursite.com/tags/java/"/>
     
   </entry>
   
   <entry>
     <title>Two Tricks Of CAS-CLIENT AUTH Bypass</title>
-    <link href="http://redteam.today/2021/08/31/Two-Tricks-Of-CAS-CLIENT-AUTH-Bypass/"/>
-    <id>http://redteam.today/2021/08/31/Two-Tricks-Of-CAS-CLIENT-AUTH-Bypass/</id>
+    <link href="http://yoursite.com/2021/08/31/Two-Tricks-Of-CAS-CLIENT-AUTH-Bypass/"/>
+    <id>http://yoursite.com/2021/08/31/Two-Tricks-Of-CAS-CLIENT-AUTH-Bypass/</id>
     <published>2021-08-31T12:56:13.000Z</published>
     <updated>2021-08-31T13:16:36.232Z</updated>
     
@@ -55,17 +55,17 @@
     </summary>
     
     
-      <category term="web security" scheme="http://redteam.today/categories/web-security/"/>
+      <category term="web security" scheme="http://yoursite.com/categories/web-security/"/>
     
     
-      <category term="java" scheme="http://redteam.today/tags/java/"/>
+      <category term="java" scheme="http://yoursite.com/tags/java/"/>
     
   </entry>
   
   <entry>
     <title>How Did I Find Weblogic T3 RCE</title>
-    <link href="http://redteam.today/2021/08/31/How-Did-I-Find-Weblogic-T3-RCE/"/>
-    <id>http://redteam.today/2021/08/31/How-Did-I-Find-Weblogic-T3-RCE/</id>
+    <link href="http://yoursite.com/2021/08/31/How-Did-I-Find-Weblogic-T3-RCE/"/>
+    <id>http://yoursite.com/2021/08/31/How-Did-I-Find-Weblogic-T3-RCE/</id>
     <published>2021-08-31T12:26:16.000Z</published>
     <updated>2021-08-31T12:54:28.389Z</updated>
     
@@ -78,17 +78,17 @@
     </summary>
     
     
-      <category term="web security" scheme="http://redteam.today/categories/web-security/"/>
+      <category term="web security" scheme="http://yoursite.com/categories/web-security/"/>
     
     
-      <category term="java" scheme="http://redteam.today/tags/java/"/>
+      <category term="java" scheme="http://yoursite.com/tags/java/"/>
     
   </entry>
   
   <entry>
     <title>SCTF 2020 两道Login Me预期解的核心技术</title>
-    <link href="http://redteam.today/2020/07/17/SCTF-2020-%E4%B8%A4%E9%81%93Login-Me%E9%A2%84%E6%9C%9F%E8%A7%A3%E7%9A%84%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF/"/>
-    <id>http://redteam.today/2020/07/17/SCTF-2020-%E4%B8%A4%E9%81%93Login-Me%E9%A2%84%E6%9C%9F%E8%A7%A3%E7%9A%84%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF/</id>
+    <link href="http://yoursite.com/2020/07/17/SCTF-2020-%E4%B8%A4%E9%81%93Login-Me%E9%A2%84%E6%9C%9F%E8%A7%A3%E7%9A%84%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF/"/>
+    <id>http://yoursite.com/2020/07/17/SCTF-2020-%E4%B8%A4%E9%81%93Login-Me%E9%A2%84%E6%9C%9F%E8%A7%A3%E7%9A%84%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF/</id>
     <published>2020-07-17T13:39:57.000Z</published>
     <updated>2020-07-17T13:51:17.712Z</updated>
     
@@ -101,17 +101,17 @@
     </summary>
     
     
-      <category term="web security" scheme="http://redteam.today/categories/web-security/"/>
+      <category term="web security" scheme="http://yoursite.com/categories/web-security/"/>
     
     
-      <category term="java" scheme="http://redteam.today/tags/java/"/>
+      <category term="java" scheme="http://yoursite.com/tags/java/"/>
     
   </entry>
   
   <entry>
     <title>De1tactf2020 pentest非预期解与预期解</title>
-    <link href="http://redteam.today/2020/05/05/De1tactf2020-pentest%E9%9D%9E%E9%A2%84%E6%9C%9F%E8%A7%A3%E4%B8%8E%E9%A2%84%E6%9C%9F%E8%A7%A3/"/>
-    <id>http://redteam.today/2020/05/05/De1tactf2020-pentest%E9%9D%9E%E9%A2%84%E6%9C%9F%E8%A7%A3%E4%B8%8E%E9%A2%84%E6%9C%9F%E8%A7%A3/</id>
+    <link href="http://yoursite.com/2020/05/05/De1tactf2020-pentest%E9%9D%9E%E9%A2%84%E6%9C%9F%E8%A7%A3%E4%B8%8E%E9%A2%84%E6%9C%9F%E8%A7%A3/"/>
+    <id>http://yoursite.com/2020/05/05/De1tactf2020-pentest%E9%9D%9E%E9%A2%84%E6%9C%9F%E8%A7%A3%E4%B8%8E%E9%A2%84%E6%9C%9F%E8%A7%A3/</id>
     <published>2020-05-05T09:13:40.000Z</published>
     <updated>2020-07-11T08:02:56.309Z</updated>
     
@@ -124,17 +124,17 @@
     </summary>
     
     
-      <category term="web security" scheme="http://redteam.today/categories/web-security/"/>
+      <category term="web security" scheme="http://yoursite.com/categories/web-security/"/>
     
     
-      <category term="ctf" scheme="http://redteam.today/tags/ctf/"/>
+      <category term="ctf" scheme="http://yoursite.com/tags/ctf/"/>
     
   </entry>
   
   <entry>
     <title>tomcat ajp 漏洞分析</title>
-    <link href="http://redteam.today/2020/04/26/tomcat-ajp-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/"/>
-    <id>http://redteam.today/2020/04/26/tomcat-ajp-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/</id>
+    <link href="http://yoursite.com/2020/04/26/tomcat-ajp-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/"/>
+    <id>http://yoursite.com/2020/04/26/tomcat-ajp-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/</id>
     <published>2020-04-26T13:25:37.000Z</published>
     <updated>2020-07-11T08:20:03.227Z</updated>
     
@@ -148,14 +148,14 @@
     
     
     
-      <category term="java" scheme="http://redteam.today/tags/java/"/>
+      <category term="java" scheme="http://yoursite.com/tags/java/"/>
     
   </entry>
   
   <entry>
     <title>c3p0的三个gadget</title>
-    <link href="http://redteam.today/2020/04/18/c3p0%E7%9A%84%E4%B8%89%E4%B8%AAgadget/"/>
-    <id>http://redteam.today/2020/04/18/c3p0%E7%9A%84%E4%B8%89%E4%B8%AAgadget/</id>
+    <link href="http://yoursite.com/2020/04/18/c3p0%E7%9A%84%E4%B8%89%E4%B8%AAgadget/"/>
+    <id>http://yoursite.com/2020/04/18/c3p0%E7%9A%84%E4%B8%89%E4%B8%AAgadget/</id>
     <published>2020-04-18T03:14:34.000Z</published>
     <updated>2020-07-11T07:59:46.984Z</updated>
     
@@ -168,17 +168,17 @@
     </summary>
     
     
-      <category term="web security" scheme="http://redteam.today/categories/web-security/"/>
+      <category term="web security" scheme="http://yoursite.com/categories/web-security/"/>
     
     
-      <category term="java" scheme="http://redteam.today/tags/java/"/>
+      <category term="java" scheme="http://yoursite.com/tags/java/"/>
     
   </entry>
   
   <entry>
     <title>tomcat不出网回显连续剧第六集</title>
-    <link href="http://redteam.today/2020/04/09/tomcat%E4%B8%8D%E5%87%BA%E7%BD%91%E5%9B%9E%E6%98%BE%E8%BF%9E%E7%BB%AD%E5%89%A7%E7%AC%AC%E5%85%AD%E9%9B%86/"/>
-    <id>http://redteam.today/2020/04/09/tomcat%E4%B8%8D%E5%87%BA%E7%BD%91%E5%9B%9E%E6%98%BE%E8%BF%9E%E7%BB%AD%E5%89%A7%E7%AC%AC%E5%85%AD%E9%9B%86/</id>
+    <link href="http://yoursite.com/2020/04/09/tomcat%E4%B8%8D%E5%87%BA%E7%BD%91%E5%9B%9E%E6%98%BE%E8%BF%9E%E7%BB%AD%E5%89%A7%E7%AC%AC%E5%85%AD%E9%9B%86/"/>
+    <id>http://yoursite.com/2020/04/09/tomcat%E4%B8%8D%E5%87%BA%E7%BD%91%E5%9B%9E%E6%98%BE%E8%BF%9E%E7%BB%AD%E5%89%A7%E7%AC%AC%E5%85%AD%E9%9B%86/</id>
     <published>2020-04-09T06:43:48.000Z</published>
     <updated>2020-07-11T08:03:54.407Z</updated>
     
@@ -191,17 +191,17 @@
     </summary>
     
     
-      <category term="web security" scheme="http://redteam.today/categories/web-security/"/>
+      <category term="web security" scheme="http://yoursite.com/categories/web-security/"/>
     
     
-      <category term="java" scheme="http://redteam.today/tags/java/"/>
+      <category term="java" scheme="http://yoursite.com/tags/java/"/>
     
   </entry>
   
   <entry>
     <title>weblogic历史T3反序列化漏洞及补丁梳理</title>
-    <link href="http://redteam.today/2020/03/25/weblogic%E5%8E%86%E5%8F%B2T3%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E5%8F%8A%E8%A1%A5%E4%B8%81%E6%A2%B3%E7%90%86/"/>
-    <id>http://redteam.today/2020/03/25/weblogic%E5%8E%86%E5%8F%B2T3%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E5%8F%8A%E8%A1%A5%E4%B8%81%E6%A2%B3%E7%90%86/</id>
+    <link href="http://yoursite.com/2020/03/25/weblogic%E5%8E%86%E5%8F%B2T3%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E5%8F%8A%E8%A1%A5%E4%B8%81%E6%A2%B3%E7%90%86/"/>
+    <id>http://yoursite.com/2020/03/25/weblogic%E5%8E%86%E5%8F%B2T3%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E5%8F%8A%E8%A1%A5%E4%B8%81%E6%A2%B3%E7%90%86/</id>
     <published>2020-03-25T09:57:05.000Z</published>
     <updated>2020-07-11T08:04:03.381Z</updated>
     
@@ -215,14 +215,14 @@
     
     
     
-      <category term="java" scheme="http://redteam.today/tags/java/"/>
+      <category term="java" scheme="http://yoursite.com/tags/java/"/>
     
   </entry>
   
   <entry>
     <title>重新编译jmet小记</title>
-    <link href="http://redteam.today/2020/03/21/%E9%87%8D%E6%96%B0%E7%BC%96%E8%AF%91jmet%E5%B0%8F%E8%AE%B0/"/>
-    <id>http://redteam.today/2020/03/21/%E9%87%8D%E6%96%B0%E7%BC%96%E8%AF%91jmet%E5%B0%8F%E8%AE%B0/</id>
+    <link href="http://yoursite.com/2020/03/21/%E9%87%8D%E6%96%B0%E7%BC%96%E8%AF%91jmet%E5%B0%8F%E8%AE%B0/"/>
+    <id>http://yoursite.com/2020/03/21/%E9%87%8D%E6%96%B0%E7%BC%96%E8%AF%91jmet%E5%B0%8F%E8%AE%B0/</id>
     <published>2020-03-21T11:46:24.000Z</published>
     <updated>2020-07-11T07:59:43.967Z</updated>
     
@@ -236,14 +236,14 @@
     
     
     
-      <category term="java" scheme="http://redteam.today/tags/java/"/>
+      <category term="java" scheme="http://yoursite.com/tags/java/"/>
     
   </entry>
   
   <entry>
     <title>linux下java反序列化通杀回显方法的低配版实现</title>
-    <link href="http://redteam.today/2020/02/24/linux%E4%B8%8Bjava%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E9%80%9A%E6%9D%80%E5%9B%9E%E6%98%BE%E6%96%B9%E6%B3%95%E7%9A%84%E4%BD%8E%E9%85%8D%E7%89%88%E5%AE%9E%E7%8E%B0/"/>
-    <id>http://redteam.today/2020/02/24/linux%E4%B8%8Bjava%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E9%80%9A%E6%9D%80%E5%9B%9E%E6%98%BE%E6%96%B9%E6%B3%95%E7%9A%84%E4%BD%8E%E9%85%8D%E7%89%88%E5%AE%9E%E7%8E%B0/</id>
+    <link href="http://yoursite.com/2020/02/24/linux%E4%B8%8Bjava%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E9%80%9A%E6%9D%80%E5%9B%9E%E6%98%BE%E6%96%B9%E6%B3%95%E7%9A%84%E4%BD%8E%E9%85%8D%E7%89%88%E5%AE%9E%E7%8E%B0/"/>
+    <id>http://yoursite.com/2020/02/24/linux%E4%B8%8Bjava%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E9%80%9A%E6%9D%80%E5%9B%9E%E6%98%BE%E6%96%B9%E6%B3%95%E7%9A%84%E4%BD%8E%E9%85%8D%E7%89%88%E5%AE%9E%E7%8E%B0/</id>
     <published>2020-02-24T11:34:22.000Z</published>
     <updated>2020-07-11T08:03:22.977Z</updated>
     
@@ -256,17 +256,17 @@
     </summary>
     
     
-      <category term="web security" scheme="http://redteam.today/categories/web-security/"/>
+      <category term="web security" scheme="http://yoursite.com/categories/web-security/"/>
     
     
-      <category term="java" scheme="http://redteam.today/tags/java/"/>
+      <category term="java" scheme="http://yoursite.com/tags/java/"/>
     
   </entry>
   
   <entry>
     <title>Java原生序列化与反序列化代码简要分析</title>
-    <link href="http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/"/>
-    <id>http://redteam.today/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/</id>
+    <link href="http://yoursite.com/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/"/>
+    <id>http://yoursite.com/2020/02/14/Java%E5%8E%9F%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/</id>
     <published>2020-02-14T03:44:34.000Z</published>
     <updated>2020-07-11T08:03:17.449Z</updated>
     
@@ -279,17 +279,17 @@
     </summary>
     
     
-      <category term="web security" scheme="http://redteam.today/categories/web-security/"/>
+      <category term="web security" scheme="http://yoursite.com/categories/web-security/"/>
     
     
-      <category term="java" scheme="http://redteam.today/tags/java/"/>
+      <category term="java" scheme="http://yoursite.com/tags/java/"/>
     
   </entry>
   
   <entry>
     <title>CAS的搭建及认证流程分析与比较</title>
-    <link href="http://redteam.today/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/"/>
-    <id>http://redteam.today/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/</id>
+    <link href="http://yoursite.com/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/"/>
+    <id>http://yoursite.com/2020/01/31/CAS%E7%9A%84%E6%90%AD%E5%BB%BA%E5%8F%8A%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83/</id>
     <published>2020-01-31T04:24:48.000Z</published>
     <updated>2020-07-11T07:59:50.186Z</updated>
     
@@ -302,17 +302,17 @@
     </summary>
     
     
-      <category term="web security" scheme="http://redteam.today/categories/web-security/"/>
+      <category term="web security" scheme="http://yoursite.com/categories/web-security/"/>
     
     
-      <category term="java" scheme="http://redteam.today/tags/java/"/>
+      <category term="java" scheme="http://yoursite.com/tags/java/"/>
     
   </entry>
   
   <entry>
     <title>Java中双亲委派相关知识梳理</title>
-    <link href="http://redteam.today/2020/01/22/Java%E4%B8%AD%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86/"/>
-    <id>http://redteam.today/2020/01/22/Java%E4%B8%AD%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86/</id>
+    <link href="http://yoursite.com/2020/01/22/Java%E4%B8%AD%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86/"/>
+    <id>http://yoursite.com/2020/01/22/Java%E4%B8%AD%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86/</id>
     <published>2020-01-22T03:02:04.000Z</published>
     <updated>2020-07-11T08:03:20.445Z</updated>
     
@@ -325,17 +325,17 @@
     </summary>
     
     
-      <category term="web security" scheme="http://redteam.today/categories/web-security/"/>
+      <category term="web security" scheme="http://yoursite.com/categories/web-security/"/>
     
     
-      <category term="java" scheme="http://redteam.today/tags/java/"/>
+      <category term="java" scheme="http://yoursite.com/tags/java/"/>
     
   </entry>
   
   <entry>
     <title>Java Runtime.getRuntime().exec由表及里</title>
-    <link href="http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/"/>
-    <id>http://redteam.today/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/</id>
+    <link href="http://yoursite.com/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/"/>
+    <id>http://yoursite.com/2020/01/11/Java-Runtime-getRuntime-exec%E7%94%B1%E8%A1%A8%E5%8F%8A%E9%87%8C/</id>
     <published>2020-01-11T14:32:03.000Z</published>
     <updated>2020-07-11T08:03:14.434Z</updated>
     
@@ -348,17 +348,17 @@
     </summary>
     
     
-      <category term="web security" scheme="http://redteam.today/categories/web-security/"/>
+      <category term="web security" scheme="http://yoursite.com/categories/web-security/"/>
     
     
-      <category term="java" scheme="http://redteam.today/tags/java/"/>
+      <category term="java" scheme="http://yoursite.com/tags/java/"/>
     
   </entry>
   
   <entry>
     <title>Hessian 序列化代码分析及业务场景学习</title>
-    <link href="http://redteam.today/2020/01/03/Hessian-%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90%E5%8F%8A%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF%E5%AD%A6%E4%B9%A0/"/>
-    <id>http://redteam.today/2020/01/03/Hessian-%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90%E5%8F%8A%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF%E5%AD%A6%E4%B9%A0/</id>
+    <link href="http://yoursite.com/2020/01/03/Hessian-%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90%E5%8F%8A%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF%E5%AD%A6%E4%B9%A0/"/>
+    <id>http://yoursite.com/2020/01/03/Hessian-%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90%E5%8F%8A%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF%E5%AD%A6%E4%B9%A0/</id>
     <published>2020-01-03T14:21:42.000Z</published>
     <updated>2020-07-11T08:03:08.065Z</updated>
     
@@ -371,17 +371,17 @@
     </summary>
     
     
-      <category term="web security" scheme="http://redteam.today/categories/web-security/"/>
+      <category term="web security" scheme="http://yoursite.com/categories/web-security/"/>
     
     
-      <category term="java" scheme="http://redteam.today/tags/java/"/>
+      <category term="java" scheme="http://yoursite.com/tags/java/"/>
     
   </entry>
   
   <entry>
     <title>JAVA JNI 执行命令与调试</title>
-    <link href="http://redteam.today/2019/12/31/JAVA-JNI-%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E4%B8%8E%E8%B0%83%E8%AF%95/"/>
-    <id>http://redteam.today/2019/12/31/JAVA-JNI-%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E4%B8%8E%E8%B0%83%E8%AF%95/</id>
+    <link href="http://yoursite.com/2019/12/31/JAVA-JNI-%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E4%B8%8E%E8%B0%83%E8%AF%95/"/>
+    <id>http://yoursite.com/2019/12/31/JAVA-JNI-%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4%E4%B8%8E%E8%B0%83%E8%AF%95/</id>
     <published>2019-12-31T08:16:26.000Z</published>
     <updated>2020-07-11T08:03:10.861Z</updated>
     
@@ -394,17 +394,17 @@
     </summary>
     
     
-      <category term="web security" scheme="http://redteam.today/categories/web-security/"/>
+      <category term="web security" scheme="http://yoursite.com/categories/web-security/"/>
     
     
-      <category term="java" scheme="http://redteam.today/tags/java/"/>
+      <category term="java" scheme="http://yoursite.com/tags/java/"/>
     
   </entry>
   
   <entry>
     <title>博客重启小记</title>
-    <link href="http://redteam.today/2019/12/22/%E5%8D%9A%E5%AE%A2%E9%87%8D%E5%90%AF%E5%B0%8F%E8%AE%B0/"/>
-    <id>http://redteam.today/2019/12/22/%E5%8D%9A%E5%AE%A2%E9%87%8D%E5%90%AF%E5%B0%8F%E8%AE%B0/</id>
+    <link href="http://yoursite.com/2019/12/22/%E5%8D%9A%E5%AE%A2%E9%87%8D%E5%90%AF%E5%B0%8F%E8%AE%B0/"/>
+    <id>http://yoursite.com/2019/12/22/%E5%8D%9A%E5%AE%A2%E9%87%8D%E5%90%AF%E5%B0%8F%E8%AE%B0/</id>
     <published>2019-12-22T02:27:51.000Z</published>
     <updated>2019-12-22T02:55:27.291Z</updated>
     
@@ -419,14 +419,14 @@
     
     
     
-      <category term="杂" scheme="http://redteam.today/tags/%E6%9D%82/"/>
+      <category term="杂" scheme="http://yoursite.com/tags/%E6%9D%82/"/>
     
   </entry>
   
   <entry>
     <title>Using Java&#39;s SSRF vulnerability rce via ntlm relay</title>
-    <link href="http://redteam.today/2019/12/19/Using%20Java%E2%80%99s%20SSRF%20vulnerability%20rce%20via%20ntlm%20relay/"/>
-    <id>http://redteam.today/2019/12/19/Using%20Java%E2%80%99s%20SSRF%20vulnerability%20rce%20via%20ntlm%20relay/</id>
+    <link href="http://yoursite.com/2019/12/19/Using%20Java%E2%80%99s%20SSRF%20vulnerability%20rce%20via%20ntlm%20relay/"/>
+    <id>http://yoursite.com/2019/12/19/Using%20Java%E2%80%99s%20SSRF%20vulnerability%20rce%20via%20ntlm%20relay/</id>
     <published>2019-12-18T16:00:00.000Z</published>
     <updated>2020-07-11T08:03:59.722Z</updated>
     
@@ -439,19 +439,19 @@
     </summary>
     
     
-      <category term="windows security" scheme="http://redteam.today/categories/windows-security/"/>
+      <category term="windows security" scheme="http://yoursite.com/categories/windows-security/"/>
     
     
-      <category term="java" scheme="http://redteam.today/tags/java/"/>
+      <category term="java" scheme="http://yoursite.com/tags/java/"/>
     
-      <category term="windows" scheme="http://redteam.today/tags/windows/"/>
+      <category term="windows" scheme="http://yoursite.com/tags/windows/"/>
     
   </entry>
   
   <entry>
     <title>使用mimikatz导出chrome密码</title>
-    <link href="http://redteam.today/2019/12/09/%E4%BD%BF%E7%94%A8mimikatz%E5%AF%BC%E5%87%BAchrome%E5%AF%86%E7%A0%81/"/>
-    <id>http://redteam.today/2019/12/09/%E4%BD%BF%E7%94%A8mimikatz%E5%AF%BC%E5%87%BAchrome%E5%AF%86%E7%A0%81/</id>
+    <link href="http://yoursite.com/2019/12/09/%E4%BD%BF%E7%94%A8mimikatz%E5%AF%BC%E5%87%BAchrome%E5%AF%86%E7%A0%81/"/>
+    <id>http://yoursite.com/2019/12/09/%E4%BD%BF%E7%94%A8mimikatz%E5%AF%BC%E5%87%BAchrome%E5%AF%86%E7%A0%81/</id>
     <published>2019-12-08T16:00:00.000Z</published>
     <updated>2020-07-11T07:59:31.351Z</updated>
     
@@ -464,10 +464,10 @@
     </summary>
     
     
-      <category term="redteam trick" scheme="http://redteam.today/categories/redteam-trick/"/>
+      <category term="redteam trick" scheme="http://yoursite.com/categories/redteam-trick/"/>
     
     
-      <category term="chrome" scheme="http://redteam.today/tags/chrome/"/>
+      <category term="chrome" scheme="http://yoursite.com/tags/chrome/"/>
     
   </entry>
   
