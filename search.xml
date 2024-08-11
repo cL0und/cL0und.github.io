@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>博客重启小记（2）</title>
+    <url>/2024/12/22/%E5%8D%9A%E5%AE%A2%E9%87%8D%E5%90%AF%E5%B0%8F%E8%AE%B0%EF%BC%882%EF%BC%89/</url>
+    <content><![CDATA[<p>有两年多年没有写博客了，最近一次写的话题还是weblogic RCE挖掘 《记一次失败的Weblogic IIOP Gadget挖掘》。虽然当时写的时候标题是“失败的”，但其实后面确实启发了另一位师傅拿到了RCE （CVE-2022-21420）。我要感谢这位师傅，不但因为它挽救了这次失败的利用，还因为它总是在过年的时候给我发红包，手动狗头。</p>
+<p>安全研究一门艺术，是守正出奇，是推陈出新，是对创造力的磨练。有一起研究技术的小伙伴是幸福的，感谢大学四年能遇到Syclover小组。</p>
+<p>毕业后去了上海，又辗转香港，如今上坡两年了，准备第二次重启我的博客。未来准备更新一些学习binary和distributed system的学习笔记。</p>
+<p>之前redteam.today域名已经被别人买走，以后打算长期用cl0und.github.io了。看到博客友链中能正常访问的已经所剩无几，这更让我到体会长期写博客的不易。希望这次我能坚持得更久一些😆</p>
+<p>顺颂夏安。</p>
+]]></content>
+      <tags>
+        <tag>杂</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>记一次失败的Weblogic IIOP Gadget挖掘</title>
     <url>/2022/04/08/%E8%AE%B0%E4%B8%80%E6%AC%A1%E5%A4%B1%E8%B4%A5%E7%9A%84Weblogic-IIOP-Gadget%E6%8C%96%E6%8E%98/</url>
     <content><![CDATA[<!-- more -->
