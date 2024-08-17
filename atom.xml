@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://cl0und.github.io/"/>
-  <updated>2024-08-11T14:13:02.883Z</updated>
+  <updated>2024-08-17T15:20:45.502Z</updated>
   <id>https://cl0und.github.io/</id>
   
   <author>
@@ -18,10 +18,10 @@
   
   <entry>
     <title>博客重启小记（2）</title>
-    <link href="https://cl0und.github.io/2024/12/22/%E5%8D%9A%E5%AE%A2%E9%87%8D%E5%90%AF%E5%B0%8F%E8%AE%B0%EF%BC%882%EF%BC%89/"/>
-    <id>https://cl0und.github.io/2024/12/22/%E5%8D%9A%E5%AE%A2%E9%87%8D%E5%90%AF%E5%B0%8F%E8%AE%B0%EF%BC%882%EF%BC%89/</id>
-    <published>2024-12-22T08:44:49.000Z</published>
-    <updated>2024-08-11T14:13:02.883Z</updated>
+    <link href="https://cl0und.github.io/2024/12/10/%E5%8D%9A%E5%AE%A2%E9%87%8D%E5%90%AF%E5%B0%8F%E8%AE%B0%EF%BC%882%EF%BC%89/"/>
+    <id>https://cl0und.github.io/2024/12/10/%E5%8D%9A%E5%AE%A2%E9%87%8D%E5%90%AF%E5%B0%8F%E8%AE%B0%EF%BC%882%EF%BC%89/</id>
+    <published>2024-12-10T08:44:49.000Z</published>
+    <updated>2024-08-17T15:20:45.502Z</updated>
     
     <content type="html"><![CDATA[<p>有两年多年没有写博客了，最近一次写的话题还是weblogic RCE挖掘 《记一次失败的Weblogic IIOP Gadget挖掘》。虽然当时写的时候标题是“失败的”，但其实后面确实启发了另一位师傅拿到了RCE （CVE-2022-21420）。我要感谢这位师傅，不但因为它挽救了这次失败的利用，还因为它总是在过年的时候给我发红包，手动狗头。</p><p>安全研究是一门艺术，是守正出奇，是推陈出新，是对创造力的磨练。有一起研究技术的小伙伴是幸福的，感谢大学四年能遇到Syclover小组。</p><p>毕业后去了上海，又辗转香港，如今上坡两年了，准备第二次重启我的博客。未来准备更新一些学习binary和distributed system的学习笔记。</p><p>之前redteam.today域名已经被别人买走，以后打算长期用cl0und.github.io了。看到博客友链中能正常访问的已经所剩无几，这更让我到体会长期写博客的不易。希望这次我能坚持得更久一些😆</p><p>顺颂夏安。</p>]]></content>
     
