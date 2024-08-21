@@ -1,6 +1,162 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Python协程的原理与I/O多路复用</title>
+    <url>/2024/08/21/Python%E5%8D%8F%E7%A8%8B%E7%9A%84%E5%8E%9F%E7%90%86%E4%B8%8EI-O%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/</url>
+    <content><![CDATA[<p>推荐一个prompt的网站 <a href="https://snackprompt.com/">https://snackprompt.com/</a> ，下面会用这里面的prompt以获取更结构化的答案。</p>
+<!-- more -->
+<h2 id="python协程程能做到高并发的底层原理"><a href="#python协程程能做到高并发的底层原理" class="headerlink" title="python协程程能做到高并发的底层原理"></a>python协程程能做到高并发的底层原理</h2><p>使用<a href="https://snackprompt.com/prompt/get-chatgpt4-to-efficiently-teach-you-difficult-advanced-technical-concepts">Get ChatGPT4 to efficiently teach you difficult / advanced technical concepts</a> 这个prompt</p>
+<p>Python’s concurrency, particularly through coroutines, is a powerful feature that allows high concurrency with minimal overhead. Here’s a breakdown of the underlying principles:</p>
+<ol>
+<li><p>Understanding Coroutines:</p>
+<ol>
+<li>Coroutines are generalizations of subroutines. Unlike subroutines, coroutines can pause execution and return control to the caller, enabling tasks to be executed concurrently.</li>
+<li>This is aided by the <code>asyncio</code> library in Python, which provides a framework for writing single-threaded concurrent code using coroutines.</li>
+</ol>
+</li>
+<li><p>Event Loop:</p>
+<ol>
+<li>At the heart of coroutine-based concurrency is the event loop. The event loop runs the registered tasks (coroutines) in an organized manner. It uses I/O multiplexing to manage tasks without the need for multiple threads or processes.</li>
+</ol>
+</li>
+<li><p>Non-blocking I/O Operations:</p>
+<ol>
+<li>Coroutines efficiently manage I/O-bound and high-level structured network code through non-blocking operations. When a coroutine performs an I/O operation, other tasks can run. When the operation completes, the routine is resumed.</li>
+</ol>
+</li>
+<li><p>Task Scheduling:</p>
+<ol>
+<li>Instead of creating a new thread for each task, the event loop schedules multiple tasks to run on the same thread. This lightweight task management means less overhead compared to threads and processes.</li>
+</ol>
+</li>
+<li><p>Yielding Control:</p>
+<ol>
+<li><code>await</code> expressions in coroutines are used to yield control back to the event loop, allowing other tasks to run. This cooperative multitasking reduces the complexity of managing context switches, unlike preemptive multitasking.</li>
+</ol>
+</li>
+<li><p>Memory Efficiency:</p>
+<ol>
+<li>Coroutines are much more memory efficient compared to threads because they do not require their own stack. They work in the same address space, avoiding the need for context switching that is typical of thread-based concurrency.</li>
+</ol>
+</li>
+<li><p>Concurrency Patterns:</p>
+<ol>
+<li>Advanced patterns like producer-consumer, pipelines, and fan-out/fan-in can be implemented using coroutines to effectively handle high concurrency scenarios with low latency.</li>
+</ol>
+</li>
+</ol>
+<p>Understanding these principles helps you leverage Python’s concurrency through coroutines to achieve high throughput in applications with limited resources.</p>
+<h2 id="追问-I-O不被操作系统挂起的原因"><a href="#追问-I-O不被操作系统挂起的原因" class="headerlink" title="追问 I/O不被操作系统挂起的原因"></a>追问 I/O不被操作系统挂起的原因</h2><blockquote>
+<p>“When a coroutine performs an I/O operation, other tasks can run. When the operation completes, the coroutine is resumed.”</p>
+<p>假设这个包含协程的线程是A，其它线程比如一个UI的线程是B</p>
+<p>它是怎么做到检测一个task在I/O然后切换到另一个task的，对于操作系统来说（比如linux）尽管它有很多task但是对于kernel来说就是只有一个线程。也就是说一个task在I/O的时候，内核会认为这个线程有I/O。这时候内核难道不是应该把这个包含协程的线程A挂起，切换其它的线程比如B进来执行吗？为什么会让这个协程继续执行后其他的task？</p>
+</blockquote>
+<p>在Python的协程模型中，特别是使用<code>asyncio</code>库时，协程的执行并不依赖于操作系统的线程调度。相反，它依赖于一个事件循环（event loop）来管理和调度任务。这意味着即使在单线程环境下，也可以通过协程实现并发。</p>
+<h3 id="事件循环和非阻塞I-O"><a href="#事件循环和非阻塞I-O" class="headerlink" title="事件循环和非阻塞I/O"></a>事件循环和非阻塞I/O</h3><ol>
+<li>事件循环：事件循环是协程并发的核心。它负责调度和执行协程任务。当一个协程遇到<code>await</code>表达式（通常是一个I/O操作）时，它会将控制权返回给事件循环，而不是阻塞线程。</li>
+<li>非阻塞I/O：协程中的I/O操作是非阻塞的。这意味着，当一个协程等待I/O操作完成时，它不会阻塞整个线程。相反，事件循环会继续运行其他已准备好的协程。</li>
+</ol>
+<h3 id="内核和线程的交互"><a href="#内核和线程的交互" class="headerlink" title="内核和线程的交互"></a>内核和线程的交互</h3><p><strong>在操作系统层面（例如Linux），线程在执行I/O操作时会被标记为“可阻塞”状态。然而，Python的**</strong><code>asyncio</code><strong><strong>库通过使用非阻塞I/O（例如，使用</strong></strong><code>select</code><strong><strong>、</strong></strong><code>poll</code><strong><strong>或</strong></strong><code>epoll</code><strong>**等系统调用）来避免线程被阻塞。</strong></p>
+<ul>
+<li>当协程执行一个非阻塞I/O操作时，事件循环会注册这个操作，并继续执行其他任务。</li>
+<li>一旦I/O操作完成，事件循环会收到通知，并恢复被挂起的协程。</li>
+</ul>
+<h3 id="协程与线程的区别"><a href="#协程与线程的区别" class="headerlink" title="协程与线程的区别"></a>协程与线程的区别</h3><ul>
+<li>协程：在用户级别管理，依赖于事件循环进行调度。它们共享同一个线程，不需要操作系统的上下文切换，因此开销较小。</li>
+<li>线程：由操作系统管理，涉及到内核级别的调度和上下文切换，开销较大。</li>
+</ul>
+<h3 id="线程A和线程B的关系"><a href="#线程A和线程B的关系" class="headerlink" title="线程A和线程B的关系"></a>线程A和线程B的关系</h3><p>在你的例子中，线程A运行事件循环并调度协程任务，线程B可能运行其他任务（例如UI）。如果线程A中的协程在等待I/O，事件循环会继续调度其他协程，而不会被操作系统挂起。只有当线程A没有其他协程可以运行时，操作系统才可能将线程A挂起并调度其他线程（例如线程B）。</p>
+<p>因此，通过这种方式，Python的协程能够在单线程环境中实现高效的并发，而不需要依赖多线程机制。</p>
+<h2 id="追问-select-poll-epoll的原理"><a href="#追问-select-poll-epoll的原理" class="headerlink" title="追问 select, poll, epoll的原理"></a>追问 select, poll, epoll的原理</h2><p>使用 <a href="https://snackprompt.com/prompt/compscigpt-computer-science-assistant">CompSciGPT computer science assistant</a> 这个prompt</p>
+<p>In the realm of operating systems and network programming, handling multiple simultaneous I/O operations is crucial. This is where system calls like <code>select</code>, <code>poll</code>, and <code>epoll</code> come into play, particularly in environments like server development. Let’s explore the differences and use cases for each:</p>
+<h3 id="Select"><a href="#Select" class="headerlink" title="Select"></a>Select</h3><ul>
+<li><p>Overview: <code>select</code> is one of the oldest I/O multiplexing options available in Unix-based systems.</p>
+</li>
+<li><p>Functionality: It allows a program to monitor multiple file descriptors to see if any of them is ready for I/O (e.g., ready to read, write, or has an exceptional condition pending).</p>
+</li>
+<li><p>Limitations:</p>
+<ul>
+<li>Scalability: It supports a limited number of file descriptors, typically 1024, though this is configurable in some systems.</li>
+<li>Performance: Every call to <code>select</code> requires the kernel to walk through the entire list of file descriptors to check their states, which can become inefficient for a large number of file descriptors.</li>
+<li>FD_SET Management: You must reset the file descriptor set for each call.</li>
+</ul>
+</li>
+</ul>
+<h3 id="Poll"><a href="#Poll" class="headerlink" title="Poll"></a>Poll</h3><ul>
+<li><p>Overview: <code>poll</code> was introduced to overcome some of the <code>select</code> limitations.</p>
+</li>
+<li><p>Functionality: Similar to <code>select</code>, but it uses a different approach to handle file descriptors, allowing a greater number.</p>
+</li>
+<li><p>Advantages:</p>
+<ul>
+<li>No Hard Limit: Unlike <code>select</code>, <code>poll</code> does not have a hardcoded limit on the number of file descriptors it can monitor.</li>
+<li>Simplified Interface: Instead of managing multiple fd sets, <code>poll</code> uses a single array of <code>pollfd</code> structures.</li>
+</ul>
+</li>
+<li><p>Limitations:</p>
+<ul>
+<li>Performance: Though better than <code>select</code>, it still requires iterating over the entire list of file descriptors, which can be computationally expensive as the number of descriptors grows.</li>
+</ul>
+</li>
+</ul>
+<h3 id="Epoll"><a href="#Epoll" class="headerlink" title="Epoll"></a>Epoll</h3><ul>
+<li><p>Overview: <code>epoll</code> is specific to Linux and designed to be more efficient and scalable than both <code>select</code> and <code>poll</code>.</p>
+</li>
+<li><p>Functionality: It allows management of a large number of file descriptors with better performance characteristics.</p>
+</li>
+<li><p>Advantages:</p>
+<ul>
+<li>Scalability: Ideal for applications with a high number of file descriptors (thousands or more).</li>
+<li>Efficiency: Uses a ready list instead of scanning all descriptors. The kernel tracks which file descriptors are “active,” which saves resources.</li>
+<li>Edge/Level Triggering: Offers two modes (edge-triggered and level-triggered) giving developers finer control over the handling of ready events.</li>
+<li>Persistent Interest: Once you register interest in certain events, <code>epoll</code> keeps the interest until explicitly changed or removed.</li>
+</ul>
+</li>
+<li><p>Limitations:</p>
+<ul>
+<li>Complexity: Programming with <code>epoll</code> can be more complex, requiring a good understanding of its behavior, especially with edge-triggered semantics.</li>
+</ul>
+</li>
+</ul>
+<h3 id="Choosing-the-Right-System-Call"><a href="#Choosing-the-Right-System-Call" class="headerlink" title="Choosing the Right System Call"></a>Choosing the Right System Call</h3><ul>
+<li>Select: Rarely used in modern applications due to its limitations, but can be suitable for smaller, less demanding applications.</li>
+<li>Poll: A reasonable choice when you need more capability than <code>select</code> offers, without needing the complexity of <code>epoll</code>.</li>
+<li>Epoll: The preferred choice for high-performance server applications on Linux due to its scalability and efficient event notification handling.</li>
+</ul>
+<h3 id="Practical-Considerations"><a href="#Practical-Considerations" class="headerlink" title="Practical Considerations"></a>Practical Considerations</h3><ul>
+<li>When designing networked applications, especially servers, the choice between <code>select</code>, <code>poll</code>, and <code>epoll</code> can significantly impact performance.</li>
+<li>Understand the workload and environment specifics to make an informed decision. For example, cross-platform applications might prefer <code>poll</code> for its broader compatibility.</li>
+<li>Always consider the trade-offs between complexity and performance. While <code>epoll</code> offers great performance, it requires careful handling of edge cases in event management.</li>
+</ul>
+<p>In conclusion, a solid understanding of <code>select</code>, <code>poll</code>, and <code>epoll</code> not only helps in choosing the right tool for your application needs but also aids in optimizing the application’s performance in a networked infrastructure.</p>
+<h2 id="select-poll-epoll代码"><a href="#select-poll-epoll代码" class="headerlink" title="select, poll, epoll代码"></a>select, poll, epoll代码</h2><p>Certainly! Let’s modify the examples to demonstrate how to use <code>select</code>, <code>poll</code>, and <code>epoll</code> for file I/O operations. Since file operations are often simpler than networking operations, these examples will assume we’re using a non-blocking read operation on a file.</p>
+<h3 id="Common-Setup"><a href="#Common-Setup" class="headerlink" title="Common Setup"></a>Common Setup</h3><p>First, let’s ensure we have a file to work with:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;  #include &lt;unistd.h&gt;  #include &lt;stdio.h&gt;  #include &lt;string.h&gt;  int setup_file(const char *filename) &#123;  </span></span></span><br><span class="line">    <span class="keyword">int</span> fd = <span class="built_in">open</span>(filename, O_RDONLY | O_NONBLOCK);  </span><br><span class="line">    <span class="keyword">if</span> (fd == <span class="number">-1</span>) &#123;  </span><br><span class="line">        perror(<span class="string">"open"</span>);  </span><br><span class="line">    &#125;  </span><br><span class="line">    <span class="keyword">return</span> fd;  </span><br><span class="line">&#125;  </span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">When you open a file with the O_NONBLOCK flag, </span></span><br><span class="line"><span class="comment">it specifies that subsequent operations (like read or write) on the file descriptor should be non-blocking </span></span><br><span class="line"><span class="comment">if they support non-blocking behavior. </span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>This <code>setup_file</code> function will open a file in non-blocking mode, which is essential for non-blocking I/O operations.</p>
+<h3 id="Select-Example-with-File-I-O"><a href="#Select-Example-with-File-I-O" class="headerlink" title="Select Example with File I/O"></a>Select Example with File I/O</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/select.h&gt;  </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;  </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;  </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;  </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;  </span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">    <span class="keyword">int</span> fd = setup_file(<span class="string">"example.txt"</span>);  </span><br><span class="line">    <span class="keyword">if</span> (fd == <span class="number">-1</span>) <span class="keyword">return</span> <span class="number">1</span>;  </span><br><span class="line"></span><br><span class="line">    fd_set readfds;  </span><br><span class="line">    FD_ZERO(&amp;readfds);  </span><br><span class="line">    FD_SET(fd, &amp;readfds);  </span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">timeval</span> <span class="title">tv</span>;</span>  </span><br><span class="line">    tv.tv_sec = <span class="number">5</span>;  <span class="comment">// Wait for up to 5 seconds  </span></span><br><span class="line">    tv.tv_usec = <span class="number">0</span>;  </span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> retval = select(fd + <span class="number">1</span>, &amp;readfds, <span class="literal">NULL</span>, <span class="literal">NULL</span>, &amp;tv);  </span><br><span class="line">    <span class="keyword">if</span> (retval == <span class="number">-1</span>) &#123;  </span><br><span class="line">        perror(<span class="string">"select"</span>);  </span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (retval) &#123;  </span><br><span class="line">        <span class="keyword">if</span> (FD_ISSET(fd, &amp;readfds)) &#123;  </span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"File is ready for reading.\n"</span>);  </span><br><span class="line">            <span class="comment">// Read from the file  char buffer[1024];  </span></span><br><span class="line">            <span class="keyword">ssize_t</span> bytes_read = <span class="built_in">read</span>(fd, <span class="built_in">buffer</span>, <span class="keyword">sizeof</span>(<span class="built_in">buffer</span>));  </span><br><span class="line">            <span class="keyword">if</span> (bytes_read &gt; <span class="number">0</span>) &#123;  </span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">"Read %zd bytes: %.*s\n"</span>, bytes_read, (<span class="keyword">int</span>)bytes_read, <span class="built_in">buffer</span>);  </span><br><span class="line">            &#125;  </span><br><span class="line">        &#125;  </span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  </span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"No data read within five seconds.\n"</span>);  </span><br><span class="line">    &#125;  </span><br><span class="line"></span><br><span class="line">    <span class="built_in">close</span>(fd);  </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Poll-Example-with-File-I-O"><a href="#Poll-Example-with-File-I-O" class="headerlink" title="Poll Example with File I/O"></a>Poll Example with File I/O</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;poll.h&gt;  </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;  </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;  </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;  </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;  </span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">    <span class="keyword">int</span> fd = setup_file(<span class="string">"example.txt"</span>);  </span><br><span class="line">    <span class="keyword">if</span> (fd == <span class="number">-1</span>) <span class="keyword">return</span> <span class="number">1</span>;  </span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">pollfd</span> <span class="title">fds</span>[1];</span>  </span><br><span class="line">    fds[<span class="number">0</span>].fd = fd;  </span><br><span class="line">    fds[<span class="number">0</span>].events = POLLIN;  </span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> retval = poll(fds, <span class="number">1</span>, <span class="number">5000</span>);  <span class="comment">// Wait for 5 seconds  </span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">if</span> (retval == <span class="number">-1</span>) &#123;  </span><br><span class="line">        perror(<span class="string">"poll"</span>);  </span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (retval &gt; <span class="number">0</span>) &#123;  </span><br><span class="line">        <span class="keyword">if</span> (fds[<span class="number">0</span>].revents &amp; POLLIN) &#123;  </span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"File is ready for reading.\n"</span>);  </span><br><span class="line">            <span class="comment">// Read from the file  char buffer[1024];  </span></span><br><span class="line">            <span class="keyword">ssize_t</span> bytes_read = <span class="built_in">read</span>(fd, <span class="built_in">buffer</span>, <span class="keyword">sizeof</span>(<span class="built_in">buffer</span>));  </span><br><span class="line">            <span class="keyword">if</span> (bytes_read &gt; <span class="number">0</span>) &#123;  </span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">"Read %zd bytes: %.*s\n"</span>, bytes_read, (<span class="keyword">int</span>)bytes_read, <span class="built_in">buffer</span>);  </span><br><span class="line">            &#125;  </span><br><span class="line">        &#125;  </span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  </span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"No data read within five seconds.\n"</span>);  </span><br><span class="line">    &#125;  </span><br><span class="line"></span><br><span class="line">    <span class="built_in">close</span>(fd);  </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Epoll-Example-with-File-I-O"><a href="#Epoll-Example-with-File-I-O" class="headerlink" title="Epoll Example with File I/O"></a>Epoll Example with File I/O</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/epoll.h&gt;  </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;  </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;  </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;  </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;  </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;  </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAX_EVENTS 5  </span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">    <span class="keyword">int</span> fd = setup_file(<span class="string">"example.txt"</span>);  </span><br><span class="line">    <span class="keyword">if</span> (fd == <span class="number">-1</span>) <span class="keyword">return</span> <span class="number">1</span>;  </span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> epoll_fd = epoll_create1(<span class="number">0</span>);  </span><br><span class="line">    <span class="keyword">if</span> (epoll_fd == <span class="number">-1</span>) &#123;  </span><br><span class="line">        perror(<span class="string">"epoll_create1"</span>);  </span><br><span class="line">        <span class="built_in">exit</span>(EXIT_FAILURE);  </span><br><span class="line">    &#125;  </span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">epoll_event</span> <span class="title">event</span>;</span>  </span><br><span class="line">    event.events = EPOLLIN;  </span><br><span class="line">    event.data.fd = fd;  </span><br><span class="line">    <span class="keyword">if</span> (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &amp;event) == <span class="number">-1</span>) &#123;  </span><br><span class="line">        perror(<span class="string">"epoll_ctl"</span>);  </span><br><span class="line">        <span class="built_in">exit</span>(EXIT_FAILURE);  </span><br><span class="line">    &#125;  </span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">epoll_event</span> <span class="title">events</span>[<span class="title">MAX_EVENTS</span>];</span>  </span><br><span class="line">    <span class="keyword">int</span> n = epoll_wait(epoll_fd, events, MAX_EVENTS, <span class="number">5000</span>);  <span class="comment">// Wait for 5 seconds  </span></span><br><span class="line">    <span class="keyword">if</span> (n == <span class="number">-1</span>) &#123;  </span><br><span class="line">        perror(<span class="string">"epoll_wait"</span>);  </span><br><span class="line">        <span class="built_in">exit</span>(EXIT_FAILURE);  </span><br><span class="line">    &#125;  </span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++) &#123;  </span><br><span class="line">        <span class="keyword">if</span> (events[i].data.fd == fd) &#123;  </span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"File is ready for reading.\n"</span>);  </span><br><span class="line">            <span class="comment">// Read from the file  char buffer[1024];  </span></span><br><span class="line">            <span class="keyword">ssize_t</span> bytes_read = <span class="built_in">read</span>(fd, <span class="built_in">buffer</span>, <span class="keyword">sizeof</span>(<span class="built_in">buffer</span>));  </span><br><span class="line">            <span class="keyword">if</span> (bytes_read &gt; <span class="number">0</span>) &#123;  </span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">"Read %zd bytes: %.*s\n"</span>, bytes_read, (<span class="keyword">int</span>)bytes_read, <span class="built_in">buffer</span>);  </span><br><span class="line">            &#125;  </span><br><span class="line">        &#125;  </span><br><span class="line">    &#125;  </span><br><span class="line"></span><br><span class="line">    <span class="built_in">close</span>(epoll_fd);  </span><br><span class="line">    <span class="built_in">close</span>(fd);  </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Explanation"><a href="#Explanation" class="headerlink" title="Explanation"></a>Explanation</h3><ul>
+<li>File Descriptor: Each example utilizes <code>setup_file</code> to open a file named <code>example.txt</code> in non-blocking mode. You need to ensure this file exists for these examples to work.</li>
+<li>Select, Poll, Epoll: These functions check if the file is ready for reading within a 5-second window.</li>
+<li>Reading from the File: Once data is available, the programs proceed to read it using <code>read()</code>.</li>
+</ul>
+<p>These examples demonstrate how non-blocking I/O operations can be handled for files using <code>select</code>, <code>poll</code>, and <code>epoll</code>, analogous to how they would be used for sockets.</p>
+<h2 id="Does-Select-Map-File-Contents-to-Memory"><a href="#Does-Select-Map-File-Contents-to-Memory" class="headerlink" title="Does Select Map File Contents to Memory?"></a>Does Select Map File Contents to Memory?</h2><ul>
+<li>No Direct Mapping: The <code>select</code> system call itself does not map file contents to memory. Its purpose is strictly to monitor the readiness of file descriptors for I/O operations.</li>
+<li>Content Access: It does not involve reading or writing file contents. Once <code>select</code> indicates that a file descriptor is ready, you still need to perform actual read or write operations on the file descriptor to access or modify content.</li>
+</ul>
+<p>For regular files opened with non-blocking flags, <code>select</code> can be used to check readiness, although it is most useful for scenarios where I/O operations may block, such as with network sockets or pipes. Regular file systems often support ready operations differently than sockets do, making non-blocking I/O and readiness a key concern for network and inter-process communications.</p>
+]]></content>
+      <tags>
+        <tag>python</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>PWN 堆利用 off-by-one NULL byte - b00ks writeup</title>
     <url>/2024/08/11/PWN-%E5%A0%86%E5%88%A9%E7%94%A8-off-by-one-NULL-byte-b00ks-writeup/</url>
     <content><![CDATA[<p>最新刚开始学pwn，还不熟悉ida和gdb。此篇记录了off-by-one b00ks上这道题的复现，从ida/gdb使用到payload编写。文中有一些内存分布图片偷懒我没有自己画，引用自<a href="https://blog.csdn.net/qq_48466156/article/details/139691096">这篇文章</a>（写的很好）。侵删。</p>
