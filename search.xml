@@ -2354,7 +2354,8 @@ smb-bind-pipe是建立的smb监听器的名字，创建smb监听器的时候会�
   <entry>
     <title>博客重启小记（2）</title>
     <url>/2024/08/10/%E5%8D%9A%E5%AE%A2%E9%87%8D%E5%90%AF%E5%B0%8F%E8%AE%B0%EF%BC%882%EF%BC%89/</url>
-    <content><![CDATA[<p>有两年多年没有写博客了，最近一次写的话题还是weblogic RCE挖掘 《记一次失败的Weblogic IIOP Gadget挖掘》。虽然当时写的时候标题是“失败的”，但其实后面确实启发了另一位师傅拿到了RCE （CVE-2022-21420）。我要感谢这位师傅，不但因为它挽救了这次失败的利用，还因为它总是在过年的时候给我发红包，手动狗头。</p>
+    <content><![CDATA[<span id="more"></span>
+<p>有两年多年没有写博客了，最近一次写的话题还是weblogic RCE挖掘 《记一次失败的Weblogic IIOP Gadget挖掘》。虽然当时写的时候标题是“失败的”，但其实后面确实启发了另一位师傅拿到了RCE （CVE-2022-21420）。我要感谢这位师傅，不但因为它挽救了这次失败的利用，还因为它总是在过年的时候给我发红包，手动狗头。</p>
 <p>安全研究是一门艺术，是守正出奇，是推陈出新，是对创造力的磨练。有一起研究技术的小伙伴是幸福的，感谢大学四年能遇到Syclover小组。</p>
 <p>毕业后去了上海，又辗转香港，如今上坡两年了，准备第二次重启我的博客。未来准备更新一些学习binary和distributed system的学习笔记。</p>
 <p>之前redteam.today域名已经被别人买走，以后打算长期用cl0und.github.io了。看到博客友链中能正常访问的已经所剩无几，这更让我到体会长期写博客的不易。希望这次我能坚持得更久一些😆</p>
@@ -3068,6 +3069,202 @@ smb-bind-pipe是建立的smb监听器的名字，创建smb监听器的时候会�
 ]]></content>
       <tags>
         <tag>java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Financial Economics Lecture1 Foundations, Approaches, and Key Concepts in Asset Pricing</title>
+    <url>/2024/09/14/Financial-Economics-Lecture1-Foundations-Approaches-and-Key-Concepts-in-Asset-Pricing/</url>
+    <content><![CDATA[<!-- more -->
+
+<h2 id="I-Introduction-to-Financial-Economics"><a href="#I-Introduction-to-Financial-Economics" class="headerlink" title="I. Introduction to Financial Economics"></a>I. Introduction to Financial Economics</h2><h3 id="A-Definition-and-Scope"><a href="#A-Definition-and-Scope" class="headerlink" title="A. Definition and Scope"></a>A. Definition and Scope</h3><ul>
+<li>Financial Economics: The branch of economics focuses on assigning financial assets efficiently.</li>
+<li>Core task: Understanding and determining the pricing of financial assets.</li>
+</ul>
+<h3 id="B-Key-Concepts"><a href="#B-Key-Concepts" class="headerlink" title="B. Key Concepts"></a>B. Key Concepts</h3><ol>
+<li><p>Assets: Claims on future economic benefits.</p>
+</li>
+<li><p>Two critical dimensions in financial behavior:</p>
+<ol>
+<li>Intertemporal nature of decisions</li>
+<li>**Uncertainty (risk) **associated with future outcomes</li>
+</ol>
+</li>
+</ol>
+<h2 id="II-Overview-of-Financial-Markets"><a href="#II-Overview-of-Financial-Markets" class="headerlink" title="II. Overview of Financial Markets"></a>II. Overview of Financial Markets</h2><h3 id="A-Basic-Structure"><a href="#A-Basic-Structure" class="headerlink" title="A. Basic Structure"></a>A. Basic Structure</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Funds Suppliers (Asset Buyers) → Investment → Funds Demanders (Asset Sellers)  </span><br><span class="line">                                ← Return ←  </span><br></pre></td></tr></table></figure>
+
+<h3 id="B-Key-Focus"><a href="#B-Key-Focus" class="headerlink" title="B. Key Focus"></a>B. Key Focus</h3><ul>
+<li>Central question: Determining asset prices</li>
+<li>Pricing mechanism: Driven by supply and demand, which are derived from human behavior</li>
+<li>Challenges: Human behavior is <strong>dynamic</strong> and <strong>uncertain</strong></li>
+</ul>
+<h3 id="C-Corporate-Finance"><a href="#C-Corporate-Finance" class="headerlink" title="C. Corporate Finance"></a>C. Corporate Finance</h3><ul>
+<li>Special case: When asset sellers are corporations</li>
+</ul>
+<h2 id="III-Approaches-in-Financial-Economics"><a href="#III-Approaches-in-Financial-Economics" class="headerlink" title="III. Approaches in Financial Economics"></a>III. Approaches in Financial Economics</h2><h3 id="A-Equilibrium-Pricing"><a href="#A-Equilibrium-Pricing" class="headerlink" title="A. Equilibrium Pricing"></a>A. Equilibrium Pricing</h3><ul>
+<li>Method: Build a model incorporating human preferences and constraints to deduce behavior and determine supply and demand.</li>
+<li>Advantage: Can determine asset prices from fundamental principles.</li>
+<li>Disadvantage: Relies on assumptions that may be inaccurate or oversimplified.</li>
+</ul>
+<h3 id="B-No-Arbitrage-Pricing"><a href="#B-No-Arbitrage-Pricing" class="headerlink" title="B. No-Arbitrage Pricing"></a>B. No-Arbitrage Pricing</h3><ul>
+<li>Method: Deduce asset prices based on known prices of other assets.</li>
+</ul>
+<h3 id="C-Financial-Frictions-Analysis"><a href="#C-Financial-Frictions-Analysis" class="headerlink" title="C. Financial Frictions Analysis"></a>C. Financial Frictions Analysis</h3><ul>
+<li>Focus areas: Information asymmetry, period mismatch</li>
+</ul>
+<h3 id="D-Behavioral-Finance"><a href="#D-Behavioral-Finance" class="headerlink" title="D. Behavioral Finance"></a>D. Behavioral Finance</h3><ul>
+<li>Approach: Incorporates “irrational” factors to better understand the behavior of market participants.</li>
+</ul>
+<h2 id="IV-Market-Efficiency-and-Behavioral-Finance"><a href="#IV-Market-Efficiency-and-Behavioral-Finance" class="headerlink" title="IV. Market Efficiency and Behavioral Finance"></a>IV. Market Efficiency and Behavioral Finance</h2><ul>
+<li>Question of market efficiency remains central to financial economics.</li>
+<li>Behavioral finance helps explain deviations from traditional rational models.</li>
+</ul>
+<h2 id="V-Assets-and-Rate-of-Return"><a href="#V-Assets-and-Rate-of-Return" class="headerlink" title="V. Assets and Rate of Return"></a>V. Assets and Rate of Return</h2><h3 id="A-Basic-Model-Single-Period-Binary-Tree"><a href="#A-Basic-Model-Single-Period-Binary-Tree" class="headerlink" title="A. Basic Model: Single-Period Binary Tree"></a>A. Basic Model: Single-Period Binary Tree</h3><ul>
+<li><p>Current price: P</p>
+</li>
+<li><p>Future payoffs:</p>
+<ul>
+<li>Xu (probability q)</li>
+<li>Xd (probability 1-q)</li>
+</ul>
+</li>
+</ul>
+<h3 id="B-Key-Questions"><a href="#B-Key-Questions" class="headerlink" title="B. Key Questions"></a>B. Key Questions</h3><ol>
+<li><p>Given Xu and Xd, how to determine P?</p>
+</li>
+<li><p>What determines Xu and Xd? (Beyond the scope of financial economics)</p>
+<ol>
+<li>Industry factors</li>
+<li>Business strategies</li>
+<li>Competitive landscape</li>
+<li>Management aspirations</li>
+<li>Macroeconomic conditions</li>
+<li>Geopolitical factors</li>
+</ol>
+</li>
+</ol>
+<h3 id="C-Return-Calculations"><a href="#C-Return-Calculations" class="headerlink" title="C. Return Calculations"></a>C. Return Calculations</h3><ul>
+<li>Upside return: ru = (Xu/P) - 1</li>
+<li>Downside return: rd = (Xd/P) - 1</li>
+<li>Expected return: E(r) = q*ru + (1-q)*rd = E(x)/P - 1</li>
+</ul>
+<h3 id="D-Price-Return-Relationship"><a href="#D-Price-Return-Relationship" class="headerlink" title="D. Price-Return Relationship"></a>D. Price-Return Relationship</h3><ul>
+<li>Inverse relationship between price (P) and expected return E(r)</li>
+<li>Higher asset price → Lower expected return</li>
+<li>Lower asset price → Higher expected return</li>
+</ul>
+<h3 id="E-Risk-Return-Trade-off"><a href="#E-Risk-Return-Trade-off" class="headerlink" title="E. Risk-Return Trade-off"></a>E. Risk-Return Trade-off</h3><ul>
+<li>“Good” assets typically have higher prices but lower expected returns</li>
+<li>“Bad” (riskier) assets typically have lower prices but higher expected returns</li>
+<li>Market equilibrium tends to balance risk and return across assets</li>
+</ul>
+<h2 id="VI-Equilibrium-Pricing-Absolute-Pricing"><a href="#VI-Equilibrium-Pricing-Absolute-Pricing" class="headerlink" title="VI. Equilibrium Pricing (Absolute Pricing)"></a>VI. Equilibrium Pricing (Absolute Pricing)</h2><h3 id="A-Concept"><a href="#A-Concept" class="headerlink" title="A. Concept"></a>A. Concept</h3><ul>
+<li>Price is determined by the interaction of supply, demand, and behavior (under uncertainty/risk)</li>
+<li>Aims to price assets from fundamental principles</li>
+</ul>
+<h3 id="B-Expected-Utility-Theory"><a href="#B-Expected-Utility-Theory" class="headerlink" title="B. Expected Utility Theory"></a>B. Expected Utility Theory</h3><ul>
+<li><p>Addresses limitations of simple expected value calculations</p>
+</li>
+<li><p>Example: St. Petersburg paradox (where E = ∞)</p>
+<ul>
+<li>Demonstrates why expected value alone is insufficient for decision-making</li>
+</ul>
+</li>
+</ul>
+<h3 id="C-Risk-and-Asset-Pricing-An-Example"><a href="#C-Risk-and-Asset-Pricing-An-Example" class="headerlink" title="C. Risk and Asset Pricing: An Example"></a>C. Risk and Asset Pricing: An Example</h3><ol>
+<li><p>Steel Company:</p>
+<ol>
+<li>Current price: Ps</li>
+<li>Future dividends: 50% chance of 25,15</li>
+</ol>
+</li>
+<li><p>Pharmaceutical Company:</p>
+<ol>
+<li>Current price: Pp</li>
+<li>Future dividends: 50% chance of 40,0</li>
+</ol>
+</li>
+</ol>
+<p>Despite pharmaceutical companies having higher variance (risk), Pp should typically be higher than Ps. This counterintuitive result stems from the potential for higher returns, not just the risk involved.</p>
+<h3 id="D-Performance-Evaluation-Beyond-Simple-Metrics"><a href="#D-Performance-Evaluation-Beyond-Simple-Metrics" class="headerlink" title="D. Performance Evaluation: Beyond Simple Metrics"></a>D. Performance Evaluation: Beyond Simple Metrics</h3><p>Consider two portfolio managers:</p>
+<ul>
+<li><p>Manager A: Average return rA = 10%, standard deviation σA</p>
+</li>
+<li><p>Manager B: Average return rB = 8%, standard deviation σB</p>
+</li>
+<li><p>If σA &lt; σB, can we conclude A is better than B?</p>
+<ul>
+<li>Not necessarily. Must consider risk-adjusted returns and investor preferences.</li>
+</ul>
+</li>
+</ul>
+<h2 id="VII-No-Arbitrage-Pricing-Relative-Pricing"><a href="#VII-No-Arbitrage-Pricing-Relative-Pricing" class="headerlink" title="VII. No-Arbitrage Pricing (Relative Pricing)"></a>VII. No-Arbitrage Pricing (Relative Pricing)</h2><h3 id="A-Concept-1"><a href="#A-Concept-1" class="headerlink" title="A. Concept"></a>A. Concept</h3><ul>
+<li>Based on the Law of One Price (LOOP)</li>
+<li>Riskless profit opportunities violate LOOP</li>
+</ul>
+<h3 id="B-Examples"><a href="#B-Examples" class="headerlink" title="B. Examples"></a>B. Examples</h3><ol>
+<li><p>Fast Food Combo:</p>
+<ol>
+<li>If Hamburg = 1 and Coke=1, then (Hamburg, Coke) combo should = $2</li>
+<li>Any deviation creates arbitrage opportunity</li>
+</ol>
+</li>
+<li><p>Investment Box:</p>
+<ol>
+<li><p>Box transforms 1 into 1.02 (2% return)</p>
+</li>
+<li><p>Bank deposit rate = 3%</p>
+</li>
+<li><p>Box value?</p>
+<ul>
+<li>Not zero, despite lower return than bank</li>
+<li>Option value exists if interest rates fall below 2% in future</li>
+</ul>
+</li>
+</ol>
+</li>
+</ol>
+<h3 id="C-Replication-and-Hedging"><a href="#C-Replication-and-Hedging" class="headerlink" title="C. Replication and Hedging"></a>C. Replication and Hedging</h3><ul>
+<li>Core of no-arbitrage pricing: Replicating cash flows</li>
+<li>Enables hedging strategies</li>
+<li>Fundamental to modern financial innovations</li>
+</ul>
+<h2 id="VIII-Financial-Frictions"><a href="#VIII-Financial-Frictions" class="headerlink" title="VIII. Financial Frictions"></a>VIII. Financial Frictions</h2><h3 id="A-Maturity-Mismatch"><a href="#A-Maturity-Mismatch" class="headerlink" title="A. Maturity Mismatch"></a>A. Maturity Mismatch</h3><ul>
+<li>Lenders prefer liquidity (short-term)</li>
+<li>Borrowers need stability (long-term)</li>
+<li>Example: Construction projects require stable, long-term funding</li>
+</ul>
+<h3 id="B-Role-of-Financial-Intermediaries"><a href="#B-Role-of-Financial-Intermediaries" class="headerlink" title="B. Role of Financial Intermediaries"></a>B. Role of Financial Intermediaries</h3><ul>
+<li>Banks transform short-term deposits into long-term loans</li>
+<li>Crucial for economic stability and growth</li>
+</ul>
+<h2 id="IX-Market-Efficiency-and-Behavioral-Finance"><a href="#IX-Market-Efficiency-and-Behavioral-Finance" class="headerlink" title="IX. Market Efficiency and Behavioral Finance"></a>IX. Market Efficiency and Behavioral Finance</h2><h3 id="A-Efficient-Market-Hypothesis-EMH"><a href="#A-Efficient-Market-Hypothesis-EMH" class="headerlink" title="A. Efficient Market Hypothesis (EMH)"></a>A. Efficient Market Hypothesis (EMH)</h3><ul>
+<li>Fama’s theory: Markets rapidly incorporate all available information</li>
+<li>Implies no persistent arbitrage opportunities</li>
+</ul>
+<h3 id="B-Challenges-to-EMH"><a href="#B-Challenges-to-EMH" class="headerlink" title="B. Challenges to EMH"></a>B. Challenges to EMH</h3><ul>
+<li><p>Shiller’s counterarguments</p>
+</li>
+<li><p>Behavioral Finance insights:</p>
+<ul>
+<li>Irrationality: e.g., overconfidence bias</li>
+<li>Limited arbitrage: Practical limits to exploiting mispricings</li>
+</ul>
+</li>
+</ul>
+<h3 id="C-Martingale-Concept"><a href="#C-Martingale-Concept" class="headerlink" title="C. Martingale Concept"></a>C. Martingale Concept</h3><ul>
+<li>Mathematical foundation for fair games and efficient markets</li>
+</ul>
+<h2 id="Key-Takeaways-from-Lecture-1"><a href="#Key-Takeaways-from-Lecture-1" class="headerlink" title="Key Takeaways from Lecture 1"></a>Key Takeaways from Lecture 1</h2><ol>
+<li>Financial Economics focuses on the efficient allocation of financial assets and understanding asset pricing.</li>
+<li>The field employs various approaches: equilibrium pricing, no-arbitrage pricing, and consideration of financial frictions.</li>
+<li>Understanding risk, return, and their relationship is crucial in asset valuation.</li>
+<li>Market efficiency and behavioral factors play significant roles in financial markets.</li>
+<li>Both absolute (equilibrium) and relative (no-arbitrage) pricing methods are essential tools in financial economics.</li>
+<li>Financial frictions, such as maturity mismatches, highlight the importance of financial intermediaries.</li>
+</ol>
+]]></content>
+      <tags>
+        <tag>economics</tag>
       </tags>
   </entry>
 </search>
