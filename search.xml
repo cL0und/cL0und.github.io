@@ -20,7 +20,7 @@
 <p>会引入一些规则，比如有监控到read的系统调用，从非信任IP读取数据，那么就把它记做一个Unstrusted_Read(S, P)对。S是socket, P是进程。</p>
 <p>如果有一个P, 他申请了可执行的内存，并且这个P和Unstrusted_Read(S, P’)中的P’有关系（path_factor）那么，就把这个P加入Make_Mem_Exec(P,M)对中。</p>
 <p>注：path_factor怎么算后面会讲。</p>
-<p>上面的两个Make_Mem_Exec和Make_Mem_Exec会背归为高纬度，对应APT kill chain的Initial_Compromoise。</p>
+<p>上面的两个Make_Mem_Exec和Make_Mem_Exec会被归为高纬度，对应APT kill chain的Initial_Compromoise。</p>
 <h2 id="HSG-high-level-scenario-graph-的构建"><a href="#HSG-high-level-scenario-graph-的构建" class="headerlink" title="HSG(high-level scenario graph)的构建"></a>HSG(high-level scenario graph)的构建</h2><p>这部分其实很简单，每一个TTP是一个小节点，节点之前是否连线就是他们是否有prerequisites里面的关系。</p>
 <p>ATP Stage是一个大节点。</p>
 <p><img src="image4.png"></p>
