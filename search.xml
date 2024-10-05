@@ -49,7 +49,8 @@
         <category>redteam</category>
       </categories>
       <tags>
-        <tag>paper, redteam</tag>
+        <tag>paper reading</tag>
+        <tag>redteam</tag>
       </tags>
   </entry>
   <entry>
@@ -158,7 +159,7 @@
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="http://www.jeyzhang.com/csharp-learning-notes-2-multithreading.html">C#学习笔记2：多线程</a><br><a href="https://www.cnblogs.com/HDK2016/p/9840989.html">解析C#中管道流的使用</a><br><a href="https://docs.microsoft.com/zh-cn/dotnet/api/system.io.streamreader.read?redirectedfrom=MSDN&view=netframework-4.8#System_IO_StreamReader_Read">StreamReader.Read Method</a><br><a href="https://www.codeproject.com/Articles/1199046/A-Csharp-Named-Pipe-Library-That-Supports-Multiple">A C# Named Pipe Library That Supports Multiple Clients</a><br><a href="https://github.com/meilidao12/DataBase2CiChuChen/tree/04e9d554a4429c861aec9b486fae2e9a2e58f260/CommunicationServers/Pipe">CommunicationServers/Pipe/</a></p>
 ]]></content>
       <categories>
-        <category>redteam trick</category>
+        <category>redteam</category>
       </categories>
       <tags>
         <tag>cobaltstrike</tag>
@@ -1793,7 +1794,7 @@ smb-bind-pipe是建立的smb监听器的名字，创建smb监听器的时候会�
 <h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://mp.weixin.qq.com/s/aCWFlp0AzFd0Ou3wrDVu1g">Cobalt Strike几种不那么常见的上线方式小记</a></p>
 ]]></content>
       <categories>
-        <category>redteam trick</category>
+        <category>redteam</category>
       </categories>
       <tags>
         <tag>cobaltstrike</tag>
@@ -2603,7 +2604,7 @@ smb-bind-pipe是建立的smb监听器的名字，创建smb监听器的时候会�
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://3gstudent.github.io/3gstudent.github.io/%E6%B8%97%E9%80%8F%E6%8A%80%E5%B7%A7-%E5%AF%BC%E5%87%BAChrome%E6%B5%8F%E8%A7%88%E5%99%A8%E4%B8%AD%E4%BF%9D%E5%AD%98%E7%9A%84%E5%AF%86%E7%A0%81/">渗透技巧——导出Chrome浏览器中保存的密码</a><br><a href="https://3gstudent.github.io/3gstudent.github.io/%E6%B8%97%E9%80%8F%E6%8A%80%E5%B7%A7-%E7%A6%BB%E7%BA%BF%E5%AF%BC%E5%87%BAChrome%E6%B5%8F%E8%A7%88%E5%99%A8%E4%B8%AD%E4%BF%9D%E5%AD%98%E7%9A%84%E5%AF%86%E7%A0%81/">渗透技巧——离线导出Chrome浏览器中保存的密码</a><br><a href="https://3gstudent.github.io/3gstudent.github.io/%E6%B8%97%E9%80%8F%E6%8A%80%E5%B7%A7-%E5%88%A9%E7%94%A8Masterkey%E7%A6%BB%E7%BA%BF%E5%AF%BC%E5%87%BAChrome%E6%B5%8F%E8%A7%88%E5%99%A8%E4%B8%AD%E4%BF%9D%E5%AD%98%E7%9A%84%E5%AF%86%E7%A0%81/">渗透技巧——利用Masterkey离线导出Chrome浏览器中保存的密码</a><br><a href="https://posts.specterops.io/operational-guidance-for-offensive-user-dpapi-abuse-1fb7fac8b107">Operational Guidance for Offensive User DPAPI Abuse</a><br><a href="https://bbs.pediy.com/thread-247634.htm">[翻译]滥用User DPAPI进行攻击的操作指南</a></p>
 ]]></content>
       <categories>
-        <category>redteam trick</category>
+        <category>redteam</category>
       </categories>
       <tags>
         <tag>chrome</tag>
