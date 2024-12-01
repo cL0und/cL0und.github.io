@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Intel SGX（Software Guard Extensions）速记 - 李三的剑谱</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="李三的剑谱"><meta name="msapplication-TileImage" content="/img/logo.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="李三的剑谱"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="description" content="homework驱动学习"><meta property="og:type" content="blog"><meta property="og:title" content="Intel SGX（Software Guard Extensions）速记"><meta property="og:url" content="https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/"><meta property="og:site_name" content="李三的剑谱"><meta property="og:description" content="homework驱动学习"><meta property="og:locale" content="en_US"><meta property="og:image" content="https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image1.png"><meta property="og:image" content="https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image2.png"><meta property="og:image" content="https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image3.png"><meta property="og:image" content="https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image4.png"><meta property="og:image" content="https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image5.png"><meta property="og:image" content="https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image6.png"><meta property="og:image" content="https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image7.png"><meta property="og:image" content="https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image8.png"><meta property="og:image" content="https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image9.png"><meta property="og:image" content="https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image10.png"><meta property="og:image" content="https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image11.png"><meta property="og:image" content="https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image12.png"><meta property="og:image" content="https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image13.png"><meta property="og:image" content="https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image14.png"><meta property="article:published_time" content="2024-12-01T15:17:33.000Z"><meta property="article:modified_time" content="2024-12-01T15:30:12.888Z"><meta property="article:author" content="李三（cl0und）"><meta property="article:tag" content="paper reading"><meta property="article:tag" content="binary"><meta property="twitter:card" content="summary"><meta property="twitter:image:src" content="https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image1.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/"},"headline":"Intel SGX（Software Guard Extensions）速记","image":["https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image1.png","https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image2.png","https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image3.png","https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image4.png","https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image5.png","https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image6.png","https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image7.png","https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image8.png","https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image9.png","https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image10.png","https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image11.png","https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image12.png","https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image13.png","https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/image14.png"],"datePublished":"2024-12-01T15:17:33.000Z","dateModified":"2024-12-01T15:30:12.888Z","author":{"@type":"Person","name":"李三（cl0und）"},"publisher":{"@type":"Organization","name":"李三的剑谱","logo":{"@type":"ImageObject","url":"https://cl0und.github.io/img/logo.png"}},"description":"homework驱动学习"}</script><link rel="canonical" href="https://cl0und.github.io/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/"><link rel="icon" href="/img/logo.png"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.0.0/css/all.css"><link data-pjax rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/atom-one-light.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link data-pjax rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><style>.pace{-webkit-pointer-events:none;pointer-events:none;-webkit-user-select:none;-moz-user-select:none;user-select:none}.pace-inactive{display:none}.pace .pace-progress{background:#3273dc;position:fixed;z-index:2000;top:0;right:100%;width:100%;height:2px}</style><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><!--!--><!--!--><!-- hexo injector head_end start --><script>
+  (function () {
+      function switchTab() {
+          if (!location.hash) {
+            return;
+          }
+
+          const id = '#' + CSS.escape(location.hash.substring(1));
+          const $tabMenu = document.querySelector(`.tabs a[href="${id}"]`);
+          if (!$tabMenu) {
+            return;
+          }
+
+          const $tabMenuContainer = $tabMenu.parentElement.parentElement;
+          Array.from($tabMenuContainer.children).forEach($menu => $menu.classList.remove('is-active'));
+          Array.from($tabMenuContainer.querySelectorAll('a'))
+              .map($menu => document.getElementById($menu.getAttribute("href").substring(1)))
+              .forEach($content => $content.classList.add('is-hidden'));
+
+          if ($tabMenu) {
+              $tabMenu.parentElement.classList.add('is-active');
+          }
+          const $activeTab = document.querySelector(id);
+          if ($activeTab) {
+              $activeTab.classList.remove('is-hidden');
+          }
+      }
+      switchTab();
+      window.addEventListener('hashchange', switchTab, false);
+  })();
+  </script><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="李三的剑谱" type="application/atom+xml">
+</head><body class="is-3-column"><nav class="navbar navbar-main"><div class="container navbar-container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="李三的剑谱" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">Home</a><a class="navbar-item" href="/archives">Archives</a><a class="navbar-item" href="/categories">Categories</a><a class="navbar-item" href="/tags">Tags</a><a class="navbar-item" href="/about">About</a></div><div class="navbar-end"><a class="navbar-item is-hidden-tablet catalogue" title="Catalogue" href="javascript:;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="Search" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-6-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta is-size-7 is-uppercase level is-mobile"><div class="level-left"><span class="level-item">Posted&nbsp;<time dateTime="2024-12-01T15:17:33.000Z" title="2024/12/1 23:17:33">2024-12-01</time></span><span class="level-item">Updated&nbsp;<time dateTime="2024-12-01T15:30:12.888Z" title="2024/12/1 23:30:12">2024-12-01</time></span><span class="level-item"><a class="link-muted" href="/categories/binary/">binary</a></span><span class="level-item">17 minutes read (About 2502 words)</span></div></div><h1 class="title is-3 is-size-4-mobile">Intel SGX（Software Guard Extensions）速记</h1><div class="content"><h1 id="SGX的作用"><a href="#SGX的作用" class="headerlink" title="SGX的作用"></a>SGX的作用</h1><blockquote>
+<p>SGX使得应用程序在一段位于Enclave地址空间中能够开辟一段受保护的内存空间。这段受保护空间实行严格的访问控制和加密操作来提供对程序数据机密性和代码完整性的保护，使得即使是Hypervisor、BIOS，操作系统等特权应用都不能随意访问这段地址空间</p>
+</blockquote>
+<h1 id="SGX的启用"><a href="#SGX的启用" class="headerlink" title="SGX的启用"></a>SGX的启用</h1><blockquote>
+<p>SGX support can be checked by executing the CPUID instruction with the <em>Structured Extended Feature Leaf</em> flag set, and checking if the second bit of the EBX register is set. To be able to use SGX, it must have been enabled by BIOS, and only a few BIOSes actually support this technology. That is one of the reasons it is not widely used.</p>
+</blockquote>
+<h1 id="Enclave"><a href="#Enclave" class="headerlink" title="Enclave"></a>Enclave</h1><p>在Intel SGX（Software Guard Extensions）中，Enclave是一个受硬件保护的安全执行环境（Trusted Execution Environment, TEE）。Enclave是一个运行环境的概念，但它也可以被视为一个程序实体的逻辑单元，因为它承载了特定的代码和数据，并在运行时提供隔离和保护。</p>
+<p>程序在编译时会被被分为non-secure和secure part (运行在enclave中)。当调用enclave function时，程序会进入enclave环境，只有enclave中的代码可以访问enclave中数据。</p>
+<p><img src="image1.png"></p>
+<p><img src="image2.png"></p>
+<p>一个代码的例子</p>
+<p><img src="image3.png"></p>
+<h1 id="INTEL-SGX指令"><a href="#INTEL-SGX指令" class="headerlink" title="INTEL SGX指令"></a>INTEL SGX指令</h1><p>ring0支持左边8个指令，ring3支持右边五个指令。</p>
+<p><img src="image4.png"></p>
+<h1 id="内存中的关键概念"><a href="#内存中的关键概念" class="headerlink" title="内存中的关键概念"></a>内存中的关键概念</h1><p><img src="image5.png"></p>
+<h2 id="PRM-Preserved-Random-Memory"><a href="#PRM-Preserved-Random-Memory" class="headerlink" title="PRM (Preserved Random Memory)"></a>PRM (Preserved Random Memory)</h2><ul>
+<li>是DRAM中一段连续的保留内存区域</li>
+<li>位于最低的BIOS层</li>
+<li>不能被任何普通软件直接访问</li>
+</ul>
+<h2 id="EPC-Enclave-Page-Cache"><a href="#EPC-Enclave-Page-Cache" class="headerlink" title="EPC (Enclave Page Cache)"></a>EPC (Enclave Page Cache)</h2><ul>
+<li>是PRM中的一部分</li>
+<li>由操作系统负责分配</li>
+<li>是4KB大小的内存页面组成的集合</li>
+<li>用于存储Enclave的代码和数据</li>
+<li>内存会被<em>Memory Encryption Engine</em>加密。只有在物理CPU中才会被解密。加密的密钥在boot time时被生成并存储在CPU中。</li>
+</ul>
+<p><img src="image6.png"></p>
+<h2 id="EPCM-Enclave-Page-Cache-Map"><a href="#EPCM-Enclave-Page-Cache-Map" class="headerlink" title="EPCM  (Enclave Page Cache Map)"></a>EPCM  (Enclave Page Cache Map)</h2><ul>
+<li>EPCM不存储在EPC或PRM中，EPCM是一个硬件级的数据结构。存储在处理器的专用存储区域中（例如，处理器内部的寄存器或缓存中）</li>
+<li>EPCM在处理器内部，软件（ <strong>包括Enclave代码</strong> 、操作系统）都无法直接访问。</li>
+<li>EPCM是一个硬件维护的表，用于记录EPC中每个页面的元数据（metadata）。</li>
+<li>它跟踪EPC页面的分配状态、所属Enclave、页面类型（如代码页、数据页、TCS页等）以及访问权限。</li>
+</ul>
+<p>EPCM结构体</p>
+<p><img src="image7.png"></p>
+<ul>
+<li><p>VALID：</p>
+<ul>
+<li>标志页面是否已分配。</li>
+<li>如果为<code>0</code>，表示该页面未被分配。</li>
+</ul>
+</li>
+<li><p>PT（Page Type）：</p>
+<ul>
+<li><p>指定页面的类型，例如：</p>
+<ul>
+<li><code>PT_REG</code>：普通数据或代码页面。</li>
+<li><code>PT_SECS</code>：SECS页面。</li>
+<li><code>PT_TCS</code>：线程控制结构（TCS）页面。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>ENCLAVESECS：</p>
+<ul>
+<li>标识页面所属的Enclave。</li>
+<li>确保页面只能被其所属的Enclave访问，防止跨Enclave的非法访问。</li>
+</ul>
+</li>
+<li><p>ADDRESS：</p>
+<ul>
+<li>页面对应的虚拟地址，用于访问该页面。</li>
+</ul>
+</li>
+<li><p>R/W/X（权限位）：</p>
+<ul>
+<li><p>控制页面的访问权限：</p>
+<ul>
+<li><code>R</code>：允许Enclave代码读取页面。</li>
+<li><code>W</code>：允许Enclave代码写入页面。</li>
+<li><code>X</code>：允许在页面中执行代码。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>单个PRM中只有一个EPC区域：</p>
+<ul>
+<li>PRM中的一部分被划分为EPC，用于存储Enclave的页面（代码和数据）。</li>
+<li>EPC是一个连续的内存区域，其大小由硬件和BIOS配置决定（通常是128MB，但可能更小或更大，具体取决于处理器型号和系统配置）。</li>
+<li>换句话说，PRM中只有一个EPC区域，而不是多个EPC。</li>
+<li>多个Enclave的页面会被分配到同一个EPC区域中，但硬件确保它们之间的隔离和安全性。(EPCM确保)</li>
+<li>每个Enclave需要占用一定数量的EPC页面。如果EPC空间不足，系统可能会通过SGX的换页机制（paging）将部分EPC页面换出到普通内存中。</li>
+</ul>
+<h2 id="SECS-SGX-Enclave-Control-Structure"><a href="#SECS-SGX-Enclave-Control-Structure" class="headerlink" title="SECS (SGX Enclave Control Structure)"></a>SECS (SGX Enclave Control Structure)</h2><p><strong>一个Enclave对应一个SECS</strong></p>
+<ul>
+<li><p>SECS的作用：</p>
+<ul>
+<li><p>SECS是每个Enclave的核心元数据结构，存储了Enclave的关键信息，包括：</p>
+<ul>
+<li>密码学测度（Measurement）：用于认证Enclave的完整性。</li>
+<li>Enclave的身份信息：如Enclave的创建参数、大小、属性等。</li>
+</ul>
+</li>
+<li><p>SECS是EPC中的一个页面，但它受到严格的硬件保护， <strong>只有SGX硬件和微码可以访问和修改</strong> 。</p>
+</li>
+</ul>
+</li>
+<li><p>安全性要求：</p>
+<ul>
+<li>如果Enclave中的代码能够直接修改SECS中的数据（如密码学测度或身份信息），将破坏SGX的安全模型。</li>
+<li>为此，SGX硬件通过EPCM中的权限控制字段，确保SECS页面只能由SGX硬件访问，而不能被Enclave代码或外部软件直接修改。</li>
+</ul>
+</li>
+</ul>
+<h2 id="TCS-Thread-Control-Structure"><a href="#TCS-Thread-Control-Structure" class="headerlink" title="TCS (Thread Control Structure)"></a>TCS (Thread Control Structure)</h2><p>和SECS一样，不能被其他软件包括enclave中的代码本省修改。一个enclave至少有一个，因为它为多线程而生，所以也可以有多个。</p>
+<blockquote>
+<p>The SGX design fully supports multi-core processors. It is possible for multiple logical processors to concurrently execute the same enclave’s code at the same time, via different threads.</p>
+<p>The SGX implementation uses a Thread Control Structure (TCS) for each logical processor that executes an enclave’s code.</p>
+</blockquote>
+<h2 id="SSA-Save-State-Area"><a href="#SSA-Save-State-Area" class="headerlink" title="SSA(Save State Area)"></a>SSA(Save State Area)</h2><p>一个TCS至少有有一个SSA用于在线程因为中断或者异常退出时保存状态，在恢复时从这里面读取状态。</p>
+<h2 id="Stack-and-Heap"><a href="#Stack-and-Heap" class="headerlink" title="Stack and Heap"></a>Stack and Heap</h2><p>有自己的堆栈</p>
+<p><img src="image8.png"></p>
+<h1 id="Intel-SGX信任根与信任链建立过程"><a href="#Intel-SGX信任根与信任链建立过程" class="headerlink" title="Intel SGX信任根与信任链建立过程"></a>Intel SGX信任根与信任链建立过程</h1><h2 id="一、硬件信任根初始化"><a href="#一、硬件信任根初始化" class="headerlink" title="一、硬件信任根初始化"></a>一、硬件信任根初始化</h2><h3 id="1-Intel-SGX硬件密钥体系"><a href="#1-Intel-SGX硬件密钥体系" class="headerlink" title="1. Intel SGX硬件密钥体系"></a>1. Intel SGX硬件密钥体系</h3><ul>
+<li><p>基础密钥(Root Provisioning Key和Root Seal Key)在制造时烧录到熔丝(Fuse)中</p>
+</li>
+<li><p>采用密钥派生机制(Key Derivation)生成其他功能密钥:</p>
+<ul>
+<li>Provisioning Key: 用于远程认证</li>
+<li>Seal Key: 用于数据加密存储</li>
+<li>Report Key: 用于本地报告签名</li>
+<li>Launch Key: 用于Enclave启动控制</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-SGX硬件可信模块"><a href="#2-SGX硬件可信模块" class="headerlink" title="2. SGX硬件可信模块"></a>2. SGX硬件可信模块</h3><ul>
+<li>测量引擎(Measurement Engine)</li>
+<li>密钥派生引擎(Key Derivation Engine)</li>
+<li>加密引擎(Encryption Engine)</li>
+<li>签名验证引擎(Signature Verification Engine)</li>
+<li>安全内存管理单元(Memory Management Unit)</li>
+</ul>
+<h2 id="二、Enclave创建与测量"><a href="#二、Enclave创建与测量" class="headerlink" title="二、Enclave创建与测量"></a>二、Enclave创建与测量</h2><h3 id="1-Enclave代码准备"><a href="#1-Enclave代码准备" class="headerlink" title="1. Enclave代码准备"></a>1. Enclave代码准备</h3><ul>
+<li>开发者提供Enclave代码、数据和属性定义</li>
+<li>属性包括:XFRM、MODE(DEBUG/PRODUCTION)等</li>
+</ul>
+<h3 id="2-硬件测量过程"><a href="#2-硬件测量过程" class="headerlink" title="2. 硬件测量过程"></a>2. 硬件测量过程</h3><ul>
+<li>逐页测量:</li>
+</ul>
+<p>For each page:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">MRENCLAVE <span class="operator">=</span> SHA256_UPDATE(MRENCLAVE <span class="operator">||</span>  PAGE_INFO <span class="operator">||</span> PAGE_CONTENT)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>页信息(PAGE_INFO)包含:</p>
+<ul>
+<li>页类型(REG/TCS/SECS)</li>
+<li>页属性(R/W/X权限)</li>
+<li>加载偏移地址</li>
+</ul>
+</li>
+<li><p>最终生成256位的MRENCLAVE值</p>
+</li>
+</ul>
+<h2 id="三、签名验证-SIGSTRUCT"><a href="#三、签名验证-SIGSTRUCT" class="headerlink" title="三、签名验证(SIGSTRUCT)"></a>三、签名验证(SIGSTRUCT)</h2><h3 id="1-开发者签名"><a href="#1-开发者签名" class="headerlink" title="1. 开发者签名"></a>1. 开发者签名</h3><ul>
+<li>使用2048位RSA密钥对生成SIGSTRUCT</li>
+<li>SIGSTRUCT包含:</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  MRENCLAVE,</span><br><span class="line">  Attributes,</span><br><span class="line">  ISVSVN,</span><br><span class="line">  ISVPRODID,</span><br><span class="line">  DATE,</span><br><span class="line">  SIGNATURE </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-MRSIGNER生成"><a href="#2-MRSIGNER生成" class="headerlink" title="2. MRSIGNER生成"></a>2. MRSIGNER生成</h3><ul>
+<li>MRSIGNER = SHA256(RSA Public Key Modulus)</li>
+<li>用于识别Enclave开发者身份</li>
+</ul>
+<h3 id="3-硬件验证"><a href="#3-硬件验证" class="headerlink" title="3. 硬件验证"></a>3. 硬件验证</h3><ul>
+<li>验证RSA签名有效性</li>
+<li>验证MRENCLAVE匹配</li>
+<li>验证属性合法性</li>
+</ul>
+<h2 id="四、启动授权-EINITTOKEN"><a href="#四、启动授权-EINITTOKEN" class="headerlink" title="四、启动授权(EINITTOKEN)"></a>四、启动授权(EINITTOKEN)</h2><h3 id="1-Launch-Enclave职责"><a href="#1-Launch-Enclave职责" class="headerlink" title="1. Launch Enclave职责"></a>1. Launch Enclave职责</h3><ul>
+<li>实现Intel定义的启动控制策略</li>
+<li>管理Enclave白名单</li>
+<li>生成并签署EINITTOKEN</li>
+</ul>
+<h3 id="2-EINITTOKEN结构"><a href="#2-EINITTOKEN结构" class="headerlink" title="2. EINITTOKEN结构"></a>2. EINITTOKEN结构</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  MRENCLAVE,</span><br><span class="line">  MRSIGNER,</span><br><span class="line">  Attributes,</span><br><span class="line">  ISVSVN,</span><br><span class="line">  CPUSVN,</span><br><span class="line">  KEYID,</span><br><span class="line">  MAC  // 使用Launch Key计算的MAC</span><br><span class="line">&#125;=</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-授权流程"><a href="#3-授权流程" class="headerlink" title="3. 授权流程"></a>3. 授权流程</h3><ol>
+<li>验证请求者身份(MRSIGNER)</li>
+<li>检查启动策略合规性</li>
+<li>使用Launch Key生成MAC</li>
+<li>打包EINITTOKEN</li>
+</ol>
+<h2 id="五、Enclave初始化-EINIT"><a href="#五、Enclave初始化-EINIT" class="headerlink" title="五、Enclave初始化(EINIT)"></a>五、Enclave初始化(EINIT)</h2><h3 id="1-硬件验证"><a href="#1-硬件验证" class="headerlink" title="1. 硬件验证"></a>1. 硬件验证</h3><ul>
+<li>验证EINITTOKEN的MAC</li>
+<li>验证MRENCLAVE/MRSIGNER匹配</li>
+<li>检查属性与策略符合性</li>
+</ul>
+<h3 id="2-初始化过程"><a href="#2-初始化过程" class="headerlink" title="2. 初始化过程"></a>2. 初始化过程</h3><ul>
+<li>建立Enclave上下文</li>
+<li>初始化TCS(Thread Control Structure)</li>
+<li>设置内存访问权限</li>
+<li>生成Enclave加密密钥</li>
+</ul>
+<h3 id="3-信任链确立"><a href="#3-信任链确立" class="headerlink" title="3. 信任链确立"></a>3. 信任链确立</h3><ul>
+<li>硬件信任根 → 测量值 → 开发者签名 → 启动授权 → 运行时隔离</li>
+</ul>
+<p>这样的修改更准确地描述了SGX的信任根和信任链建立过程,包含了关键的技术细节。您觉得还有需要补充或修改的地方吗?</p>
+<h1 id="防止不可信的OS地址映射攻击"><a href="#防止不可信的OS地址映射攻击" class="headerlink" title="防止不可信的OS地址映射攻击"></a>防止不可信的OS地址映射攻击</h1><p>OS会被视作不可信环境，需要防止恶意的OS修改VA到PA的映射。</p>
+<ol>
+<li><p>The CPU performs the usual virtual-to-physical address translation using the page tables (controlled by the untrusted OS).</p>
+</li>
+<li><p>Once the physical address is determined, the CPU checks whether the physical address belongs to an EPC page by consulting the EPCM.</p>
+</li>
+<li><p>If the physical address is an EPC page, the CPU compares the virtual address being accessed with the expected virtual address stored in the EPCM entry for that EPC page.</p>
+<ol>
+<li>If the virtual address matches, the access is allowed.</li>
+<li>If the virtual address does not match, the CPU raises an exception, and the access is denied.</li>
+</ol>
+</li>
+</ol>
+<h1 id="Enclave的调度"><a href="#Enclave的调度" class="headerlink" title="Enclave的调度"></a>Enclave的调度</h1><p><img src="image9.png"></p>
+<p>留给操作系统调度的指令</p>
+<p><strong>EPA</strong> - This instruction allocates a 4KB memory page that will contain the pages version number array (VA) to protect against replay. Each element is 64 bits long.</p>
+<p><strong>EBLOCK</strong> - This instruction blocks all accesses to the page being prepared for eviction. All future accesses to this page will result in a page fault (“page blocked”).</p>
+<p><strong>ETRACK</strong> - This instruction evicts a page from the EPC. The page must have been prepared properly: it must be blocked and must not be referenced by the TLB. Before writing it into the external memory, the page is encrypted, and a version number and meta-data are generated, and a final MAC is performed.</p>
+<p><strong>ELDB/ELDU</strong> - This instruction loads into memory a previously evicted page, in a blocked state or not. It checks the MAC of the meta-data, version number (from the corresponding VA entry), and the page encrypted content. If the verification succeeds, the page content is decrypted and placed inside the chosen EPC page, and the corresponding VA entry deleted.</p>
+<h1 id="Enclave的创建"><a href="#Enclave的创建" class="headerlink" title="Enclave的创建"></a>Enclave的创建</h1><p><img src="image10.png"></p>
+<h1 id="Enclave的进入和退出"><a href="#Enclave的进入和退出" class="headerlink" title="Enclave的进入和退出"></a>Enclave的进入和退出</h1><p><img src="image11.png"></p>
+<h1 id="Enclave中断和恢复"><a href="#Enclave中断和恢复" class="headerlink" title="Enclave中断和恢复"></a>Enclave中断和恢复</h1><p><img src="image12.png"></p>
+<h1 id="Intel-SGX的原生支持缺陷"><a href="#Intel-SGX的原生支持缺陷" class="headerlink" title="Intel SGX的原生支持缺陷"></a>Intel SGX的原生支持缺陷</h1><p>SGX 的原生接口（如 ECALL 和 OCALL）非常底层，无法直接支持复杂的 OS 抽象。例如，线程管理、同步原语和动态线程创建在 SGX 中没有直接支持。</p>
+<p><img src="image13.png"></p>
+<p>也不支持enclave之间通信。</p>
+<p><img src="image14.png"></p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a target="_blank" rel="noopener" href="https://lingering.github.io/2020/06/18/SGX-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86/">https://lingering.github.io/2020/06/18/SGX-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86/</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.quarkslab.com/overview-of-intel-sgx-part-1-sgx-internals.html">https://blog.quarkslab.com/overview-of-intel-sgx-part-1-sgx-internals.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.quarkslab.com/overview-of-intel-sgx-part-2-sgx-externals.html">https://blog.quarkslab.com/overview-of-intel-sgx-part-2-sgx-externals.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.ndss-symposium.org/wp-content/uploads/2017/09/ndss2017_07-5_Shinde_paper.pdf">https://www.ndss-symposium.org/wp-content/uploads/2017/09/ndss2017_07-5_Shinde_paper.pdf</a></p>
+<p><a target="_blank" rel="noopener" href="https://sgx101.gitbook.io/sgx101/sgx-bootstrap/enclave">https://sgx101.gitbook.io/sgx101/sgx-bootstrap/enclave</a></p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>Intel SGX（Software Guard Extensions）速记</p><p><a href="https://cl0und.github.io/2024/12/01/Intel-SGX（Software-Guard-Extensions）速记/">https://cl0und.github.io/2024/12/01/Intel-SGX（Software-Guard-Extensions）速记/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>Author</h6><p>李三（cl0und）</p></div></div><div class="level-item is-narrow"><div><h6>Posted on</h6><p>2024-12-01</p></div></div><div class="level-item is-narrow"><div><h6>Updated on</h6><p>2024-12-01</p></div></div><div class="level-item is-narrow"><div><h6>Licensed under</h6><p><a class="icons" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="icon fab fa-creative-commons"></i></a><a class="icons" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="icon fab fa-creative-commons-by"></i></a><a class="icons" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="icon fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="article-tags is-size-7 mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/paper-reading/">paper reading</a><a class="link-muted mr-2" rel="tag" href="/tags/binary/">binary</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2024/10/09/APT%E6%BA%AF%E6%BA%90%E5%9B%BE%E6%9E%84%E5%BB%BA-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E7%AC%AC%E4%BA%8C%E7%AF%87-BEEP-High-Accuracy-Attack-Provenance-via-Binary-based-Execution-Partition/"><span class="level-item">APT溯源图构建-论文阅读第二篇-BEEP-High Accuracy Attack Provenance via Binary-based Execution Partition</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1"><div class="card widget" data-type="profile"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/logo.png" alt="李三的剑谱"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">李三的剑谱</p><p class="is-size-6 is-block">攻/java安全研究/自动化代码审计</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>Singapore</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">Posts</p><a href="/archives"><p class="title">52</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">Categories</p><a href="/categories"><p class="title">5</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">Tags</p><a href="/tags"><p class="title">21</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/cL0und" target="_blank" rel="me noopener">Follow</a></div><div class="level is-mobile is-multiline"><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="Github" href="https://github.com/cL0und"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="RSS" href="/"><i class="fas fa-rss"></i></a></div></div></div><div class="card widget" data-type="categories"><div class="card-content"><div class="menu"><h3 class="menu-label">Categories</h3><ul class="menu-list"><li><a class="level is-mobile" href="/categories/ad-security/"><span class="level-start"><span class="level-item">ad security</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/categories/binary/"><span class="level-start"><span class="level-item">binary</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/categories/redteam/"><span class="level-start"><span class="level-item">redteam</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile" href="/categories/web-security/"><span class="level-start"><span class="level-item">web security</span></span><span class="level-end"><span class="level-item tag">33</span></span></a></li><li><a class="level is-mobile" href="/categories/windows-security/"><span class="level-start"><span class="level-item">windows security</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><div class="card widget" data-type="recent-posts"><div class="card-content"><h3 class="menu-label">Recents</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-12-01T15:17:33.000Z">2024-12-01</time></p><p class="title"><a href="/2024/12/01/Intel-SGX%EF%BC%88Software-Guard-Extensions%EF%BC%89%E9%80%9F%E8%AE%B0/">Intel SGX（Software Guard Extensions）速记</a></p><p class="categories"><a href="/categories/binary/">binary</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-10-09T14:05:20.000Z">2024-10-09</time></p><p class="title"><a href="/2024/10/09/APT%E6%BA%AF%E6%BA%90%E5%9B%BE%E6%9E%84%E5%BB%BA-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E7%AC%AC%E4%BA%8C%E7%AF%87-BEEP-High-Accuracy-Attack-Provenance-via-Binary-based-Execution-Partition/">APT溯源图构建-论文阅读第二篇-BEEP-High Accuracy Attack Provenance via Binary-based Execution Partition</a></p><p class="categories"><a href="/categories/redteam/">redteam</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-10-05T15:03:48.000Z">2024-10-05</time></p><p class="title"><a href="/2024/10/05/APT%E6%BA%AF%E6%BA%90%E5%9B%BE%E6%9E%84%E5%BB%BA-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E7%AC%AC%E4%B8%80%E7%AF%87-HOLMES-Real-time-APT-Detection-through-Correlation-of-Suspicious-Information-Flows/">APT溯源图构建-论文阅读第一篇-HOLMES: Real-time APT Detection through Correlation of Suspicious Information Flows</a></p><p class="categories"><a href="/categories/redteam/">redteam</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-09-29T08:03:08.000Z">2024-09-29</time></p><p class="title"><a href="/2024/09/29/Why-did-I-buy-INTC-stock-in-Sep-2024/">Why did I buy INTC stock in Sep 2024</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-09-14T15:22:35.000Z">2024-09-14</time></p><p class="title"><a href="/2024/09/14/Financial-Economics-Lecture1-Foundations-Approaches-and-Key-Concepts-in-Asset-Pricing/">Financial Economics Lecture1 Foundations, Approaches, and Key Concepts in Asset Pricing</a></p></div></article></div></div><div class="card widget" data-type="archives"><div class="card-content"><div class="menu"><h3 class="menu-label">Archives</h3><ul class="menu-list"><li><a class="level is-mobile" href="/archives/2024/12/"><span class="level-start"><span class="level-item">December 2024</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2024/10/"><span class="level-start"><span class="level-item">October 2024</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/archives/2024/09/"><span class="level-start"><span class="level-item">September 2024</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/archives/2024/08/"><span class="level-start"><span class="level-item">August 2024</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile" href="/archives/2022/04/"><span class="level-start"><span class="level-item">April 2022</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2021/08/"><span class="level-start"><span class="level-item">August 2021</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/archives/2020/07/"><span class="level-start"><span class="level-item">July 2020</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2020/05/"><span class="level-start"><span class="level-item">May 2020</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2020/04/"><span class="level-start"><span class="level-item">April 2020</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/archives/2020/03/"><span class="level-start"><span class="level-item">March 2020</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/archives/2020/02/"><span class="level-start"><span class="level-item">February 2020</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/archives/2020/01/"><span class="level-start"><span class="level-item">January 2020</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile" href="/archives/2019/12/"><span class="level-start"><span class="level-item">December 2019</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile" href="/archives/2019/11/"><span class="level-start"><span class="level-item">November 2019</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile" href="/archives/2019/10/"><span class="level-start"><span class="level-item">October 2019</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile" href="/archives/2019/09/"><span class="level-start"><span class="level-item">September 2019</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2018/06/"><span class="level-start"><span class="level-item">June 2018</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2018/04/"><span class="level-start"><span class="level-item">April 2018</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/archives/2018/01/"><span class="level-start"><span class="level-item">January 2018</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/archives/2017/10/"><span class="level-start"><span class="level-item">October 2017</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2017/09/"><span class="level-start"><span class="level-item">September 2017</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/archives/2017/08/"><span class="level-start"><span class="level-item">August 2017</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li></ul></div></div></div><div class="card widget" data-type="tags"><div class="card-content"><div class="menu"><h3 class="menu-label">Tags</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/binary/"><span class="tag">binary</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/chrome/"><span class="tag">chrome</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/cobaltstrike/"><span class="tag">cobaltstrike</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/ctf/"><span class="tag">ctf</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/ebpf/"><span class="tag">ebpf</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/economics/"><span class="tag">economics</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/java/"><span class="tag">java</span><span class="tag">21</span></a></div><div class="control"><a class="tags has-addons" href="/tags/js/"><span class="tag">js</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/kerberos/"><span class="tag">kerberos</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/paper-reading/"><span class="tag">paper reading</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/php/"><span class="tag">php</span><span class="tag">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pwn/"><span class="tag">pwn</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/python/"><span class="tag">python</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/redteam/"><span class="tag">redteam</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/sql/"><span class="tag">sql</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/ssrf/"><span class="tag">ssrf</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/stock/"><span class="tag">stock</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/web-cache/"><span class="tag">web cache</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/windows/"><span class="tag">windows</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/xss/"><span class="tag">xss</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%9D%82/"><span class="tag">杂</span><span class="tag">2</span></a></div></div></div></div></div><div class="column-right-shadow is-hidden-widescreen"></div></div><div class="column column-right is-4-tablet is-4-desktop is-3-widescreen is-hidden-touch is-hidden-desktop-only order-3"><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">Catalogue</h3><ul class="menu-list"><li><a class="level is-mobile" href="#SGX的作用"><span class="level-left"><span class="level-item">1</span><span class="level-item">SGX的作用</span></span></a></li><li><a class="level is-mobile" href="#SGX的启用"><span class="level-left"><span class="level-item">2</span><span class="level-item">SGX的启用</span></span></a></li><li><a class="level is-mobile" href="#Enclave"><span class="level-left"><span class="level-item">3</span><span class="level-item">Enclave</span></span></a></li><li><a class="level is-mobile" href="#INTEL-SGX指令"><span class="level-left"><span class="level-item">4</span><span class="level-item">INTEL SGX指令</span></span></a></li><li><a class="level is-mobile" href="#内存中的关键概念"><span class="level-left"><span class="level-item">5</span><span class="level-item">内存中的关键概念</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#PRM-Preserved-Random-Memory"><span class="level-left"><span class="level-item">5.1</span><span class="level-item">PRM (Preserved Random Memory)</span></span></a></li><li><a class="level is-mobile" href="#EPC-Enclave-Page-Cache"><span class="level-left"><span class="level-item">5.2</span><span class="level-item">EPC (Enclave Page Cache)</span></span></a></li><li><a class="level is-mobile" href="#EPCM-Enclave-Page-Cache-Map"><span class="level-left"><span class="level-item">5.3</span><span class="level-item">EPCM  (Enclave Page Cache Map)</span></span></a></li><li><a class="level is-mobile" href="#SECS-SGX-Enclave-Control-Structure"><span class="level-left"><span class="level-item">5.4</span><span class="level-item">SECS (SGX Enclave Control Structure)</span></span></a></li><li><a class="level is-mobile" href="#TCS-Thread-Control-Structure"><span class="level-left"><span class="level-item">5.5</span><span class="level-item">TCS (Thread Control Structure)</span></span></a></li><li><a class="level is-mobile" href="#SSA-Save-State-Area"><span class="level-left"><span class="level-item">5.6</span><span class="level-item">SSA(Save State Area)</span></span></a></li><li><a class="level is-mobile" href="#Stack-and-Heap"><span class="level-left"><span class="level-item">5.7</span><span class="level-item">Stack and Heap</span></span></a></li></ul></li><li><a class="level is-mobile" href="#Intel-SGX信任根与信任链建立过程"><span class="level-left"><span class="level-item">6</span><span class="level-item">Intel SGX信任根与信任链建立过程</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#一、硬件信任根初始化"><span class="level-left"><span class="level-item">6.1</span><span class="level-item">一、硬件信任根初始化</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#1-Intel-SGX硬件密钥体系"><span class="level-left"><span class="level-item">6.1.1</span><span class="level-item">1. Intel SGX硬件密钥体系</span></span></a></li><li><a class="level is-mobile" href="#2-SGX硬件可信模块"><span class="level-left"><span class="level-item">6.1.2</span><span class="level-item">2. SGX硬件可信模块</span></span></a></li></ul></li><li><a class="level is-mobile" href="#二、Enclave创建与测量"><span class="level-left"><span class="level-item">6.2</span><span class="level-item">二、Enclave创建与测量</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#1-Enclave代码准备"><span class="level-left"><span class="level-item">6.2.1</span><span class="level-item">1. Enclave代码准备</span></span></a></li><li><a class="level is-mobile" href="#2-硬件测量过程"><span class="level-left"><span class="level-item">6.2.2</span><span class="level-item">2. 硬件测量过程</span></span></a></li></ul></li><li><a class="level is-mobile" href="#三、签名验证-SIGSTRUCT"><span class="level-left"><span class="level-item">6.3</span><span class="level-item">三、签名验证(SIGSTRUCT)</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#1-开发者签名"><span class="level-left"><span class="level-item">6.3.1</span><span class="level-item">1. 开发者签名</span></span></a></li><li><a class="level is-mobile" href="#2-MRSIGNER生成"><span class="level-left"><span class="level-item">6.3.2</span><span class="level-item">2. MRSIGNER生成</span></span></a></li><li><a class="level is-mobile" href="#3-硬件验证"><span class="level-left"><span class="level-item">6.3.3</span><span class="level-item">3. 硬件验证</span></span></a></li></ul></li><li><a class="level is-mobile" href="#四、启动授权-EINITTOKEN"><span class="level-left"><span class="level-item">6.4</span><span class="level-item">四、启动授权(EINITTOKEN)</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#1-Launch-Enclave职责"><span class="level-left"><span class="level-item">6.4.1</span><span class="level-item">1. Launch Enclave职责</span></span></a></li><li><a class="level is-mobile" href="#2-EINITTOKEN结构"><span class="level-left"><span class="level-item">6.4.2</span><span class="level-item">2. EINITTOKEN结构</span></span></a></li><li><a class="level is-mobile" href="#3-授权流程"><span class="level-left"><span class="level-item">6.4.3</span><span class="level-item">3. 授权流程</span></span></a></li></ul></li><li><a class="level is-mobile" href="#五、Enclave初始化-EINIT"><span class="level-left"><span class="level-item">6.5</span><span class="level-item">五、Enclave初始化(EINIT)</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#1-硬件验证"><span class="level-left"><span class="level-item">6.5.1</span><span class="level-item">1. 硬件验证</span></span></a></li><li><a class="level is-mobile" href="#2-初始化过程"><span class="level-left"><span class="level-item">6.5.2</span><span class="level-item">2. 初始化过程</span></span></a></li><li><a class="level is-mobile" href="#3-信任链确立"><span class="level-left"><span class="level-item">6.5.3</span><span class="level-item">3. 信任链确立</span></span></a></li></ul></li></ul></li><li><a class="level is-mobile" href="#防止不可信的OS地址映射攻击"><span class="level-left"><span class="level-item">7</span><span class="level-item">防止不可信的OS地址映射攻击</span></span></a></li><li><a class="level is-mobile" href="#Enclave的调度"><span class="level-left"><span class="level-item">8</span><span class="level-item">Enclave的调度</span></span></a></li><li><a class="level is-mobile" href="#Enclave的创建"><span class="level-left"><span class="level-item">9</span><span class="level-item">Enclave的创建</span></span></a></li><li><a class="level is-mobile" href="#Enclave的进入和退出"><span class="level-left"><span class="level-item">10</span><span class="level-item">Enclave的进入和退出</span></span></a></li><li><a class="level is-mobile" href="#Enclave中断和恢复"><span class="level-left"><span class="level-item">11</span><span class="level-item">Enclave中断和恢复</span></span></a></li><li><a class="level is-mobile" href="#Intel-SGX的原生支持缺陷"><span class="level-left"><span class="level-item">12</span><span class="level-item">Intel SGX的原生支持缺陷</span></span></a></li><li><a class="level is-mobile" href="#参考"><span class="level-left"><span class="level-item">13</span><span class="level-item">参考</span></span></a></li></ul></div></div><style>#toc .menu-list > li > a.is-active + .menu-list { display: block; }#toc .menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="李三的剑谱" height="28"></a><p class="is-size-7"><span>&copy; 2024 李三（cl0und）</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p><p class="is-size-7">© 2019</p></div><div class="level-end"></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script>moment.locale("en");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script data-pjax src="/js/column.js"></script><script src="/js/animation.js"></script><a id="back-to-top" title="Back to top" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script data-pjax src="/js/back_to_top.js" defer></script><!--!--><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.js" defer></script><script>window.addEventListener("load", () => {
+      window.cookieconsent.initialise({
+        type: "info",
+        theme: "edgeless",
+        static: false,
+        position: "bottom-left",
+        content: {
+          message: "This website uses cookies to improve your experience.",
+          dismiss: "Got it!",
+          allow: "Allow cookies",
+          deny: "Decline",
+          link: "Learn more",
+          policy: "Cookie Policy",
+          href: "https://www.cookiesandyou.com/",
+        },
+        palette: {
+          popup: {
+            background: "#edeff5",
+            text: "#838391"
+          },
+          button: {
+            background: "#4b81e8"
+          },
+        },
+      });
+    });</script><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js"></script><script src="/js/pjax.js"></script><!--!--><!--!--><!--!--><script data-pjax src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="Type something..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"Type something...","untitled":"(Untitled)","posts":"Posts","pages":"Pages","categories":"Categories","tags":"Tags"});
+        });</script></body></html>
