@@ -2897,7 +2897,7 @@ smb-bind-pipe是建立的smb监听器的名字，创建smb监听器的时候会�
       </tags>
   </entry>
   <entry>
-    <title>Python协程的原理与I/O多路复用</title>
+    <title>与AI纸上谈兵-Python协程的原理与I/O多路复用</title>
     <url>/2024/08/21/%E4%B8%8EAI%E7%BA%B8%E4%B8%8A%E8%B0%88%E5%85%B5-Python%E5%8D%8F%E7%A8%8B%E7%9A%84%E5%8E%9F%E7%90%86%E4%B8%8EI-O%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/</url>
     <content><![CDATA[<p>推荐一个prompt的网站 <a href="https://snackprompt.com/">https://snackprompt.com/</a> ，下面会用这里面的prompt以获取更结构化的答案。</p>
 <!-- more -->
