@@ -3881,4 +3881,41 @@ smb-bind-pipe是建立的smb监听器的名字，创建smb监听器的时候会�
         <tag>java</tag>
       </tags>
   </entry>
+  <entry>
+    <title>ML的数学基石-雅可比矩阵（Jacobian Matrix)</title>
+    <url>/2025/03/04/ML%E7%9A%84%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%9F%B3-%E9%9B%85%E5%8F%AF%E6%AF%94%E7%9F%A9%E9%98%B5%EF%BC%88Jacobian-Matrix%EF%BC%89/</url>
+    <content><![CDATA[<h1 id="定义与基本解释"><a href="#定义与基本解释" class="headerlink" title="定义与基本解释"></a>定义与基本解释</h1><p>雅可比矩阵是描述多元函数在某一点处的局部线性近似（即全导数）的矩阵形式。它是多变量微积分中非常重要的概念，用于研究函数的变化率、方向导数以及映射的局部特性。  </p>
+<p>一般定义：<br>设 $ f: \mathbb{R}^n \to \mathbb{R}^m $ 是从 $ \mathbb{R}^n $ 映射到 $ \mathbb{R}^m $ 的一个函数：  </p>
+<p>$ f(x_1, x_2, \dots, x_n) = \begin{bmatrix}<br>f_1(x_1, x_2, \dots, x_n) \\<br>f_2(x_1, x_2, \dots, x_n)\\\<br>\vdots \\<br>f_m(x_1, x_2, \dots, x_n)  \\<br>\end{bmatrix}, $</p>
+<p>其中 $ f_1, f_2, \dots, f_m $ 是 $ f $ 的分量函数。  </p>
+<p>在点 $ X = (x_1, x_2, \dots, x_n) $ 处，函数 $ f $ 的雅可比矩阵  $ J_f(X) $ 是一个 $ m \times n $的矩阵，定义为：  </p>
+<p>$ J_f(X) =<br>\begin{bmatrix}<br>\frac{\partial f_1}{\partial x_1} &amp; \frac{\partial f_1}{\partial x_2} &amp; \cdots &amp; \frac{\partial f_1}{\partial x_n} \\<br>\frac{\partial f_2}{\partial x_1} &amp; \frac{\partial f_2}{\partial x_2} &amp; \cdots &amp; \frac{\partial f_2}{\partial x_n} \\<br>\vdots &amp; \vdots &amp; \ddots &amp; \vdots \\<br>\frac{\partial f_m}{\partial x_1} &amp; \frac{\partial f_m}{\partial x_2} &amp; \cdots &amp; \frac{\partial f_m}{\partial x_n}  \\<br>\end{bmatrix}. $</p>
+<p>相当于 $ J_f(X) $ 的第 $ (i,j) $ 项是函数 $ f_i $ 对变量 $ x_j $ 的偏导数：  </p>
+<p>$ [J_f(X)]_{i,j} = \frac{\partial f_i}{\partial x_j}. $</p>
+<hr>
+<h1 id="特殊情况"><a href="#特殊情况" class="headerlink" title="特殊情况"></a>特殊情况</h1><ul>
+<li>如果 $ f $ 是标量函数（即 $ m = 1 $ ），那么雅可比矩阵是一个  $ 1 \times n $ 的行向量，称为函数 $ f $的 梯度向量 。  </li>
+<li>如果 $ f $ 是从 $ \mathbb{R}^n \to \mathbb{R}^n $ 的向量函数（即 $ n = m $ ），则雅可比矩阵是一个方阵，常被用于研究  $ f $在点处的可逆性等性质。</li>
+</ul>
+<hr>
+<h1 id="几何意义"><a href="#几何意义" class="headerlink" title="几何意义"></a>几何意义</h1><ol>
+<li><strong>局部变化率与线性近似</strong>：雅可比矩阵定义了 $ f $ 在某一点的<strong>线性近似</strong> 。从泰勒展开的角度来看，如果 $ \Delta $ 是自变量的小增量，那么：   $ f(X + \Delta X) \approx f(X) + J_f(X) \cdot \Delta X. $  其中 $ J_f(X) \cdot \Delta   $ 表示由雅可比矩阵定义的线性部分。 </li>
+<li><strong>方向导数</strong>：如果方向单位向量为 $ v \in \mathbb{R} $，那么 $ J_f(X) $ 是函数$ f $沿着方向 $ v $的变化率。 </li>
+<li><strong>几何映射的局部行为</strong>：雅可比矩阵描述了映射 $ 在一点处的<strong>局部伸缩、旋转或反射</strong> 的性质： <ol>
+<li>如果 $ n = $ 且雅可比行列式（即 $ \det(J_f(X) $）不为 0，则 $ f $ 在这一点处是局部的双射。 </li>
+<li>如果雅可比行列式为 0，则 $ f $ 在这一点可能是奇异的（不可逆）。</li>
+</ol>
+</li>
+</ol>
+<hr>
+<h1 id="计算实例"><a href="#计算实例" class="headerlink" title="计算实例"></a>计算实例</h1><h2 id="示例-1：标量情况"><a href="#示例-1：标量情况" class="headerlink" title="示例 1：标量情况"></a>示例 1：标量情况</h2><p>函数 $ f(x,y) = x^2 + y^2 $，其雅可比矩阵是：  </p>
+<p>$ J_f(x,y) = \begin{bmatrix}<br>\frac{\partial f}{\partial x} &amp; \frac{\partial f}{\partial y}<br>\end{bmatrix}<br>= \begin{bmatrix}<br>2x &amp; 2y<br>\end{bmatrix}. $</p>
+<h2 id="示例-2：向量情况"><a href="#示例-2：向量情况" class="headerlink" title="示例 2：向量情况"></a>示例 2：向量情况</h2><p>定义 $ f(x,y,z) = \begin{bmatrix} x^2y \\ yz \\ e^x+z \end{bmatrix} $，则雅可比矩阵为：  </p>
+<p>$ J_f(x,y,z) =<br>\begin{bmatrix}<br>\frac{\partial f_1}{\partial x} &amp; \frac{\partial f_1}{\partial y} &amp; \frac{\partial f_1}{\partial z} \\<br>\frac{\partial f_2}{\partial x} &amp; \frac{\partial f_2}{\partial y} &amp; \frac{\partial f_2}{\partial z} \\<br>\frac{\partial f_3}{\partial x} &amp; \frac{\partial f_3}{\partial y} &amp; \frac{\partial f_3}{\partial z}<br>\end{bmatrix}<br>=<br>\begin{bmatrix}<br>2xy &amp; x^2 &amp; 0 \\<br>0 &amp; z &amp; y \\<br>e^x &amp; 0 &amp; 1  \\<br>\end{bmatrix}. $</p>
+]]></content>
+      <tags>
+        <tag>ML</tag>
+        <tag>Math</tag>
+      </tags>
+  </entry>
 </search>
