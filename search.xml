@@ -3935,13 +3935,12 @@ f_m(x_1, x_2, \dots, x_n)  \\<br>
 \end{bmatrix}. $</p>
 <h2 id="示例-2：向量情况">示例 2：向量情况</h2>
 <p>定义 $ f(x,y,z) = \begin{bmatrix} x^2y \\ yz \\ e^x+z \end{bmatrix} $，则雅可比矩阵为：</p>
-<h1>$ J_f(x,y,z) =<br>
+<p>$ J_f(x,y,z) =<br>
 \begin{bmatrix}<br>
 \frac{\partial f_1}{\partial x} &amp; \frac{\partial f_1}{\partial y} &amp; \frac{\partial f_1}{\partial z} \\<br>
 \frac{\partial f_2}{\partial x} &amp; \frac{\partial f_2}{\partial y} &amp; \frac{\partial f_2}{\partial z} \\<br>
 \frac{\partial f_3}{\partial x} &amp; \frac{\partial f_3}{\partial y} &amp; \frac{\partial f_3}{\partial z}<br>
-\end{bmatrix}</h1>
-<p>\begin{bmatrix}<br>
+\end{bmatrix}  =  \begin{bmatrix}<br>
 2xy &amp; x^2 &amp; 0 \\<br>
 0 &amp; z &amp; y \\<br>
 e^x &amp; 0 &amp; 1  \\<br>
