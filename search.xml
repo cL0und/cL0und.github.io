@@ -651,9 +651,8 @@
 <p><strong>注意力机制的数学特性（苏剑林观点）</strong></p>
 <p><strong>核心观点：</strong>双向注意力容易退化为低秩，而因果注意力必然满秩。</p>
 <p><strong>详细解释与例子：</strong></p>
-<hr>
-<p>  Python<br>  #双向注意力示例<br>  #句子：&quot;我爱北京天安门&quot;<br>  #双向注意力矩阵（简化示例）<br>  [<br>  [0.2, 0.2, 0.2, 0.2, 0.2], # &quot;我&quot;看所有词<br>  [0.2, 0.2, 0.2, 0.2, 0.2], # &quot;爱&quot;看所有词<br>  [0.2, 0.2, 0.2, 0.2, 0.2], # &quot;北京&quot;看所有词<br>  [0.2, 0.2, 0.2, 0.2, 0.2], # &quot;天安&quot;看所有词<br>  0.2, 0.2, 0.2, 0.2, 0.2], # &quot;门&quot;看所有词<br>  ]<br>  #容易退化为低秩：所有行向量相似<br>  #因果注意力示例（decoder-only）<br>  [<br>  [1.0, 0, 0, 0, 0 ], # &quot;我&quot;只看自己<br>  [0.5, 0.5, 0, 0, 0 ], # &quot;爱&quot;看&quot;我&quot;和自己<br>  [0.3, 0.3, 0.4, 0, 0 ], # &quot;北京&quot;看前面的词<br>  [0.2, 0.2, 0.3, 0.3, 0 ], # &quot;天安&quot;看前面的词<br>  [0.2, 0.2, 0.2, 0.2, 0.2], # &quot;门&quot;看所有前面的词<br>  ]<br>  #下三角矩阵，必然满秩，表达能力更强</p>
-<hr>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">双向注意力示例</span><br><span class="line">句子：&quot;我爱北京天安门&quot;</span><br><span class="line">双向注意力矩阵（简化示例）</span><br><span class="line">[</span><br><span class="line">[0.2, 0.2, 0.2, 0.2, 0.2], &quot;我&quot;看所有词</span><br><span class="line">[0.2, 0.2, 0.2, 0.2, 0.2], &quot;爱&quot;看所有词</span><br><span class="line">[0.2, 0.2, 0.2, 0.2, 0.2], &quot;北京&quot;看所有词</span><br><span class="line">[0.2, 0.2, 0.2, 0.2, 0.2], &quot;天安&quot;看所有词</span><br><span class="line">[0.2, 0.2, 0.2, 0.2, 0.2], &quot;门&quot;看所有词</span><br><span class="line">]</span><br><span class="line">容易退化为低秩：所有行向量相似</span><br><span class="line">因果注意力示例（decoder-only）</span><br><span class="line">[</span><br><span class="line">[1.0, 0, 0, 0, 0], &quot;我&quot;只看自己</span><br><span class="line">[0.5, 0.5, 0, 0, 0], &quot;爱&quot;看&quot;我&quot;和自己</span><br><span class="line">[0.3, 0.3, 0.4, 0, 0], &quot;北京&quot;看前面的词</span><br><span class="line">[0.2, 0.2, 0.3, 0.3, 0], &quot;天安&quot;看前面的词</span><br><span class="line">[0.2, 0.2, 0.2, 0.2, 0.2], &quot;门&quot;看所有前面的词</span><br><span class="line">]</span><br><span class="line">下三角矩阵，必然满秩，表达能力更强</span><br></pre></td></tr></table></figure>
+
 <p>如果注意力矩阵变成低秩，相当于模型”眼里看到的东西都一样”，很多不同的位置/内容其实被糊成了一坨，没法细致地区分信息。</p>
 <p><strong>预测任务难度与泛化能力（@yili观点）</strong></p>
 <p><strong>核心观点：</strong>更难的预测任务促使模型学习更好的通用表征。</p>
@@ -668,9 +667,8 @@
 <p><strong>上下文学习的天然优势（@mimimumu观点）</strong></p>
 <p><strong>核心观点：</strong>Decoder-only架构让prompt能直接作用于每一层。</p>
 <p><strong>Few-shot学习示例：</strong></p>
-<hr>
-<p>  Plain Text<br>  输入格式： 问：什么是机器学习？<br>  答：机器学习是让计算机从数据中学习的技术。<br>  <br>  问：什么是深度学习？<br>  答：[模型生成]</p>
-<hr>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">输入你给出的格式去掉多余斜线，改成：</span><br><span class="line"></span><br><span class="line">问：什么是机器学习？</span><br><span class="line">答：机器学习是让计算机从数据中学习的技术。</span><br><span class="line"></span><br><span class="line">问：什么是深度学习？</span><br><span class="line">答：[模型生成]</span><br></pre></td></tr></table></figure>
+
 <p>在Decoder-only中：</p>
 <p>每个token的表示逐层构建时，都能直接参考前面的示例</p>
 <p>Prompt信息像&quot;隐式微调&quot;一样影响每一层的计算</p>
@@ -678,21 +676,13 @@
 <p><strong>隐式位置编码特性</strong></p>
 <p><strong>核心观点：</strong>因果注意力天然具有位置敏感性。</p>
 <p><strong>对比例子：</strong></p>
-<hr>
-<p>  Python<br>  #没有位置编码的双向注意力<br>  &quot;我爱你&quot; 和 &quot;你爱我&quot; 可能产生相似的表示<br>  <br>  #因果注意力（即使没有显式位置编码）<br>  &quot;我爱你&quot;：\</p>
-<ul>
-<li>&quot;我&quot;：只看自己\</li>
-<li>&quot;爱&quot;：看&quot;我&quot;+&quot;爱&quot;\</li>
-<li>&quot;你&quot;：看&quot;我&quot;+&quot;爱&quot;+&quot;你&quot;<br><br>&quot;你爱我&quot;：\</li>
-<li>&quot;你&quot;：只看自己\</li>
-<li>&quot;爱&quot;：看&quot;你&quot;+&quot;爱&quot;\</li>
-<li>&quot;我&quot;：看&quot;你&quot;+&quot;爱&quot;+&quot;我&quot;<br>#表示完全不同，天然区分语序</li>
-</ul>
-<hr>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">没有位置编码的双向注意力</span><br><span class="line">&quot;我爱你&quot; 和 &quot;你爱我&quot; 可能产生相似的表示</span><br><span class="line"></span><br><span class="line">因果注意力（即使没有显式位置编码）</span><br><span class="line">&quot;我爱你&quot;：</span><br><span class="line"></span><br><span class="line">&quot;我&quot;：只看自己</span><br><span class="line">&quot;爱&quot;：看&quot;我&quot;+&quot;爱&quot;</span><br><span class="line">&quot;你&quot;：看&quot;我&quot;+&quot;爱&quot;+&quot;你&quot;</span><br><span class="line">&quot;你爱我&quot;：</span><br><span class="line"></span><br><span class="line">&quot;你&quot;：只看自己</span><br><span class="line">&quot;爱&quot;：看&quot;你&quot;+&quot;爱&quot;</span><br><span class="line">&quot;我&quot;：看&quot;你&quot;+&quot;爱&quot;+&quot;我&quot;</span><br><span class="line">表示完全不同，天然区分语序</span><br></pre></td></tr></table></figure>
+
+
+
 <p><strong>KV-Cache复用机制</strong></p>
-<hr>
-<p>  Python<br>  #第一轮<br>  用户：&quot;介绍一下北京&quot;<br>  模型：生成回答，缓存所有KV<br>  <br>  #第二轮<br>  用户：&quot;它的人口有多少？&quot;<br>  <br>  #Decoder-only：直接复用第一轮的KV-Cache<br>  #只需计算新输入的KV，效率极高<br>  <br>  #Encoder-Decoder：需要重新编码整个上下文<br>  #因为encoder看到的是完整输入，任何改变都需要重新计算</p>
-<hr>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">第一轮</span><br><span class="line">用户：&quot;介绍一下北京&quot;</span><br><span class="line">模型：生成回答，缓存所有KV</span><br><span class="line"></span><br><span class="line">第二轮</span><br><span class="line">用户：&quot;它的人口有多少？&quot;</span><br><span class="line"></span><br><span class="line">Decoder-only：直接复用第一轮的KV-Cache</span><br><span class="line">只需计算新输入的KV，效率极高</span><br><span class="line"></span><br><span class="line">Encoder-Decoder：需要重新编码整个上下文</span><br><span class="line">因为encoder看到的是完整输入，任何改变都需要重新计算</span><br></pre></td></tr></table></figure>
+
 ]]></content>
       <tags>
         <tag>ML</tag>
